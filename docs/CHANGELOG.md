@@ -12,3 +12,4 @@
 - Phase 6.2: Workspace scroll behavior and background modes
 - Phase 6.3: Alpha test package
 - Phase 7: First-use polish and demo start
+- Phase 7.1: Premium UI polish

@@ -33,13 +33,13 @@ export function RightPanel({
 }: RightPanelProps) {
   return (
     <aside className="panel right-panel" aria-label="Rig details">
-      <div>
-        <p className="eyebrow">Rig Contract</p>
+      <div className="panel-section intro-section">
+        <p className="eyebrow">Active Rig</p>
         <h2>{rig.name}</h2>
         <p className="panel-copy">{rig.description}</p>
       </div>
 
-      <section className="alpha-guide" aria-label="Alpha workflow">
+      <section className="panel-section alpha-guide" aria-label="Alpha workflow">
         <p className="eyebrow">Private Alpha</p>
         <p className="alpha-copy">
           MotionKit Spatial is an early private alpha. Uploaded images stay in your browser, are
@@ -55,17 +55,6 @@ export function RightPanel({
           Load demo
         </button>
       </section>
-
-      <div className="export-action">
-        <button disabled={exportStatus === "exporting"} type="button" onClick={onExport}>
-          {exportStatus === "exporting" ? "Exporting..." : "Export WebM"}
-        </button>
-        <small>{getExportStatusLabel(exportStatus)}</small>
-        <p className="export-note">
-          Exports WebM locally. MP4 not available yet. Chrome controls may appear when previewing
-          the downloaded file.
-        </p>
-      </div>
 
       <dl className="detail-list">
         <div>
@@ -86,12 +75,10 @@ export function RightPanel({
         </div>
       </dl>
 
-      <RigControls settings={settings} onChange={setSettings} onReset={onResetSettings} />
-
-      <section className="media-slots-section" aria-label="Media slots">
+      <section className="panel-section media-slots-section" aria-label="Media slots">
         <div className="section-heading-row">
           <div>
-            <p className="eyebrow">Media Slots</p>
+            <p className="eyebrow">Media</p>
             <h2>Local Images</h2>
           </div>
           <button className="text-control" type="button" onClick={clearAllSlots}>
@@ -111,6 +98,23 @@ export function RightPanel({
             />
           ))}
         </div>
+      </section>
+
+      <RigControls settings={settings} onChange={setSettings} onReset={onResetSettings} />
+
+      <section className="panel-section export-action" aria-label="Export">
+        <div>
+          <p className="eyebrow">Export</p>
+          <h2>Render WebM</h2>
+        </div>
+        <button disabled={exportStatus === "exporting"} type="button" onClick={onExport}>
+          {exportStatus === "exporting" ? "Exporting..." : "Export WebM"}
+        </button>
+        <small>{getExportStatusLabel(exportStatus)}</small>
+        <p className="export-note">
+          Exports WebM locally. MP4 not available yet. Chrome controls may appear when previewing
+          the downloaded file.
+        </p>
       </section>
     </aside>
   );

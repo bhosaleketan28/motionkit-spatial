@@ -39,6 +39,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Canvas 2D Orbit Carousel renderer
 - Generated in-app demo cards for first-use testing
 - Four local media slots with upload, replace, clear, and clear-all
+- Premium dark editor shell with grouped controls
 - Live preview with play/pause
 - Frame ratios: 1:1, 16:9, 9:16
 - Rig controls for duration, spread, depth fade, card size, corner radius, and direction
