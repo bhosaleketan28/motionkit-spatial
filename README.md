@@ -1,8 +1,8 @@
 # MotionKit Spatial
 
-MotionKit Spatial is a private local browser prototype for creating animated spatial design showcases. The current MVP focuses on one motion rig: Orbit Carousel.
+MotionKit Spatial is a private local browser prototype for creating animated spatial motion from screenshots. The current MVP focuses on one motion rig: Orbit Carousel.
 
-Users can upload four images, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
+Users can upload four images or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
 
 ## Run Locally
 
@@ -37,6 +37,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 
 - React + Vite + TypeScript local app
 - Canvas 2D Orbit Carousel renderer
+- Generated in-app demo cards for first-use testing
 - Four local media slots with upload, replace, clear, and clear-all
 - Live preview with play/pause
 - Frame ratios: 1:1, 16:9, 9:16

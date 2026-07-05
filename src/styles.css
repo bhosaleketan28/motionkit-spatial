@@ -87,6 +87,41 @@ h2 {
   font-size: 1.18rem;
 }
 
+.product-headline {
+  margin: 18px 0 0;
+  color: #20282c;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.product-copy {
+  margin: 8px 0 0;
+  color: #647078;
+  font-size: 0.88rem;
+}
+
+.best-used {
+  margin-top: 26px;
+}
+
+.best-used ul {
+  display: grid;
+  gap: 7px;
+  padding: 0;
+  margin: 10px 0 0;
+  color: #394247;
+  font-size: 0.84rem;
+  list-style: none;
+}
+
+.best-used li {
+  padding: 8px 10px;
+  background: rgba(255, 253, 248, 0.68);
+  border: 1px solid rgba(31, 37, 41, 0.08);
+  border-radius: 8px;
+}
+
 .rig-list {
   display: grid;
   gap: 10px;
@@ -278,6 +313,22 @@ h2 {
   font-size: 0.82rem;
 }
 
+.demo-control {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  background: #1f2529;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 900;
+}
+
+.demo-control:hover {
+  background: #2e776d;
+}
+
 .section-heading-row {
   display: flex;
   align-items: center;
@@ -414,6 +465,12 @@ h2 {
 
 .media-slots-section {
   margin-top: 34px;
+}
+
+.section-helper {
+  margin: 8px 0 0;
+  color: #647078;
+  font-size: 0.8rem;
 }
 
 .media-slot-list {

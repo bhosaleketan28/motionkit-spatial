@@ -9,6 +9,7 @@ interface RightPanelProps {
   clearSlot: (index: number) => void;
   exportStatus: ExportStatus;
   onExport: () => void;
+  onLoadDemo: () => void;
   onResetSettings: () => void;
   rig: MotionRigDefinition;
   settings: OrbitRigSettings;
@@ -22,6 +23,7 @@ export function RightPanel({
   clearSlot,
   exportStatus,
   onExport,
+  onLoadDemo,
   onResetSettings,
   rig,
   settings,
@@ -49,6 +51,9 @@ export function RightPanel({
           <li>Preview motion</li>
           <li>Export WebM</li>
         </ol>
+        <button className="demo-control" type="button" onClick={onLoadDemo}>
+          Load demo
+        </button>
       </section>
 
       <div className="export-action">
@@ -93,6 +98,7 @@ export function RightPanel({
             Clear all
           </button>
         </div>
+        <p className="section-helper">Upload 4 screenshots or start with the generated demo set.</p>
 
         <div className="media-slot-list">
           {slots.map((slot, index) => (

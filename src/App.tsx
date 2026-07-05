@@ -32,9 +32,8 @@ export default function App() {
   const [exportStatus, setExportStatus] = useState<ExportStatus>("ready");
   const [settings, setSettings] = useState<OrbitRigSettings>(createDefaultSettings);
   const normalizedSettings = normalizeSettings(settings);
-  const { slots, slotImages, setSlotFile, clearSlot, clearAllSlots } = useImageSlots(
-    orbitCarouselRig.mediaSlotCount,
-  );
+  const { slots, slotImages, setSlotFile, clearSlot, clearAllSlots, loadDemoSlots } =
+    useImageSlots(orbitCarouselRig.mediaSlotCount);
 
   const handleExport = async () => {
     if (exportInProgressRef.current) {
@@ -76,6 +75,7 @@ export default function App() {
         clearSlot={clearSlot}
         exportStatus={exportStatus}
         onExport={handleExport}
+        onLoadDemo={loadDemoSlots}
         onResetSettings={() => setSettings(createDefaultSettings())}
         rig={orbitCarouselRig}
         settings={normalizedSettings}
