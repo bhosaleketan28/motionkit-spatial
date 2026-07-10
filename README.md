@@ -4,7 +4,7 @@ MotionKit Spatial is a private local browser prototype for creating animated spa
 
 Users can upload four images or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
 
-The Phase 8 editor opens with a focused first-run screen, then moves into a fixed creative workspace with top-level playback and export actions, media navigation on the left, a dominant canvas stage, and a contextual inspector on the right.
+The Phase 9.1 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor.
 
 ## Run Locally
 
@@ -43,9 +43,11 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Four local media slots with upload, replace, clear, and clear-all
 - Premium dark editor shell with grouped controls
 - First-run demo or four-image upload flow
-- Compact editor top bar with synchronized playback, reset, and export actions
-- Navigation-focused media sidebar and collapsible rig inspector
-- Live preview with play/pause
+- Compact editor top bar with canonical export and secondary reset actions
+- Collapsible desktop media and inspector rails with responsive drawers and bottom sheets
+- Stage-only focus mode with zoom and fit-to-window controls
+- Synchronized motion transport with play/pause, replay, scrubber, loop indicator, and time display
+- Frame stepping at 1/30 second and 0.25 second increments
 - Frame ratios: 1:1, 16:9, 9:16
 - Rig controls for duration, spread, depth fade, card size, corner radius, and direction
 - Card shape control: Rectangle, Square, Circle, Star
@@ -59,7 +61,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - MP4 not available yet
 - No backend, auth, database, or cloud storage
 - No project saving
-- No timeline
+- No full timeline, layers, keyframes, or advanced sequencing
 - No advanced export settings
 - Transparent WebM playback may vary by browser
 - Local prototype only

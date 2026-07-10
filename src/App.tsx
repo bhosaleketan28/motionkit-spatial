@@ -1,4 +1,5 @@
 import { CenterStage } from "./components/CenterStage";
+import type { CenterStageHandle } from "./components/CenterStage";
 import { LeftPanel } from "./components/LeftPanel";
 import { RightPanel } from "./components/RightPanel";
 import { StartScreen } from "./components/StartScreen";
@@ -40,6 +41,7 @@ function normalizeSettings(settings: OrbitRigSettings): OrbitRigSettings {
 export default function App() {
   const exportInProgressRef = useRef(false);
   const previousDrawerRef = useRef<WorkspacePanel | null>(null);
+  const stageRef = useRef<CenterStageHandle | null>(null);
   const isNarrowWorkspace = useMediaQuery(NARROW_WORKSPACE_QUERY);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("ready");
   const [isPlaying, setIsPlaying] = useState(true);
@@ -209,6 +211,18 @@ export default function App() {
       if (event.shiftKey && event.key.toLowerCase() === "f") {
         event.preventDefault();
         toggleStageOnly();
+        return;
+      }
+
+      const stageHasFocus =
+        target?.classList.contains("center-stage") || Boolean(target?.closest(".stage-transport"));
+      if (
+        stageHasFocus &&
+        (event.key === "ArrowLeft" || event.key === "ArrowRight")
+      ) {
+        event.preventDefault();
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        stageRef.current?.stepBySeconds(direction * (event.shiftKey ? 0.25 : 1 / 30));
       }
     };
 
@@ -312,6 +326,7 @@ export default function App() {
             setSettings({ ...normalizedSettings, frameRatio })
           }
           onFit={handleFit}
+          onPlaybackChange={setIsPlaying}
           onToggleInspector={() => toggleWorkspacePanel("inspector")}
           onToggleMedia={() => toggleWorkspacePanel("media")}
           onTogglePlay={togglePlayback}
@@ -319,6 +334,7 @@ export default function App() {
           onZoomIn={() => handleZoom(1)}
           onZoomOut={() => handleZoom(-1)}
           rig={orbitCarouselRig}
+          ref={stageRef}
           settings={normalizedSettings}
           slotImages={slotImages}
           zoomPercent={zoomPercent}

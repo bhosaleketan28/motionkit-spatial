@@ -1,8 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
 import { getFrameSize } from "../renderer/geometry";
 import { renderOrbitCarousel } from "../renderer/canvasRenderer";
 import type { FrameRatio, MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import { StageTransport } from "./StageTransport";
+import type { StageTransportHandle } from "./StageTransport";
 
 interface CenterStageProps {
   isFitMode?: boolean;
@@ -12,6 +21,7 @@ interface CenterStageProps {
   isStageOnly?: boolean;
   onChangeFrameRatio: (ratio: FrameRatio) => void;
   onFit?: () => void;
+  onPlaybackChange?: (isPlaying: boolean) => void;
   onToggleInspector?: () => void;
   onToggleMedia?: () => void;
   onTogglePlay: () => void;
@@ -25,9 +35,13 @@ interface CenterStageProps {
   zoomPercent?: number;
 }
 
+export interface CenterStageHandle {
+  stepBySeconds: (seconds: number) => void;
+}
+
 const frameRatios: FrameRatio[] = ["1:1", "16:9", "9:16"];
 
-export function CenterStage({
+export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(function CenterStage({
   isFitMode = true,
   isInspectorOpen = false,
   isMediaOpen = false,
@@ -35,6 +49,7 @@ export function CenterStage({
   isStageOnly = false,
   onChangeFrameRatio,
   onFit = () => undefined,
+  onPlaybackChange = () => undefined,
   onToggleInspector = () => undefined,
   onToggleMedia = () => undefined,
   onTogglePlay,
@@ -46,7 +61,7 @@ export function CenterStage({
   slotImages,
   variant = "editor",
   zoomPercent = 100,
-}: CenterStageProps) {
+}: CenterStageProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
   const canvasSurfaceRef = useRef<HTMLDivElement | null>(null);
@@ -59,6 +74,9 @@ export function CenterStage({
   });
   const progressRef = useRef(0);
   const resizeFrameRef = useRef<number | null>(null);
+  const resumeAfterScrubRef = useRef(false);
+  const isScrubbingRef = useRef(false);
+  const transportRef = useRef<StageTransportHandle | null>(null);
   const [fitFeedback, setFitFeedback] = useState(false);
   const frame = getFrameSize(settings.frameRatio);
 
@@ -80,6 +98,20 @@ export function CenterStage({
       slotImages,
     });
   }, [frame, rig, settings, slotImages]);
+
+  const updateProgress = useCallback((progress: number) => {
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+    progressRef.current = clampedProgress;
+    transportRef.current?.updateProgress(clampedProgress, settings.durationSeconds);
+    draw();
+  }, [draw, settings.durationSeconds]);
+
+  const stepBySeconds = useCallback((seconds: number) => {
+    onPlaybackChange(false);
+    updateProgress(progressRef.current + seconds / settings.durationSeconds);
+  }, [onPlaybackChange, settings.durationSeconds, updateProgress]);
+
+  useImperativeHandle(ref, () => ({ stepBySeconds }), [stepBySeconds]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -178,16 +210,43 @@ export function CenterStage({
 
   useAnimationFrame(
     (deltaMs) => {
+      if (isScrubbingRef.current) {
+        return;
+      }
+
       const loopMs = settings.durationSeconds * 1000;
       progressRef.current = (progressRef.current + deltaMs / loopMs) % 1;
+      transportRef.current?.updateProgress(progressRef.current, settings.durationSeconds);
       draw();
     },
     isPlaying,
   );
 
   useEffect(() => {
+    transportRef.current?.updateProgress(progressRef.current, settings.durationSeconds);
     draw();
-  }, [draw, isPlaying]);
+  }, [draw, isPlaying, settings.durationSeconds]);
+
+  const handleReplay = () => {
+    updateProgress(0);
+    onPlaybackChange(true);
+  };
+
+  const handleScrubStart = () => {
+    isScrubbingRef.current = true;
+    resumeAfterScrubRef.current = isPlaying;
+    if (isPlaying) {
+      onPlaybackChange(false);
+    }
+  };
+
+  const handleScrubEnd = () => {
+    isScrubbingRef.current = false;
+    if (resumeAfterScrubRef.current) {
+      onPlaybackChange(true);
+    }
+    resumeAfterScrubRef.current = false;
+  };
 
   return (
     <section
@@ -228,14 +287,6 @@ export function CenterStage({
             </div>
           </div>
           <div className="stage-actions">
-            <button
-              aria-label={isPlaying ? "Pause preview (Space)" : "Play preview (Space)"}
-              className="toolbar-button playback-button"
-              type="button"
-              onClick={onTogglePlay}
-            >
-              {isPlaying ? "Pause" : "Play"}
-            </button>
             <div className="zoom-control" aria-label="Stage zoom">
               <button
                 aria-label="Zoom out"
@@ -300,6 +351,20 @@ export function CenterStage({
           />
         </div>
       </div>
+
+      {variant === "editor" ? (
+        <StageTransport
+          durationSeconds={settings.durationSeconds}
+          isPlaying={isPlaying}
+          onReplay={handleReplay}
+          onScrubEnd={handleScrubEnd}
+          onScrubStart={handleScrubStart}
+          onSeek={updateProgress}
+          onStep={stepBySeconds}
+          onTogglePlay={onTogglePlay}
+          ref={transportRef}
+        />
+      ) : null}
     </section>
   );
-}
+});
