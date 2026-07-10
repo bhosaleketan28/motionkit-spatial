@@ -1,7 +1,6 @@
 import type {
   BackgroundMode,
   CardShape,
-  FrameRatio,
   OrbitDirection,
   OrbitRigSettings,
 } from "../rigs/types";
@@ -9,15 +8,13 @@ import type {
 interface RigControlsProps {
   settings: OrbitRigSettings;
   onChange: (settings: OrbitRigSettings) => void;
-  onReset: () => void;
 }
 
-const frameRatios: FrameRatio[] = ["1:1", "16:9", "9:16"];
 const directions: OrbitDirection[] = ["clockwise", "counter-clockwise"];
 const backgroundModes: BackgroundMode[] = ["transparent", "solid", "gradient"];
 const cardShapes: CardShape[] = ["rectangle", "square", "circle", "star"];
 
-export function RigControls({ settings, onChange, onReset }: RigControlsProps) {
+export function RigControls({ settings, onChange }: RigControlsProps) {
   const updateSetting = <Key extends keyof OrbitRigSettings>(
     key: Key,
     value: OrbitRigSettings[Key],
@@ -29,36 +26,10 @@ export function RigControls({ settings, onChange, onReset }: RigControlsProps) {
   };
 
   return (
-    <section className="rig-controls-section" aria-label="Orbit Carousel controls">
-      <div className="panel-section-heading">
-        <p className="eyebrow">Rig Controls</p>
-        <div className="section-heading-row">
-          <h2>Orbit Look</h2>
-          <button className="text-control" type="button" onClick={onReset}>
-            Reset
-          </button>
-        </div>
-      </div>
-
-      <div className="control-stack">
-        <div className="control-group">
-          <h3>Frame & Motion</h3>
-          <fieldset className="segmented-field">
-            <legend>Frame ratio</legend>
-            <div className="segmented-control">
-              {frameRatios.map((ratio) => (
-                <button
-                  className={settings.frameRatio === ratio ? "segment-active" : ""}
-                  key={ratio}
-                  type="button"
-                  onClick={() => updateSetting("frameRatio", ratio)}
-                >
-                  {ratio}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
+    <div className="inspector-sections" aria-label="Orbit Carousel controls">
+      <details className="inspector-section" open>
+        <summary>Motion</summary>
+        <div className="inspector-content">
           <RangeControl
             label="Loop duration"
             max={20}
@@ -101,9 +72,11 @@ export function RigControls({ settings, onChange, onReset }: RigControlsProps) {
             </div>
           </fieldset>
         </div>
+      </details>
 
-        <div className="control-group">
-          <h3>Card Style</h3>
+      <details className="inspector-section" open>
+        <summary>Appearance</summary>
+        <div className="inspector-content">
           <RangeControl
             label="Card size"
             max={0.44}
@@ -138,9 +111,11 @@ export function RigControls({ settings, onChange, onReset }: RigControlsProps) {
             </div>
           </fieldset>
         </div>
+      </details>
 
-        <div className="control-group">
-          <h3>Background</h3>
+      <details className="inspector-section">
+        <summary>Background</summary>
+        <div className="inspector-content">
           <fieldset className="segmented-field">
             <legend>Mode</legend>
             <div className="segmented-control">
@@ -205,8 +180,8 @@ export function RigControls({ settings, onChange, onReset }: RigControlsProps) {
             reliable playback.
           </p>
         </div>
-      </div>
-    </section>
+      </details>
+    </div>
   );
 }
 

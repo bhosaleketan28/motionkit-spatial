@@ -2,19 +2,33 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
 import { getFrameSize } from "../renderer/geometry";
 import { renderOrbitCarousel } from "../renderer/canvasRenderer";
-import type { MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { FrameRatio, MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
 
 interface CenterStageProps {
+  isPlaying: boolean;
+  onChangeFrameRatio: (ratio: FrameRatio) => void;
+  onTogglePlay: () => void;
   rig: MotionRigDefinition;
   settings: OrbitRigSettings;
   slotImages: Array<HTMLImageElement | null>;
+  variant?: "editor" | "onboarding";
 }
 
-export function CenterStage({ rig, settings, slotImages }: CenterStageProps) {
+const frameRatios: FrameRatio[] = ["1:1", "16:9", "9:16"];
+
+export function CenterStage({
+  isPlaying,
+  onChangeFrameRatio,
+  onTogglePlay,
+  rig,
+  settings,
+  slotImages,
+  variant = "editor",
+}: CenterStageProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [fitVersion, setFitVersion] = useState(0);
   const frame = getFrameSize(settings.frameRatio);
 
   const draw = useCallback(() => {
@@ -46,8 +60,9 @@ export function CenterStage({ rig, settings, slotImages }: CenterStageProps) {
 
     const syncCanvasSize = () => {
       const bounds = stage.getBoundingClientRect();
-      const maxWidth = Math.max(280, bounds.width - 48);
-      const maxHeight = Math.max(280, bounds.height - 148);
+      const isOnboarding = variant === "onboarding";
+      const maxWidth = Math.max(280, bounds.width - (isOnboarding ? 32 : 56));
+      const maxHeight = Math.max(280, bounds.height - (isOnboarding ? 32 : 116));
       const frameAspect = frame.width / frame.height;
       const stageAspect = maxWidth / maxHeight;
       const displayWidth = stageAspect > frameAspect ? maxHeight * frameAspect : maxWidth;
@@ -72,7 +87,7 @@ export function CenterStage({ rig, settings, slotImages }: CenterStageProps) {
     observer.observe(stage);
 
     return () => observer.disconnect();
-  }, [draw, frame.height, frame.width]);
+  }, [draw, fitVersion, frame.height, frame.width, variant]);
 
   useAnimationFrame(
     (deltaMs) => {
@@ -88,20 +103,39 @@ export function CenterStage({ rig, settings, slotImages }: CenterStageProps) {
   }, [draw, isPlaying]);
 
   return (
-    <section className="center-stage" ref={stageRef} aria-label="Canvas preview">
-      <div className="stage-header">
-        <div>
-          <p className="eyebrow">Preview</p>
-          <h2>{rig.name}</h2>
+    <section
+      className={variant === "onboarding" ? "center-stage onboarding-stage" : "center-stage"}
+      ref={stageRef}
+      aria-label="Canvas preview"
+    >
+      {variant === "editor" ? (
+        <div className="stage-toolbar">
+          <div className="stage-title">
+            <span className={isPlaying ? "live-indicator playing" : "live-indicator"} />
+            <strong>{rig.name}</strong>
+          </div>
+          <div className="stage-actions">
+            <button className="toolbar-button" type="button" onClick={onTogglePlay}>
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+            <button className="toolbar-button" type="button" onClick={() => setFitVersion((value) => value + 1)}>
+              Fit
+            </button>
+            <div className="stage-ratio-control" aria-label="Frame ratio">
+              {frameRatios.map((ratio) => (
+                <button
+                  className={settings.frameRatio === ratio ? "selected" : ""}
+                  key={ratio}
+                  type="button"
+                  onClick={() => onChangeFrameRatio(ratio)}
+                >
+                  {ratio}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        <button
-          className="primary-control"
-          type="button"
-          onClick={() => setIsPlaying((current) => !current)}
-        >
-          {isPlaying ? "Pause" : "Play"}
-        </button>
-      </div>
+      ) : null}
 
       <div className="canvas-wrap">
         <canvas
