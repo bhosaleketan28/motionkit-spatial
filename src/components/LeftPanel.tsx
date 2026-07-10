@@ -10,7 +10,10 @@ interface LeftPanelProps {
   activeRigId: string;
   clearAllSlots: () => void;
   clearSlot: (index: number) => void;
+  isDrawer: boolean;
+  isVisible: boolean;
   onLoadDemo: () => void;
+  onRequestClose: () => void;
   setSlotFile: (index: number, file: File) => void;
   slots: ImageSlot[];
 }
@@ -21,14 +24,34 @@ export function LeftPanel({
   activeRigId,
   clearAllSlots,
   clearSlot,
+  isDrawer,
+  isVisible,
   onLoadDemo,
+  onRequestClose,
   setSlotFile,
   slots,
 }: LeftPanelProps) {
   const [activeSection, setActiveSection] = useState<WorkspaceSection>("media");
 
   return (
-    <aside className="panel left-panel" aria-label="Workspace navigation">
+    <aside
+      aria-hidden={!isVisible}
+      aria-label={isDrawer ? "Media drawer" : "Media rail"}
+      className={isVisible ? "panel left-panel panel-open" : "panel left-panel"}
+      data-workspace-drawer="media"
+      id="media-panel"
+    >
+      <div className="panel-chrome">
+        <span>{isDrawer ? "Media drawer" : "Media rail"}</span>
+        <button
+          aria-label={isDrawer ? "Close media drawer" : "Collapse media rail"}
+          data-drawer-close
+          type="button"
+          onClick={onRequestClose}
+        >
+          {isDrawer ? "Close" : "Hide"}
+        </button>
+      </div>
       <nav className="workspace-nav" aria-label="Workspace sections">
         {(["create", "media", "presets"] as WorkspaceSection[]).map((section) => (
           <button

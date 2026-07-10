@@ -1,22 +1,20 @@
+import { useRef } from "react";
 import type { ExportStatus } from "../export/exportSettings";
 
 interface TopBarProps {
   exportStatus: ExportStatus;
-  isPlaying: boolean;
   onExport: () => void;
   onReset: () => void;
-  onTogglePlay: () => void;
   rigName: string;
 }
 
 export function TopBar({
   exportStatus,
-  isPlaying,
   onExport,
   onReset,
-  onTogglePlay,
   rigName,
 }: TopBarProps) {
+  const utilitiesRef = useRef<HTMLDetailsElement | null>(null);
   const isExporting = exportStatus === "exporting";
 
   return (
@@ -30,12 +28,21 @@ export function TopBar({
         <span className={`top-status status-${exportStatus}`} aria-live="polite">
           {getCompactStatus(exportStatus)}
         </span>
-        <button className="toolbar-button" type="button" onClick={onTogglePlay}>
-          {isPlaying ? "Pause" : "Play"}
-        </button>
-        <button className="toolbar-button" type="button" onClick={onReset}>
-          Reset
-        </button>
+        <details className="utility-menu" ref={utilitiesRef}>
+          <summary aria-label="Open workspace utilities">•••</summary>
+          <div className="utility-menu-popover">
+            <span>Workspace</span>
+            <button
+              type="button"
+              onClick={() => {
+                onReset();
+                if (utilitiesRef.current) utilitiesRef.current.open = false;
+              }}
+            >
+              Reset rig settings
+            </button>
+          </div>
+        </details>
         <button
           className="primary-button top-export-button"
           disabled={isExporting}
