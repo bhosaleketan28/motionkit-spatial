@@ -19,6 +19,7 @@
 - Phase 9.2: Export confidence
 - Phase 9.3: Media workflow
 - Phase 9.4: Precision inspector and output controls
+- Phase 9.5: Accessibility, recovery, and product hardening
 
 ## Phase 8 Highlights
 
@@ -81,3 +82,17 @@
 - Added aligned color swatches and hex fields with three- and six-digit normalization, immediate preview updates, and polite validation feedback.
 - Reorganized export review into compact Format, Resolution, FPS, Ratio, Duration, Background, and Filename rows with exact WebM/PNG action labels.
 - Increased inspector working labels to 14px, metadata to at least 12px, and narrow-screen targets to approximately 40–42px.
+
+## Phase 9.5 Highlights
+
+- Added keyboard arrow navigation and roving focus for workspace tabs, inspector radio groups, and export option groups.
+- Added a coarse, non-live stage description with rig, media count, ratio, playback state, current time, and duration.
+- Stopped editor and first-run autoplay when the system requests reduced motion and added a visible first-run Play/Pause control.
+- Expanded reduced-motion CSS to drawers, workspace transitions, loading shimmer, notices, hover motion, and export progress transitions without hiding essential progress.
+- Consolidated transient recovery, export, session, warning, and error feedback into one controlled notice surface with appropriate polite/assertive behavior.
+- Added Reset Rig confirmation plus Undo while retaining immediate per-property resets.
+- Persisted safe non-media workspace settings to localStorage with schema validation, corruption fallback, and unavailable-storage warnings.
+- Restored saved settings into an empty editor with a clear local-media re-add message instead of pretending media persisted.
+- Added a lightweight keyboard shortcut reference to workspace utilities.
+- Added accurate radio, tab, group, busy, expanded, selected, disabled, and range-value semantics across the core workflow.
+- Re-audited object URL, MediaRecorder, stream track, animation frame, ResizeObserver, timer, abort listener, and event-listener cleanup paths.

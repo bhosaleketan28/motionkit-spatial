@@ -91,12 +91,24 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
               label="Direction"
               onReset={() => updateSetting("direction", defaults.direction)}
             />
-            <div className="segmented-control two-up">
-              {directions.map((direction) => (
+            <div className="segmented-control two-up" role="radiogroup" aria-label="Direction">
+              {directions.map((direction, index) => (
                 <button
-                  aria-pressed={settings.direction === direction}
+                  aria-checked={settings.direction === direction}
                   className={settings.direction === direction ? "segment-active" : ""}
+                  id={`direction-option-${direction}`}
                   key={direction}
+                  onKeyDown={(event) =>
+                    handleRadioNavigation(
+                      event,
+                      directions,
+                      index,
+                      (next) => updateSetting("direction", next),
+                      "direction-option",
+                    )
+                  }
+                  role="radio"
+                  tabIndex={settings.direction === direction ? 0 : -1}
                   type="button"
                   onClick={() => updateSetting("direction", direction)}
                 >
@@ -149,12 +161,24 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
               label="Card shape"
               onReset={() => updateSetting("cardShape", defaults.cardShape)}
             />
-            <div className="segmented-control four-up">
-              {cardShapes.map((shape) => (
+            <div className="segmented-control four-up" role="radiogroup" aria-label="Card shape">
+              {cardShapes.map((shape, index) => (
                 <button
-                  aria-pressed={settings.cardShape === shape}
+                  aria-checked={settings.cardShape === shape}
                   className={settings.cardShape === shape ? "segment-active" : ""}
+                  id={`card-shape-option-${shape}`}
                   key={shape}
+                  onKeyDown={(event) =>
+                    handleRadioNavigation(
+                      event,
+                      cardShapes,
+                      index,
+                      (next) => updateSetting("cardShape", next),
+                      "card-shape-option",
+                    )
+                  }
+                  role="radio"
+                  tabIndex={settings.cardShape === shape ? 0 : -1}
                   type="button"
                   onClick={() => updateSetting("cardShape", shape)}
                 >
@@ -521,4 +545,29 @@ function formatBackgroundMode(mode: BackgroundMode) {
 
 function formatCardShape(shape: CardShape) {
   return shape.charAt(0).toUpperCase() + shape.slice(1);
+}
+
+function handleRadioNavigation<Value extends string>(
+  event: React.KeyboardEvent<HTMLButtonElement>,
+  values: Value[],
+  currentIndex: number,
+  onSelect: (value: Value) => void,
+  idPrefix: string,
+) {
+  let nextIndex = currentIndex;
+  if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+    nextIndex = (currentIndex + 1) % values.length;
+  } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+    nextIndex = (currentIndex - 1 + values.length) % values.length;
+  } else if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = values.length - 1;
+  } else {
+    return;
+  }
+  event.preventDefault();
+  const nextValue = values[nextIndex];
+  onSelect(nextValue);
+  window.requestAnimationFrame(() => document.getElementById(`${idPrefix}-${nextValue}`)?.focus());
 }

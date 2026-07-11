@@ -465,6 +465,7 @@ export function useImageSlots(slotCount: number) {
   return {
     addFiles,
     clearAllSlots,
+    dismissUndo: finishUndo,
     dismissNotice: () => setMediaNotice(null),
     loadDemoSlots,
     mediaAnnouncement,

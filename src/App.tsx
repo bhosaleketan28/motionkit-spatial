@@ -2,6 +2,8 @@ import { CenterStage } from "./components/CenterStage";
 import type { CenterStageHandle } from "./components/CenterStage";
 import { ExportSheet } from "./components/ExportSheet";
 import { LeftPanel } from "./components/LeftPanel";
+import { NoticeCenter } from "./components/NoticeCenter";
+import type { AppNotice, NoticeTone } from "./components/NoticeCenter";
 import { RightPanel } from "./components/RightPanel";
 import { StartScreen } from "./components/StartScreen";
 import { TopBar } from "./components/TopBar";
@@ -11,11 +13,14 @@ import type { ImageSlot } from "./hooks/useImageSlots";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { orbitCarouselRig } from "./rigs/orbitCarousel";
 import type { OrbitRigSettings } from "./rigs/types";
-import { useEffect, useRef, useState } from "react";
+import { readWorkspaceSession, writeWorkspaceSession } from "./utils/workspaceSession";
+import type { WorkspaceSession } from "./utils/workspaceSession";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type WorkspacePanel = "media" | "inspector";
 
 const NARROW_WORKSPACE_QUERY = "(max-width: 1024px)";
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const MIN_ZOOM = 50;
 const MAX_ZOOM = 200;
 const ZOOM_STEP = 10;
@@ -39,25 +44,45 @@ function normalizeSettings(settings: OrbitRigSettings): OrbitRigSettings {
 }
 
 export default function App() {
+  const [initialSession] = useState(readWorkspaceSession);
   const previousDrawerRef = useRef<WorkspacePanel | null>(null);
+  const latestSessionRef = useRef<WorkspaceSession | null>(null);
+  const noticeIdRef = useRef(1);
+  const sessionNoticeShownRef = useRef(false);
+  const storageWarningShownRef = useRef(false);
   const stageRef = useRef<CenterStageHandle | null>(null);
   const isNarrowWorkspace = useMediaQuery(NARROW_WORKSPACE_QUERY);
+  const prefersReducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("ready");
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isLeftRailCollapsed, setIsLeftRailCollapsed] = useState(false);
-  const [isRightRailCollapsed, setIsRightRailCollapsed] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(() => !prefersReducedMotion);
+  const [isLeftRailCollapsed, setIsLeftRailCollapsed] = useState(
+    () => initialSession.session?.isLeftRailCollapsed ?? false,
+  );
+  const [isRightRailCollapsed, setIsRightRailCollapsed] = useState(
+    () => initialSession.session?.isRightRailCollapsed ?? false,
+  );
   const [isStageOnly, setIsStageOnly] = useState(false);
   const [activeDrawer, setActiveDrawer] = useState<WorkspacePanel | null>(null);
-  const [zoomPercent, setZoomPercent] = useState(100);
-  const [isFitMode, setIsFitMode] = useState(true);
-  const [hasEnteredEditor, setHasEnteredEditor] = useState(false);
+  const [zoomPercent, setZoomPercent] = useState(() => initialSession.session?.zoomPercent ?? 100);
+  const [isFitMode, setIsFitMode] = useState(() => initialSession.session?.isFitMode ?? true);
+  const [hasEnteredEditor, setHasEnteredEditor] = useState(
+    () => initialSession.session?.hasEditorSession ?? false,
+  );
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
-  const [settings, setSettings] = useState<OrbitRigSettings>(createDefaultSettings);
+  const [settings, setSettings] = useState<OrbitRigSettings>(
+    () => initialSession.session?.settings ?? createDefaultSettings(),
+  );
+  const [appNotice, setAppNotice] = useState<AppNotice | null>(() =>
+    initialSession.issue
+      ? { id: 0, message: initialSession.issue, tone: "warning" }
+      : null,
+  );
   const normalizedSettings = normalizeSettings(settings);
   const {
     addFiles,
     clearAllSlots,
+    dismissUndo,
     loadDemoSlots,
     mediaAnnouncement,
     mediaNotice,
@@ -72,6 +97,19 @@ export default function App() {
     undoAction,
   } = useImageSlots(orbitCarouselRig.mediaSlotCount);
   const exportMediaIssue = getExportMediaIssue(slots);
+  const showNotice = useCallback(
+    (message: string, tone: NoticeTone, action?: Pick<AppNotice, "actionLabel" | "onAction">) => {
+      setAppNotice({
+        id: noticeIdRef.current,
+        message,
+        tone,
+        ...action,
+      });
+      noticeIdRef.current += 1;
+    },
+    [],
+  );
+  const dismissNotice = useCallback(() => setAppNotice(null), []);
 
   const handleStartUpload = (files: FileList) => {
     const selectedFiles = Array.from(files);
@@ -91,6 +129,15 @@ export default function App() {
     setStartUploadError(null);
     loadDemoSlots();
     setHasEnteredEditor(true);
+  };
+
+  const handleResetSettings = () => {
+    const previousSettings = normalizedSettings;
+    setSettings(createDefaultSettings());
+    showNotice("Rig settings reset to defaults.", "undo", {
+      actionLabel: "Undo",
+      onAction: () => setSettings(previousSettings),
+    });
   };
 
   const togglePlayback = () => setIsPlaying((current) => !current);
@@ -127,6 +174,97 @@ export default function App() {
 
     setIsRightRailCollapsed((current) => !current);
   };
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setIsPlaying(false);
+    }
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!initialSession.session || sessionNoticeShownRef.current) {
+      return;
+    }
+    sessionNoticeShownRef.current = true;
+    showNotice("Workspace settings restored. Local images must be re-added after reload.", "info", {
+      actionLabel: "Re-add images",
+      onAction: () => {
+        setIsStageOnly(false);
+        if (isNarrowWorkspace) {
+          setActiveDrawer("media");
+        } else {
+          setIsLeftRailCollapsed(false);
+        }
+      },
+    });
+  }, [initialSession.session, isNarrowWorkspace, showNotice]);
+
+  useEffect(() => {
+    if (!hasEnteredEditor) {
+      return;
+    }
+    const session: WorkspaceSession = {
+      hasEditorSession: true,
+      isFitMode,
+      isLeftRailCollapsed,
+      isRightRailCollapsed,
+      settings: normalizedSettings,
+      version: 1,
+      zoomPercent,
+    };
+    latestSessionRef.current = session;
+    const timer = window.setTimeout(() => {
+      const issue = writeWorkspaceSession(session);
+      if (issue && !storageWarningShownRef.current) {
+        storageWarningShownRef.current = true;
+        showNotice(issue, "warning");
+      }
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [
+    hasEnteredEditor,
+    isFitMode,
+    isLeftRailCollapsed,
+    isRightRailCollapsed,
+    normalizedSettings,
+    showNotice,
+    zoomPercent,
+  ]);
+
+  useEffect(() => {
+    const flushSession = () => {
+      if (latestSessionRef.current) {
+        writeWorkspaceSession(latestSessionRef.current);
+      }
+    };
+    window.addEventListener("pagehide", flushSession);
+    return () => window.removeEventListener("pagehide", flushSession);
+  }, []);
+
+  useEffect(() => {
+    if (exportStatus === "done") {
+      showNotice("WebM export downloaded locally.", "success");
+    } else if (exportStatus === "fallback") {
+      showNotice("PNG snapshot downloaded locally.", "success");
+    } else if (exportStatus === "cancelled") {
+      showNotice("Export cancelled. No partial file was downloaded.", "info");
+    } else if (exportStatus === "error") {
+      showNotice("Export failed. Review the export details and try again.", "error");
+    }
+  }, [exportStatus, showNotice]);
+
+  useEffect(() => {
+    const hasLocalMedia = slots.some((slot) => slot.source === "upload" && slot.status === "ready");
+    if (!hasLocalMedia) {
+      return;
+    }
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [slots]);
 
   useEffect(() => {
     if (!isNarrowWorkspace) {
@@ -251,15 +389,15 @@ export default function App() {
     return (
       <StartScreen
         errorMessage={startUploadError}
+        noticeMessage={appNotice?.message}
         onLoadDemo={handleLoadDemo}
         onUploadFiles={handleStartUpload}
+        prefersReducedMotion={prefersReducedMotion}
         rig={orbitCarouselRig}
         settings={normalizedSettings}
       />
     );
   }
-
-  const resetSettings = () => setSettings(createDefaultSettings());
 
   return (
     <main className="app-shell">
@@ -269,7 +407,7 @@ export default function App() {
           setExportStatus("ready");
           setIsExportSheetOpen(true);
         }}
-        onReset={resetSettings}
+        onReset={handleResetSettings}
         rigName={orbitCarouselRig.name}
       />
       <div
@@ -371,12 +509,15 @@ export default function App() {
           slotImages={slotImages}
         />
       ) : null}
-      {undoAction ? (
-        <div className="media-undo-toast" role="status" aria-live="polite">
-          <span>{undoAction.message}</span>
-          <button type="button" onClick={undo}>Undo</button>
-        </div>
-      ) : null}
+      <NoticeCenter
+        notice={
+          undoAction
+            ? { id: -1, message: undoAction.message, tone: "undo", actionLabel: "Undo", onAction: undo }
+            : appNotice
+        }
+        onDismiss={undoAction ? dismissUndo : dismissNotice}
+        reducedMotion={prefersReducedMotion}
+      />
     </main>
   );
 }

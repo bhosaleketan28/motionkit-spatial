@@ -200,6 +200,10 @@ export async function exportOrbitCarouselWebm(
   } finally {
     options.signal.removeEventListener("abort", handleAbort);
     stopTracks();
+    recorder.ondataavailable = null;
+    recorder.onerror = null;
+    recorder.onstop = null;
+    chunks.length = 0;
   }
 }
 

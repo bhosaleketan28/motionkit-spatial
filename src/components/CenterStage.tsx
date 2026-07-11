@@ -65,6 +65,8 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
   const canvasSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const stageDescriptionRef = useRef<HTMLParagraphElement | null>(null);
+  const lastDescriptionSecondRef = useRef(-1);
   const lastMeasurementRef = useRef({
     containerHeight: 0,
     containerWidth: 0,
@@ -79,6 +81,29 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   const transportRef = useRef<StageTransportHandle | null>(null);
   const [fitFeedback, setFitFeedback] = useState(false);
   const frame = getFrameSize(settings.frameRatio);
+  const loadedMediaCount = slotImages.filter(Boolean).length;
+
+  const updateStageDescription = useCallback(
+    (progress: number, force = false) => {
+      if (variant !== "editor" || !stageDescriptionRef.current) {
+        return;
+      }
+      const currentSeconds = progress * settings.durationSeconds;
+      const wholeSecond = Math.floor(currentSeconds);
+      if (!force && lastDescriptionSecondRef.current === wholeSecond) {
+        return;
+      }
+      lastDescriptionSecondRef.current = wholeSecond;
+      stageDescriptionRef.current.textContent = [
+        `${rig.name} rig.`,
+        `${loadedMediaCount} of ${rig.mediaSlotCount} media items loaded.`,
+        `${settings.frameRatio} frame ratio.`,
+        isPlaying ? "Playback is running." : "Playback is paused.",
+        `Current time ${formatAccessibleTime(currentSeconds)} of ${formatAccessibleTime(settings.durationSeconds)}.`,
+      ].join(" ");
+    },
+    [isPlaying, loadedMediaCount, rig.mediaSlotCount, rig.name, settings.durationSeconds, settings.frameRatio, variant],
+  );
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -98,7 +123,8 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       settings,
       slotImages,
     });
-  }, [frame, rig, selectedSlotIndex, settings, slotImages]);
+    updateStageDescription(progressRef.current);
+  }, [frame, rig, selectedSlotIndex, settings, slotImages, updateStageDescription]);
 
   const updateProgress = useCallback((progress: number) => {
     const clampedProgress = Math.min(1, Math.max(0, progress));
@@ -225,8 +251,9 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
 
   useEffect(() => {
     transportRef.current?.updateProgress(progressRef.current, settings.durationSeconds);
+    updateStageDescription(progressRef.current, true);
     draw();
-  }, [draw, isPlaying, settings.durationSeconds]);
+  }, [draw, isPlaying, settings.durationSeconds, updateStageDescription]);
 
   const handleReplay = () => {
     updateProgress(0);
@@ -251,10 +278,14 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
 
   return (
     <section
+      aria-describedby={variant === "editor" ? "stage-accessible-description" : undefined}
       className={variant === "onboarding" ? "center-stage onboarding-stage" : "center-stage"}
       aria-label="Canvas preview"
       tabIndex={variant === "editor" ? 0 : undefined}
     >
+      {variant === "editor" ? (
+        <p className="sr-only" id="stage-accessible-description" ref={stageDescriptionRef} />
+      ) : null}
       {variant === "editor" ? (
         <div className="stage-toolbar">
           <div className="stage-leading-actions">
@@ -262,7 +293,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
               <span className={isPlaying ? "live-indicator playing" : "live-indicator"} />
               <strong>{rig.name}</strong>
             </div>
-            <div className="stage-panel-controls" aria-label="Workspace panels">
+            <div className="stage-panel-controls" aria-label="Workspace panels" role="group">
               <button
                 aria-controls="media-panel"
                 aria-expanded={isMediaOpen}
@@ -288,7 +319,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
             </div>
           </div>
           <div className="stage-actions">
-            <div className="zoom-control" aria-label="Stage zoom">
+            <div className="zoom-control" aria-label="Stage zoom" role="group">
               <button
                 aria-label="Zoom out"
                 disabled={zoomPercent <= 50}
@@ -346,7 +377,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       <div className="canvas-wrap" ref={canvasWrapRef}>
         <div className="canvas-scroll-surface" ref={canvasSurfaceRef}>
           <canvas
-            aria-label="Animated Orbit Carousel preview"
+            aria-label="Orbit Carousel visual preview"
             className="preview-canvas"
             ref={canvasRef}
           />
@@ -369,3 +400,12 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
     </section>
   );
 });
+
+function formatAccessibleTime(seconds: number) {
+  const safeSeconds = Math.max(0, seconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = Math.floor(safeSeconds - minutes * 60);
+  return minutes > 0
+    ? `${minutes} minute${minutes === 1 ? "" : "s"} ${remainingSeconds} seconds`
+    : `${remainingSeconds} second${remainingSeconds === 1 ? "" : "s"}`;
+}

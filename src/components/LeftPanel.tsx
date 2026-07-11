@@ -24,6 +24,7 @@ interface LeftPanelProps {
 }
 
 type WorkspaceSection = "create" | "media" | "presets";
+const workspaceSections: WorkspaceSection[] = ["create", "media", "presets"];
 
 export function LeftPanel({
   activeRigId,
@@ -84,12 +85,29 @@ export function LeftPanel({
           {isDrawer ? "Close" : "Hide"}
         </button>
       </div>
-      <nav className="workspace-nav" aria-label="Workspace sections">
-        {(["create", "media", "presets"] as WorkspaceSection[]).map((section) => (
+      <nav className="workspace-nav" aria-label="Workspace sections" role="tablist">
+        {workspaceSections.map((section, sectionIndex) => (
           <button
+            aria-controls={`${section}-workspace-panel`}
+            aria-selected={activeSection === section}
             className={activeSection === section ? "workspace-nav-item selected" : "workspace-nav-item"}
+            id={`${section}-workspace-tab`}
             key={section}
             onClick={() => setActiveSection(section)}
+            onKeyDown={(event) => {
+              let nextIndex = sectionIndex;
+              if (event.key === "ArrowRight") nextIndex = (sectionIndex + 1) % workspaceSections.length;
+              else if (event.key === "ArrowLeft") nextIndex = (sectionIndex - 1 + workspaceSections.length) % workspaceSections.length;
+              else if (event.key === "Home") nextIndex = 0;
+              else if (event.key === "End") nextIndex = workspaceSections.length - 1;
+              else return;
+              event.preventDefault();
+              const nextSection = workspaceSections[nextIndex];
+              setActiveSection(nextSection);
+              document.getElementById(`${nextSection}-workspace-tab`)?.focus();
+            }}
+            role="tab"
+            tabIndex={activeSection === section ? 0 : -1}
             type="button"
           >
             {section.charAt(0).toUpperCase() + section.slice(1)}
@@ -99,7 +117,11 @@ export function LeftPanel({
 
       <div className="left-panel-content">
         {activeSection === "create" ? (
-          <section aria-labelledby="create-heading">
+          <section
+            aria-labelledby="create-workspace-tab"
+            id="create-workspace-panel"
+            role="tabpanel"
+          >
             <p className="eyebrow">Create</p>
             <h2 id="create-heading">Motion rig</h2>
             <div className="rig-list">
@@ -118,7 +140,11 @@ export function LeftPanel({
         ) : null}
 
         {activeSection === "media" ? (
-          <section aria-labelledby="media-heading">
+          <section
+            aria-labelledby="media-workspace-tab"
+            id="media-workspace-panel"
+            role="tabpanel"
+          >
             <div className="section-heading-row">
               <div>
                 <p className="eyebrow">Media</p>
@@ -243,7 +269,11 @@ export function LeftPanel({
         ) : null}
 
         {activeSection === "presets" ? (
-          <section aria-labelledby="presets-heading">
+          <section
+            aria-labelledby="presets-workspace-tab"
+            id="presets-workspace-panel"
+            role="tabpanel"
+          >
             <p className="eyebrow">Presets</p>
             <h2 id="presets-heading">Starting looks</h2>
             <div className="preset-list" aria-label="Preset previews">

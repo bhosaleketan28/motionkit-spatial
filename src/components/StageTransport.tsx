@@ -39,6 +39,10 @@ export const StageTransport = forwardRef<StageTransportHandle, StageTransportPro
       if (scrubber) {
         scrubber.value = clampedProgress.toString();
         scrubber.style.setProperty("--transport-progress", `${clampedProgress * 100}%`);
+        scrubber.setAttribute(
+          "aria-valuetext",
+          `${formatTransportTime(clampedProgress * duration)} of ${formatTransportTime(duration)}`,
+        );
       }
 
       if (currentTimeRef.current) {
@@ -65,7 +69,7 @@ export const StageTransport = forwardRef<StageTransportHandle, StageTransportPro
     };
 
     return (
-      <div className="stage-transport" aria-label="Motion transport">
+      <div className="stage-transport" aria-label="Motion transport" role="group">
         <div className="transport-controls">
           <button
             aria-label={isPlaying ? "Pause preview (Space)" : "Play preview (Space)"}

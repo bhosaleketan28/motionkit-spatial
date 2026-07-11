@@ -266,6 +266,7 @@ export function ExportSheet({
       />
       <section
         aria-labelledby="export-dialog-title"
+        aria-busy={isRunning}
         aria-modal="true"
         className={`export-sheet export-view-${view}`}
         ref={dialogRef}
@@ -434,40 +435,78 @@ function ExportReview({
       {mediaIssue ? <p className="export-callout error" role="alert">{mediaIssue}</p> : null}
 
       <div className="export-control-list">
-        <div aria-labelledby="export-format-label" className="export-output-row" role="group">
+        <div aria-labelledby="export-format-label" className="export-output-row" role="radiogroup">
           <span className="export-output-label" id="export-format-label">Format</span>
           <div className="export-segmented-control">
             <button
-              aria-pressed={format === "webm"}
+              aria-checked={format === "webm"}
               className={format === "webm" ? "selected" : ""}
               disabled={!capability.webmSupported}
+              id="export-format-option-webm"
+              role="radio"
+              tabIndex={format === "webm" ? 0 : -1}
               type="button"
               onClick={() => onSelectFormat("webm")}
+              onKeyDown={(event) =>
+                handleOutputRadioNavigation(
+                  event,
+                  ["webm", "png"] as ExportFormat[],
+                  0,
+                  onSelectFormat,
+                  "export-format-option",
+                  (value) => value === "webm" && !capability.webmSupported,
+                )
+              }
             >
               WebM
             </button>
             <button
-              aria-pressed={format === "png"}
+              aria-checked={format === "png"}
               className={format === "png" ? "selected" : ""}
+              id="export-format-option-png"
+              role="radio"
+              tabIndex={format === "png" ? 0 : -1}
               type="button"
               onClick={() => onSelectFormat("png")}
+              onKeyDown={(event) =>
+                handleOutputRadioNavigation(
+                  event,
+                  ["webm", "png"] as ExportFormat[],
+                  1,
+                  onSelectFormat,
+                  "export-format-option",
+                  (value) => value === "webm" && !capability.webmSupported,
+                )
+              }
             >
               PNG
             </button>
           </div>
         </div>
 
-        <div aria-labelledby="export-resolution-label" className="export-output-row" role="group">
+        <div aria-labelledby="export-resolution-label" className="export-output-row" role="radiogroup">
           <span className="export-output-label" id="export-resolution-label">
             <span>Resolution</span>
             <small>{frame.width} × {frame.height}</small>
           </span>
           <div className="export-segmented-control">
-            {(["standard", "high"] as ExportQuality[]).map((option) => (
+            {(["standard", "high"] as ExportQuality[]).map((option, index, options) => (
               <button
-                aria-pressed={quality === option}
+                aria-checked={quality === option}
                 className={quality === option ? "selected" : ""}
+                id={`export-quality-option-${option}`}
                 key={option}
+                onKeyDown={(event) =>
+                  handleOutputRadioNavigation(
+                    event,
+                    options,
+                    index,
+                    onQualityChange,
+                    "export-quality-option",
+                  )
+                }
+                role="radio"
+                tabIndex={quality === option ? 0 : -1}
                 type="button"
                 onClick={() => onQualityChange(option)}
               >
@@ -477,15 +516,27 @@ function ExportReview({
           </div>
         </div>
 
-        <div aria-labelledby="export-fps-label" className="export-output-row" role="group">
+        <div aria-labelledby="export-fps-label" className="export-output-row" role="radiogroup" aria-disabled={format === "png"}>
           <span className="export-output-label" id="export-fps-label">FPS</span>
           <div className="export-segmented-control">
-            {([30, 60] as ExportFps[]).map((option) => (
+            {([30, 60] as ExportFps[]).map((option, index, options) => (
               <button
-                aria-pressed={fps === option}
+                aria-checked={fps === option}
                 className={fps === option ? "selected" : ""}
                 disabled={format === "png"}
+                id={`export-fps-option-${option}`}
                 key={option}
+                onKeyDown={(event) =>
+                  handleOutputRadioNavigation(
+                    event,
+                    options,
+                    index,
+                    onFpsChange,
+                    "export-fps-option",
+                  )
+                }
+                role="radio"
+                tabIndex={format === "png" ? -1 : fps === option ? 0 : -1}
                 type="button"
                 onClick={() => onFpsChange(option)}
               >
@@ -706,4 +757,34 @@ function formatErrorCode(code: ExportProcessError["code"]) {
     download: "Download failure",
   };
   return labels[code];
+}
+
+function handleOutputRadioNavigation<Value extends string | number>(
+  event: React.KeyboardEvent<HTMLButtonElement>,
+  values: Value[],
+  currentIndex: number,
+  onSelect: (value: Value) => void,
+  idPrefix: string,
+  isDisabled: (value: Value) => boolean = () => false,
+) {
+  const direction =
+    event.key === "ArrowRight" || event.key === "ArrowDown"
+      ? 1
+      : event.key === "ArrowLeft" || event.key === "ArrowUp"
+        ? -1
+        : 0;
+  let nextIndex = currentIndex;
+  if (event.key === "Home") nextIndex = 0;
+  else if (event.key === "End") nextIndex = values.length - 1;
+  else if (direction !== 0) nextIndex = (currentIndex + direction + values.length) % values.length;
+  else return;
+
+  for (let attempts = 0; attempts < values.length && isDisabled(values[nextIndex]); attempts += 1) {
+    nextIndex = (nextIndex + (direction || 1) + values.length) % values.length;
+  }
+  if (isDisabled(values[nextIndex])) return;
+  event.preventDefault();
+  const nextValue = values[nextIndex];
+  onSelect(nextValue);
+  window.requestAnimationFrame(() => document.getElementById(`${idPrefix}-${nextValue}`)?.focus());
 }
