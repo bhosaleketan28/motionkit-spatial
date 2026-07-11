@@ -180,7 +180,7 @@ function getSlotLabel(slot: ImageSlot) {
 
 function getSourceLabel(slot: ImageSlot) {
   if (slot.source === "demo") {
-    return "Demo image";
+    return "MotionKit showcase";
   }
   if (slot.source === "upload" && slot.fileSize) {
     return `${formatBytes(slot.fileSize)} · Local only`;

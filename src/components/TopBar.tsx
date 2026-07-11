@@ -98,6 +98,17 @@ export function TopBar({
                 <div><dt>Close</dt><dd>Escape</dd></div>
               </dl>
             </details>
+            <details className="alpha-help">
+              <summary>Alpha notes</summary>
+              <div>
+                <p>For the most reliable WebM export, use a current Chromium browser.</p>
+                <ul>
+                  <li>WebM support varies by browser.</li>
+                  <li>Local media must be re-added after reload.</li>
+                  <li>Safari and Firefox still need manual verification.</li>
+                </ul>
+              </div>
+            </details>
           </div>
         </details>
         <button

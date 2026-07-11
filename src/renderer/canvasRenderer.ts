@@ -14,10 +14,10 @@ interface RenderOrbitCarouselOptions {
 }
 
 const placeholderPalettes = [
-  { fill: "#e95f55", accent: "#ffe1bc", deep: "#8b2f2a", text: "#351915" },
-  { fill: "#2e776d", accent: "#d7f0e7", deep: "#174c45", text: "#092a26" },
-  { fill: "#4d65b4", accent: "#dce5ff", deep: "#263c86", text: "#111f55" },
-  { fill: "#d7a73f", accent: "#fff3c5", deep: "#8f6414", text: "#3b2a05" },
+  { fill: "#64d6b5", accent: "#dff8ef", deep: "#287861", text: "#111719" },
+  { fill: "#ef8b72", accent: "#fbe4dc", deep: "#9c4d3d", text: "#111719" },
+  { fill: "#8ca9f5", accent: "#e5ebff", deep: "#4f67a8", text: "#111719" },
+  { fill: "#e5bd67", accent: "#f8edcf", deep: "#98702c", text: "#111719" },
 ];
 
 export function renderOrbitCarousel({
@@ -383,7 +383,11 @@ function drawCardBody(
   context.font = `${Math.max(18, width * 0.066)}px Inter, system-ui, sans-serif`;
   context.textAlign = "left";
   context.textBaseline = "top";
-  context.fillText("Upload image", left + pad, bodyTop);
+  context.fillText(
+    ["Overview", "Asset library", "Campaign pulse", "Launch plan"][index % 4],
+    left + pad,
+    bodyTop,
+  );
   context.globalAlpha /= 0.86;
 
   context.fillStyle = "rgba(31, 37, 41, 0.16)";
@@ -407,7 +411,7 @@ function drawCardBody(
   context.fillStyle = palette.text;
   context.globalAlpha *= 0.58;
   context.font = `${Math.max(12, width * 0.04)}px Inter, system-ui, sans-serif`;
-  context.fillText(`Slot ${index + 1}`, left + width * 0.7, top + height * 0.905);
+  context.fillText("Luma Field", left + width * 0.66, top + height * 0.905);
   context.globalAlpha /= 0.58;
 }
 

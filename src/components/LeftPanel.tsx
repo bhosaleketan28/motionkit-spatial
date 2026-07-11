@@ -23,8 +23,9 @@ interface LeftPanelProps {
   slots: ImageSlot[];
 }
 
-type WorkspaceSection = "create" | "media" | "presets";
-const workspaceSections: WorkspaceSection[] = ["create", "media", "presets"];
+type WorkspaceSection = "create" | "media";
+// Presets can be added here once the destination has a complete workflow.
+const workspaceSections: WorkspaceSection[] = ["create", "media"];
 
 export function LeftPanel({
   activeRigId,
@@ -50,6 +51,9 @@ export function LeftPanel({
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [pendingReplacement, setPendingReplacement] = useState<File | null>(null);
+  const isMediaFull = slots.every(
+    (slot) => slot.status === "ready" || slot.status === "loading",
+  );
 
   const receiveFiles = (files: File[]) => {
     if (!files.length) {
@@ -156,7 +160,7 @@ export function LeftPanel({
             </div>
 
             <div
-              className={`media-dropzone media-dropzone-${dropState}`}
+              className={`media-dropzone media-dropzone-${dropState}${isMediaFull ? " media-dropzone-compact" : ""}`}
               onDragEnter={(event) => {
                 event.preventDefault();
                 dragDepthRef.current += 1;
@@ -194,13 +198,27 @@ export function LeftPanel({
                 ref={inputRef}
                 type="file"
               />
-              <strong>{dropState === "invalid" ? "That file type isn’t supported" : "Drop images here"}</strong>
-              <span>JPEG, PNG, WebP, or GIF · up to 25 MB each</span>
-              <button type="button" onClick={() => inputRef.current?.click()}>Add images</button>
+              <strong>
+                {dropState === "invalid"
+                  ? "That file type isn’t supported"
+                  : isMediaFull
+                    ? "Add or replace media"
+                    : "Drop images here"}
+              </strong>
+              <span>
+                {isMediaFull
+                  ? `Drop or choose an image for selected Slot ${selectedIndex + 1}`
+                  : "JPEG, PNG, WebP, or GIF · up to 25 MB each"}
+              </span>
+              <button type="button" onClick={() => inputRef.current?.click()}>
+                {isMediaFull ? "Choose image" : "Add images"}
+              </button>
             </div>
 
             <p className="media-guidance">
-              Portrait images around 900 × 1160 work best. Files stay in this browser session and are not uploaded.
+              {isMediaFull
+                ? "Files stay local to this browser session and are not uploaded."
+                : "Portrait images around 900 × 1160 work best. Files stay in this browser session and are not uploaded."}
             </p>
 
             {pendingReplacement ? (
@@ -265,22 +283,6 @@ export function LeftPanel({
               </button>
             </div>
             <p className="sr-only" aria-live="polite">{mediaAnnouncement}</p>
-          </section>
-        ) : null}
-
-        {activeSection === "presets" ? (
-          <section
-            aria-labelledby="presets-workspace-tab"
-            id="presets-workspace-panel"
-            role="tabpanel"
-          >
-            <p className="eyebrow">Presets</p>
-            <h2 id="presets-heading">Starting looks</h2>
-            <div className="preset-list" aria-label="Preset previews">
-              {[["Studio", "Balanced depth"], ["Editorial", "Tighter composition"], ["Launch", "Wide spatial spread"]].map(([name, description]) => (
-                <button disabled key={name} type="button"><span>{name}</span><small>{description} · Soon</small></button>
-              ))}
-            </div>
           </section>
         ) : null}
       </div>

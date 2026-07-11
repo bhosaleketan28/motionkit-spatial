@@ -255,6 +255,22 @@ export function ExportSheet({
     onStatusChange("ready");
   };
 
+  const changeFrameRatio = (frameRatio: FrameRatio) => {
+    setFileName((current) => {
+      const normalized = normalizeExportFileName(current, format);
+      const isGeneratedName =
+        normalized.startsWith("motionkit-") &&
+        /-(1x1|16x9|9x16)-\d{8}-\d{6}\.(webm|png)$/.test(normalized);
+      return isGeneratedName
+        ? createDefaultExportFileName(
+            { rig, settings: { ...settings, frameRatio } },
+            format,
+          )
+        : current;
+    });
+    onFrameRatioChange(frameRatio);
+  };
+
   return (
     <div className="export-modal-layer">
       <button
@@ -300,7 +316,7 @@ export function ExportSheet({
               fps={fps}
               frame={frame}
               mediaIssue={mediaIssue}
-              onFrameRatioChange={onFrameRatioChange}
+              onFrameRatioChange={changeFrameRatio}
               pngConsent={pngConsent}
               quality={quality}
               settings={settings}
@@ -420,16 +436,27 @@ function ExportReview({
 }: ExportReviewProps) {
   const estimatedSeconds =
     format === "png" ? null : settings.durationSeconds + (quality === "high" ? 2.5 : 1.5);
+  const capabilityLabel = format === "png" ? "PNG still-frame export" : capability.label;
+  const capabilityMessage =
+    format === "png"
+      ? capability.webmSupported
+        ? "Creates one image from the opening frame. Switch to WebM for a looping video."
+        : "Creates one image from the opening frame. WebM recording is unavailable in this browser."
+      : capability.message;
 
   return (
     <div className="export-review">
-      <div className={`export-capability capability-${capability.status}`}>
+      <div
+        className={`export-capability ${
+          format === "png" ? "capability-png-snapshot" : `capability-${capability.status}`
+        }`}
+      >
         <span className="export-capability-dot" aria-hidden="true" />
         <div>
-          <strong>{capability.label}</strong>
-          <p>{capability.message}</p>
+          <strong>{capabilityLabel}</strong>
+          <p>{capabilityMessage}</p>
         </div>
-        <small>{formatCodecName(capability.mimeType)}</small>
+        <small>{format === "png" ? "STILL" : formatCodecName(capability.mimeType)}</small>
       </div>
 
       {mediaIssue ? <p className="export-callout error" role="alert">{mediaIssue}</p> : null}
@@ -485,66 +512,69 @@ function ExportReview({
         </div>
 
         <div aria-labelledby="export-resolution-label" className="export-output-row" role="radiogroup">
-          <span className="export-output-label" id="export-resolution-label">
-            <span>Resolution</span>
-            <small>{frame.width} × {frame.height}</small>
-          </span>
-          <div className="export-segmented-control">
-            {(["standard", "high"] as ExportQuality[]).map((option, index, options) => (
-              <button
-                aria-checked={quality === option}
-                className={quality === option ? "selected" : ""}
-                id={`export-quality-option-${option}`}
-                key={option}
-                onKeyDown={(event) =>
-                  handleOutputRadioNavigation(
-                    event,
-                    options,
-                    index,
-                    onQualityChange,
-                    "export-quality-option",
-                  )
-                }
-                role="radio"
-                tabIndex={quality === option ? 0 : -1}
-                type="button"
-                onClick={() => onQualityChange(option)}
-              >
-                {option === "standard" ? "Standard" : "High"}
-              </button>
-            ))}
+          <span className="export-output-label" id="export-resolution-label">Resolution</span>
+          <div className="export-resolution-control">
+            <div className="export-segmented-control">
+              {(["standard", "high"] as ExportQuality[]).map((option, index, options) => (
+                <button
+                  aria-checked={quality === option}
+                  className={quality === option ? "selected" : ""}
+                  id={`export-quality-option-${option}`}
+                  key={option}
+                  onKeyDown={(event) =>
+                    handleOutputRadioNavigation(
+                      event,
+                      options,
+                      index,
+                      onQualityChange,
+                      "export-quality-option",
+                    )
+                  }
+                  role="radio"
+                  tabIndex={quality === option ? 0 : -1}
+                  type="button"
+                  onClick={() => onQualityChange(option)}
+                >
+                  {option === "standard" ? "Standard" : "High"}
+                </button>
+              ))}
+            </div>
+            <output aria-label={`Output dimensions ${frame.width} by ${frame.height}`}>
+              {frame.width} × {frame.height}
+            </output>
           </div>
         </div>
 
-        <div aria-labelledby="export-fps-label" className="export-output-row" role="radiogroup" aria-disabled={format === "png"}>
-          <span className="export-output-label" id="export-fps-label">FPS</span>
-          <div className="export-segmented-control">
-            {([30, 60] as ExportFps[]).map((option, index, options) => (
-              <button
-                aria-checked={fps === option}
-                className={fps === option ? "selected" : ""}
-                disabled={format === "png"}
-                id={`export-fps-option-${option}`}
-                key={option}
-                onKeyDown={(event) =>
-                  handleOutputRadioNavigation(
-                    event,
-                    options,
-                    index,
-                    onFpsChange,
-                    "export-fps-option",
-                  )
-                }
-                role="radio"
-                tabIndex={format === "png" ? -1 : fps === option ? 0 : -1}
-                type="button"
-                onClick={() => onFpsChange(option)}
-              >
-                {option}
-              </button>
-            ))}
+        {format === "webm" ? (
+          <div aria-labelledby="export-fps-label" className="export-output-row" role="radiogroup">
+            <span className="export-output-label" id="export-fps-label">FPS</span>
+            <div className="export-segmented-control">
+              {([30, 60] as ExportFps[]).map((option, index, options) => (
+                <button
+                  aria-checked={fps === option}
+                  className={fps === option ? "selected" : ""}
+                  id={`export-fps-option-${option}`}
+                  key={option}
+                  onKeyDown={(event) =>
+                    handleOutputRadioNavigation(
+                      event,
+                      options,
+                      index,
+                      onFpsChange,
+                      "export-fps-option",
+                    )
+                  }
+                  role="radio"
+                  tabIndex={fps === option ? 0 : -1}
+                  type="button"
+                  onClick={() => onFpsChange(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <label className="export-output-row export-select-row">
           <span>Ratio</span>
@@ -559,10 +589,12 @@ function ExportReview({
           </select>
         </label>
 
-        <div className="export-output-row export-readonly-row">
-          <span>Duration</span>
-          <output>{settings.durationSeconds.toFixed(1)} s</output>
-        </div>
+        {format === "webm" ? (
+          <div className="export-output-row export-readonly-row">
+            <span>Duration</span>
+            <output>{settings.durationSeconds.toFixed(1)} s</output>
+          </div>
+        ) : null}
         <div className="export-output-row export-readonly-row">
           <span>Background</span>
           <output>{formatBackgroundMode(settings.background.mode)}</output>
@@ -580,7 +612,6 @@ function ExportReview({
               onBlur={() => onFileNameChange(normalizeExportFileName(fileName, format))}
               onChange={(event) => onFileNameChange(event.currentTarget.value)}
             />
-            <small>{normalizeExportFileName(fileName, format)}</small>
           </span>
         </label>
       </div>

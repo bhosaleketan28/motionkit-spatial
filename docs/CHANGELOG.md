@@ -20,6 +20,7 @@
 - Phase 9.3: Media workflow
 - Phase 9.4: Precision inspector and output controls
 - Phase 9.5: Accessibility, recovery, and product hardening
+- Phase 9.6: Alpha readiness cleanup
 
 ## Phase 8 Highlights
 
@@ -96,3 +97,14 @@
 - Added a lightweight keyboard shortcut reference to workspace utilities.
 - Added accurate radio, tab, group, busy, expanded, selected, disabled, and range-value semantics across the core workflow.
 - Re-audited object URL, MediaRecorder, stream track, animation frame, ResizeObserver, timer, abort listener, and event-listener cleanup paths.
+
+## Phase 9.6 Highlights
+
+- Removed the placeholder Presets destination from primary workspace navigation while retaining a simple extension point for a future complete workflow.
+- Made export capability messaging format-aware and removed FPS and duration controls from PNG review.
+- Reworked export resolution and filename rows to prevent wrapping, duplication, and uneven value alignment across ratios.
+- Tightened first-run typography and attached reduced-motion playback control directly to the visual preview.
+- Replaced generic demo cards with an original, locally generated Luma Field campaign workspace set designed to remain legible across all card shapes.
+- Compacted the Media rail uploader when all slots are populated while preserving the full empty-slot dropzone.
+- Removed duplicate Direction and Card shape group naming, improved shortcut-help presentation, and added concise in-app alpha guidance.
+- Reverified the stage-first layout at 1440×900, 1280×720, 960×800, 768×1024, and 390×844.

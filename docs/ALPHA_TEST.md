@@ -12,6 +12,14 @@ This alpha is a small local prototype test for the Orbit Carousel rig. The goal 
 
 Use MotionKit Spatial to turn one to four static images or screenshots into a short animated spatial showcase, then complete the set and export the result as a WebM or PNG snapshot.
 
+## Recommended Setup
+
+- Use a current Chromium browser such as Chrome or Edge for the most reliable WebM recording path.
+- WebM codec and canvas recording support varies by browser and is checked when the export sheet opens.
+- PNG exports one still frame and is not a replacement for a looping video.
+- Uploaded media stays on the local device for the current browser session and must be re-added after reload.
+- Safari and Firefox upload, focus, color, and export behavior still require manual verification.
+
 ## Test Flow
 
 1. Open the app locally.
@@ -19,9 +27,11 @@ Use MotionKit Spatial to turn one to four static images or screenshots into a sh
 3. Try 1:1, 16:9, and 9:16.
 4. Try Transparent, Solid, and Gradient background modes.
 5. Adjust spread, depth fade, card size, corner radius, loop duration, and direction.
-6. Export WebM.
-7. Open the exported WebM in Chrome.
-8. Share feedback.
+6. Review all three ratios in the export sheet and confirm dimensions remain readable.
+7. Export WebM.
+8. Select PNG and confirm that video-only settings disappear before acknowledging the still-frame export.
+9. Open the exported WebM in Chrome.
+10. Share feedback.
 
 ## Keyboard Shortcuts
 
@@ -56,7 +66,7 @@ Rig settings, ratio, background, panel collapse state, fit mode, and zoom are st
 
 ## Known Limitations
 
-- WebM only.
+- WebM is the only video format; PNG is available for still frames.
 - MP4 not available yet.
 - No project saving.
 - Uploaded media does not persist across reloads.

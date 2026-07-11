@@ -50,18 +50,21 @@ export function StartScreen({
         <span>Private alpha</span>
       </header>
 
-      <button
-        className="start-preview-toggle"
-        type="button"
-        onClick={() => setIsPreviewPlaying((current) => !current)}
-      >
-        {isPreviewPlaying ? "Pause preview" : "Play preview"}
-      </button>
+      <div className="start-preview-control">
+        <span aria-hidden="true" className={isPreviewPlaying ? "playing" : ""} />
+        <button
+          aria-pressed={isPreviewPlaying}
+          type="button"
+          onClick={() => setIsPreviewPlaying((current) => !current)}
+        >
+          {isPreviewPlaying ? "Pause motion" : "Play motion"}
+        </button>
+      </div>
 
       <section className="start-content" aria-labelledby="start-heading">
         <p className="eyebrow">Orbit Carousel</p>
-        <h1 id="start-heading">Create spatial motion from your screenshots.</h1>
-        <p>Add 1–4 images, shape the orbit, and export a clean looping WebM.</p>
+        <h1 id="start-heading">Turn screenshots into spatial motion.</h1>
+        <p>Add 1–4 images, tune the orbit, then export a clean looping WebM.</p>
 
         <div className="start-actions">
           <input

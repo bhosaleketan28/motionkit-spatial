@@ -4,7 +4,7 @@ MotionKit Spatial is a private local browser prototype for creating animated spa
 
 Users can add one to four images incrementally or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
 
-The Phase 9.5 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor. Media, inspector, and export workflows now include keyboard semantics, recovery notices, reduced-motion behavior, and safe local session restoration.
+The Phase 9.6 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor. Media, inspector, and export workflows include keyboard semantics, recovery notices, reduced-motion behavior, safe local session restoration, format-aware export guidance, and concise alpha support notes.
 
 ## Run Locally
 
@@ -39,8 +39,9 @@ The app is static and browser-only. Uploaded images are processed locally in the
 
 - React + Vite + TypeScript local app
 - Canvas 2D Orbit Carousel renderer
-- Generated in-app demo cards for first-use testing
+- Original locally generated Luma Field showcase cards for first-use testing
 - Four local media slots with incremental multi-image add, thumbnail previews, replace, remove, and clear-all
+- Compact populated-media state that prioritizes sequence, selection, replacement, and reordering
 - Stable media selection with preview-only stage highlighting that is excluded from exports
 - Drag reordering plus keyboard-operable Move earlier/later controls
 - Undo recovery for remove and clear-all without re-decoding reordered media
@@ -62,6 +63,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Background modes: Transparent, Solid, Gradient
 - Local WebM export with an explicit PNG snapshot alternative
 - Export review with format, dimensions, FPS, quality, duration, filename, and browser capability preflight
+- Format-aware PNG review that hides video-only settings and requires explicit still-frame acknowledgement
 - Compact output rows for format, resolution, FPS, ratio, duration, background, and filename
 - Keyboard-accessible tabs and radio groups, trapped drawer/dialog focus, and reliable trigger focus return
 - Accessible stage description covering rig, loaded media, ratio, playback state, and coarse loop time
@@ -70,11 +72,12 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Unified success, warning, error, info, and Undo notices with controlled live-region behavior
 - Actual loop-render progress phases, elapsed and remaining time, safe cancellation, and detailed completion metadata
 - Explicitly confirmed PNG snapshot fallback when WebM is unavailable or fails
+- In-app alpha notes covering recommended browsers, WebM differences, local-media lifetime, and unverified Safari/Firefox paths
 - Preview-only frame guide so exports render as clean compositions
 
 ## Current Limitations
 
-- WebM only
+- WebM is the only video format; PNG is available for still frames
 - MP4 not available yet
 - No backend, auth, database, or cloud storage
 - No project saving

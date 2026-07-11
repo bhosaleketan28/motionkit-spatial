@@ -84,14 +84,18 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
             onChange={(value) => updateSetting("depthFade", value / 100)}
           />
 
-          <fieldset className="segmented-field">
-            <legend className="sr-only">Direction</legend>
+          <div className="segmented-field">
             <ControlHeading
               changed={settings.direction !== defaults.direction}
+              id="direction-control-label"
               label="Direction"
               onReset={() => updateSetting("direction", defaults.direction)}
             />
-            <div className="segmented-control two-up" role="radiogroup" aria-label="Direction">
+            <div
+              aria-labelledby="direction-control-label"
+              className="segmented-control two-up"
+              role="radiogroup"
+            >
               {directions.map((direction, index) => (
                 <button
                   aria-checked={settings.direction === direction}
@@ -116,7 +120,7 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
                 </button>
               ))}
             </div>
-          </fieldset>
+          </div>
         </div>
       </details>
 
@@ -154,14 +158,18 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
             onChange={(value) => updateSetting("cornerRadius", value)}
           />
 
-          <fieldset className="segmented-field">
-            <legend className="sr-only">Card shape</legend>
+          <div className="segmented-field">
             <ControlHeading
               changed={settings.cardShape !== defaults.cardShape}
+              id="card-shape-control-label"
               label="Card shape"
               onReset={() => updateSetting("cardShape", defaults.cardShape)}
             />
-            <div className="segmented-control four-up" role="radiogroup" aria-label="Card shape">
+            <div
+              aria-labelledby="card-shape-control-label"
+              className="segmented-control four-up"
+              role="radiogroup"
+            >
               {cardShapes.map((shape, index) => (
                 <button
                   aria-checked={settings.cardShape === shape}
@@ -186,7 +194,7 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
                 </button>
               ))}
             </div>
-          </fieldset>
+          </div>
         </div>
       </details>
 
@@ -289,14 +297,15 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
 
 interface ControlHeadingProps {
   changed: boolean;
+  id?: string;
   label: string;
   onReset: () => void;
 }
 
-function ControlHeading({ changed, label, onReset }: ControlHeadingProps) {
+function ControlHeading({ changed, id, label, onReset }: ControlHeadingProps) {
   return (
     <span className="control-heading">
-      <span>
+      <span id={id}>
         {label}
         {changed ? <i aria-hidden="true" /> : null}
         {changed ? <span className="sr-only">Modified from default</span> : null}
