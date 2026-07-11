@@ -8,6 +8,7 @@ interface RenderOrbitCarouselOptions {
   rig: MotionRigDefinition;
   progress: number;
   renderFrameGuide?: boolean;
+  selectedSlotIndex?: number;
   settings: OrbitRigSettings;
   slotImages?: Array<HTMLImageElement | null>;
 }
@@ -25,6 +26,7 @@ export function renderOrbitCarousel({
   rig,
   progress,
   renderFrameGuide = false,
+  selectedSlotIndex,
   settings,
   slotImages = [],
 }: RenderOrbitCarouselOptions) {
@@ -61,11 +63,45 @@ export function renderOrbitCarousel({
 
     if (slotImage) {
       drawImageCard(context, slotImage, card.x, card.y, card.width, card.height, cardOptions);
-      return;
+    } else {
+      drawPlaceholderCard(context, card.index, card.x, card.y, card.width, card.height, cardOptions);
     }
 
-    drawPlaceholderCard(context, card.index, card.x, card.y, card.width, card.height, cardOptions);
+    if (card.index === selectedSlotIndex) {
+      drawSelectedCardOutline(context, card.x, card.y, card.width, card.height, cardOptions);
+    }
   });
+}
+
+function drawSelectedCardOutline(
+  context: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  width: number,
+  height: number,
+  options: CardDrawOptions,
+) {
+  const inset = Math.max(5, width * 0.018);
+  context.save();
+  context.globalAlpha = Math.max(0.42, options.alpha);
+  context.translate(centerX, centerY);
+  context.rotate(options.rotation);
+  context.scale(options.xScale, 1);
+  context.shadowColor = "rgba(126, 240, 199, 0.82)";
+  context.shadowBlur = Math.max(12, width * 0.04);
+  context.strokeStyle = "#8ff5cf";
+  context.lineWidth = Math.max(4, width * 0.012);
+  createCardPath(
+    context,
+    options.shape,
+    -width / 2 - inset,
+    -height / 2 - inset,
+    width + inset * 2,
+    height + inset * 2,
+    options.radius + inset,
+  );
+  context.stroke();
+  context.restore();
 }
 
 function drawBackground(

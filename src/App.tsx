@@ -51,34 +51,46 @@ export default function App() {
   const [activeDrawer, setActiveDrawer] = useState<WorkspacePanel | null>(null);
   const [zoomPercent, setZoomPercent] = useState(100);
   const [isFitMode, setIsFitMode] = useState(true);
+  const [hasEnteredEditor, setHasEnteredEditor] = useState(false);
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
   const [settings, setSettings] = useState<OrbitRigSettings>(createDefaultSettings);
   const normalizedSettings = normalizeSettings(settings);
-  const { slots, slotImages, setSlotFile, clearSlot, clearAllSlots, loadDemoSlots } =
-    useImageSlots(orbitCarouselRig.mediaSlotCount);
-  const hasMedia = slots.some((slot) => slot.status === "loading" || slot.status === "ready");
+  const {
+    addFiles,
+    clearAllSlots,
+    loadDemoSlots,
+    mediaAnnouncement,
+    mediaNotice,
+    moveSlot,
+    removeSlot,
+    replaceSlot,
+    selectSlot,
+    selectedIndex,
+    slotImages,
+    slots,
+    undo,
+    undoAction,
+  } = useImageSlots(orbitCarouselRig.mediaSlotCount);
   const exportMediaIssue = getExportMediaIssue(slots);
 
   const handleStartUpload = (files: FileList) => {
     const selectedFiles = Array.from(files);
 
-    if (selectedFiles.length !== orbitCarouselRig.mediaSlotCount) {
-      setStartUploadError("Choose exactly 4 image files to begin.");
+    if (selectedFiles.length < 1 || selectedFiles.length > orbitCarouselRig.mediaSlotCount) {
+      setStartUploadError("Choose between 1 and 4 images to begin.");
       return;
     }
-
-    if (selectedFiles.some((file) => !file.type.startsWith("image/"))) {
-      setStartUploadError("Choose image files only.");
-      return;
+    const result = addFiles(selectedFiles);
+    if (result.added > 0) {
+      setHasEnteredEditor(true);
     }
-
-    setStartUploadError(null);
-    selectedFiles.forEach((file, index) => setSlotFile(index, file));
+    setStartUploadError(result.errors.length ? result.errors.join(" ") : null);
   };
 
   const handleLoadDemo = () => {
     setStartUploadError(null);
     loadDemoSlots();
+    setHasEnteredEditor(true);
   };
 
   const togglePlayback = () => setIsPlaying((current) => !current);
@@ -235,7 +247,7 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeDrawer]);
 
-  if (!hasMedia) {
+  if (!hasEnteredEditor) {
     return (
       <StartScreen
         errorMessage={startUploadError}
@@ -270,19 +282,25 @@ export default function App() {
       >
         <LeftPanel
           activeRigId={orbitCarouselRig.id}
+          addFiles={addFiles}
           clearAllSlots={clearAllSlots}
-          clearSlot={clearSlot}
           isDrawer={isNarrowWorkspace}
           isVisible={
             isNarrowWorkspace
               ? activeDrawer === "media"
               : !isLeftRailCollapsed && !isStageOnly
           }
+          mediaAnnouncement={mediaAnnouncement}
+          mediaNotice={mediaNotice}
+          moveSlot={moveSlot}
           onLoadDemo={handleLoadDemo}
           onRequestClose={() =>
             isNarrowWorkspace ? setActiveDrawer(null) : setIsLeftRailCollapsed(true)
           }
-          setSlotFile={setSlotFile}
+          removeSlot={removeSlot}
+          replaceSlot={replaceSlot}
+          selectSlot={selectSlot}
+          selectedIndex={selectedIndex}
           slots={slots}
         />
         <CenterStage
@@ -313,6 +331,7 @@ export default function App() {
           rig={orbitCarouselRig}
           ref={stageRef}
           settings={normalizedSettings}
+          selectedSlotIndex={selectedIndex}
           slotImages={slotImages}
           zoomPercent={zoomPercent}
         />
@@ -348,6 +367,12 @@ export default function App() {
           settings={normalizedSettings}
           slotImages={slotImages}
         />
+      ) : null}
+      {undoAction ? (
+        <div className="media-undo-toast" role="status" aria-live="polite">
+          <span>{undoAction.message}</span>
+          <button type="button" onClick={undo}>Undo</button>
+        </div>
       ) : null}
     </main>
   );

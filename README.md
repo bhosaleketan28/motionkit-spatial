@@ -2,9 +2,9 @@
 
 MotionKit Spatial is a private local browser prototype for creating animated spatial motion from screenshots. The current MVP focuses on one motion rig: Orbit Carousel.
 
-Users can upload four images or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
+Users can add one to four images incrementally or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
 
-The Phase 9.2 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor. Export opens a capability-aware review sheet before any rendering or download begins.
+The Phase 9.3 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor. The Media rail supports incremental add, selection, replacement, removal, recovery, and sequence reordering. Export opens a capability-aware review sheet before any rendering or download begins.
 
 ## Run Locally
 
@@ -40,9 +40,13 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - React + Vite + TypeScript local app
 - Canvas 2D Orbit Carousel renderer
 - Generated in-app demo cards for first-use testing
-- Four local media slots with upload, replace, clear, and clear-all
+- Four local media slots with incremental multi-image add, thumbnail previews, replace, remove, and clear-all
+- Stable media selection with preview-only stage highlighting that is excluded from exports
+- Drag reordering plus keyboard-operable Move earlier/later controls
+- Undo recovery for remove and clear-all without re-decoding reordered media
+- Specific validation for unsupported, duplicate, oversized, and undecodable images
 - Premium dark editor shell with grouped controls
-- First-run demo or four-image upload flow
+- First-run 1–4 image entry flow with a secondary generated demo option
 - Compact editor top bar with canonical export and secondary reset actions
 - Collapsible desktop media and inspector rails with responsive drawers and bottom sheets
 - Stage-only focus mode with zoom and fit-to-window controls
@@ -64,6 +68,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - MP4 not available yet
 - No backend, auth, database, or cloud storage
 - No project saving
+- Media is memory-only and must be added again after a page reload
 - No full timeline, layers, keyframes, or advanced sequencing
 - No advanced export settings
 - Transparent WebM playback may vary by browser

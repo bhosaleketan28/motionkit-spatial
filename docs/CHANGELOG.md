@@ -17,6 +17,7 @@
 - Phase 9: Stage-first workspace architecture
 - Phase 9.1: Motion transport and scrubbing
 - Phase 9.2: Export confidence
+- Phase 9.3: Media workflow
 
 ## Phase 8 Highlights
 
@@ -54,3 +55,16 @@
 - Removed silent WebM-to-PNG switching; PNG snapshots now require explicit user confirmation.
 - Added detailed completion metadata and specific unsupported-browser, media, recorder, encoding, cancellation, and download failure states.
 - Added modal focus containment, Escape handling, reduced-motion support, and mobile bottom-sheet behavior.
+
+## Phase 9.3 Highlights
+
+- Added incremental one-to-four image loading that fills the next available slot without replacing existing media.
+- Rebuilt Media as a compact sequence manager with dropzone states, thumbnails, selected-slot identity, replace/remove actions, and local-file guidance.
+- Added drag reordering and keyboard-operable Move earlier/later controls while retaining decoded image objects.
+- Added a preview-only selected-card highlight that never enters WebM or PNG output.
+- Added recoverable remove and clear-all actions with delayed object-URL cleanup and an eight-second Undo action.
+- Kept the editor open after all media is cleared, with stage placeholders plus Add images and Load demo recovery paths.
+- Added specific unsupported-format, duplicate, 25 MB size-limit, and decode-error feedback.
+- Updated first run to accept one to four images while keeping demo content as a secondary path.
+- Added live-region announcements for selection, reorder, removal, restore, and media loading outcomes.
+- Documented that media stays local, is held only for the current browser session, and must be re-added after reload.

@@ -1,258 +1,483 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+export const ACCEPTED_IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif";
+export const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
+
 export interface ImageSlot {
   errorMessage: string | null;
-  id: number;
   fileName: string | null;
+  fileSize: number | null;
+  fingerprint: string | null;
+  id: number;
   image: HTMLImageElement | null;
   objectUrl: string | null;
+  source: "demo" | "upload" | null;
+  src: string | null;
   status: "empty" | "loading" | "ready" | "error";
 }
 
-function createEmptySlots(count: number): ImageSlot[] {
-  return Array.from({ length: count }, (_, index) => ({
+export interface AddFilesResult {
+  added: number;
+  errors: string[];
+}
+
+export interface MediaUndoAction {
+  message: string;
+}
+
+interface UndoSnapshot {
+  message: string;
+  selectedId: number;
+  slots: ImageSlot[];
+}
+
+const SUPPORTED_TYPES = new Set(ACCEPTED_IMAGE_TYPES.split(","));
+const UNDO_DURATION = 8000;
+
+function createEmptySlot(id: number): ImageSlot {
+  return {
     errorMessage: null,
-    id: index,
     fileName: null,
+    fileSize: null,
+    fingerprint: null,
+    id,
     image: null,
     objectUrl: null,
+    source: null,
+    src: null,
     status: "empty",
-  }));
+  };
+}
+
+function createEmptySlots(count: number): ImageSlot[] {
+  return Array.from({ length: count }, (_, index) => createEmptySlot(index));
+}
+
+function getFileFingerprint(file: File) {
+  return `${file.name.toLowerCase()}:${file.size}:${file.lastModified}`;
+}
+
+function validateFile(file: File) {
+  if (!SUPPORTED_TYPES.has(file.type)) {
+    return `${file.name}: use a JPEG, PNG, WebP, or GIF image.`;
+  }
+
+  if (file.size > MAX_IMAGE_BYTES) {
+    return `${file.name}: image is larger than the 25 MB limit.`;
+  }
+
+  return null;
+}
+
+function getUrlSet(slots: ImageSlot[]) {
+  return new Set(slots.flatMap((slot) => (slot.objectUrl ? [slot.objectUrl] : [])));
+}
+
+function revokeDiscardedUrls(discarded: ImageSlot[], retained: ImageSlot[]) {
+  const retainedUrls = getUrlSet(retained);
+  getUrlSet(discarded).forEach((url) => {
+    if (!retainedUrls.has(url)) {
+      URL.revokeObjectURL(url);
+    }
+  });
 }
 
 export function useImageSlots(slotCount: number) {
   const [slots, setSlots] = useState<ImageSlot[]>(() => createEmptySlots(slotCount));
-  const loadIdsRef = useRef<number[]>(createEmptySlots(slotCount).map(() => 0));
-  const objectUrlsRef = useRef<(string | null)[]>(createEmptySlots(slotCount).map(() => null));
+  const slotsRef = useRef(slots);
+  const loadIdsRef = useRef(new Map<number, number>());
+  const [selectedSlotId, setSelectedSlotId] = useState(0);
+  const selectedSlotIdRef = useRef(selectedSlotId);
+  const [mediaNotice, setMediaNotice] = useState<string | null>(null);
+  const [mediaAnnouncement, setMediaAnnouncement] = useState("");
+  const [undoAction, setUndoAction] = useState<MediaUndoAction | null>(null);
+  const undoRef = useRef<UndoSnapshot | null>(null);
+  const undoTimerRef = useRef<number | null>(null);
 
-  const revokeSlotUrl = useCallback((index: number) => {
-    const existingUrl = objectUrlsRef.current[index];
-
-    if (existingUrl) {
-      URL.revokeObjectURL(existingUrl);
-      objectUrlsRef.current[index] = null;
-    }
+  const applySlots = useCallback((nextSlots: ImageSlot[]) => {
+    slotsRef.current = nextSlots;
+    setSlots(nextSlots);
   }, []);
 
-  const setSlotFile = useCallback(
-    (index: number, file: File) => {
-      if (!file.type.startsWith("image/")) {
-        setSlots((current) =>
-          current.map((slot, slotIndex) =>
-            slotIndex === index
-              ? {
-                  ...slot,
-                  errorMessage: "Choose an image file.",
-                  status: slot.image ? "ready" : "error",
-                }
-              : slot,
-          ),
+  const updateSelectedId = useCallback((id: number) => {
+    selectedSlotIdRef.current = id;
+    setSelectedSlotId(id);
+  }, []);
+
+  const invalidateSlotLoad = useCallback((id: number) => {
+    loadIdsRef.current.set(id, (loadIdsRef.current.get(id) ?? 0) + 1);
+  }, []);
+
+  const finishUndo = useCallback(() => {
+    const snapshot = undoRef.current;
+    if (!snapshot) {
+      return;
+    }
+
+    revokeDiscardedUrls(snapshot.slots, slotsRef.current);
+    undoRef.current = null;
+    if (undoTimerRef.current !== null) {
+      window.clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+    setUndoAction(null);
+  }, []);
+
+  const beginUndo = useCallback(
+    (snapshot: ImageSlot[], message: string) => {
+      finishUndo();
+      undoRef.current = {
+        message,
+        selectedId: selectedSlotIdRef.current,
+        slots: snapshot,
+      };
+      setUndoAction({ message });
+      undoTimerRef.current = window.setTimeout(finishUndo, UNDO_DURATION);
+    },
+    [finishUndo],
+  );
+
+  const decodeSlotSource = useCallback(
+    (slotId: number, src: string, errorMessage: string) => {
+      const image = new Image();
+      const loadId = (loadIdsRef.current.get(slotId) ?? 0) + 1;
+      loadIdsRef.current.set(slotId, loadId);
+      image.decoding = "async";
+
+      image.onload = () => {
+        const currentSlot = slotsRef.current.find((slot) => slot.id === slotId);
+        if (
+          loadIdsRef.current.get(slotId) !== loadId ||
+          currentSlot?.src !== src ||
+          image.naturalWidth < 1 ||
+          image.naturalHeight < 1
+        ) {
+          return;
+        }
+
+        const nextSlots = slotsRef.current.map((slot) =>
+          slot.id === slotId
+            ? { ...slot, errorMessage: null, image, status: "ready" as const }
+            : slot,
         );
+        applySlots(nextSlots);
+      };
+
+      image.onerror = () => {
+        const currentSlot = slotsRef.current.find((slot) => slot.id === slotId);
+        if (loadIdsRef.current.get(slotId) !== loadId || currentSlot?.src !== src) {
+          return;
+        }
+
+        if (currentSlot.objectUrl) {
+          URL.revokeObjectURL(currentSlot.objectUrl);
+        }
+        const nextSlots = slotsRef.current.map((slot) =>
+          slot.id === slotId
+            ? {
+                ...slot,
+                errorMessage,
+                image: null,
+                objectUrl: null,
+                source: null,
+                src: null,
+                status: "error" as const,
+              }
+            : slot,
+        );
+        applySlots(nextSlots);
+        setMediaNotice(errorMessage);
+      };
+
+      image.src = src;
+    },
+    [applySlots],
+  );
+
+  const loadFileIntoSlot = useCallback(
+    (index: number, file: File) => {
+      const currentSlot = slotsRef.current[index];
+      if (!currentSlot) {
         return;
       }
 
-      revokeSlotUrl(index);
+      invalidateSlotLoad(currentSlot.id);
+      if (currentSlot.objectUrl) {
+        URL.revokeObjectURL(currentSlot.objectUrl);
+      }
 
       const objectUrl = URL.createObjectURL(file);
-      const image = new Image();
-      const loadId = loadIdsRef.current[index] + 1;
-      image.decoding = "async";
-      loadIdsRef.current[index] = loadId;
-      objectUrlsRef.current[index] = objectUrl;
-
-      setSlots((current) =>
-        current.map((slot, slotIndex) =>
-          slotIndex === index
-            ? {
-                ...slot,
-                errorMessage: null,
-                fileName: file.name,
-                image: null,
-                objectUrl,
-                status: "loading",
-              }
-            : slot,
-        ),
+      const nextSlot: ImageSlot = {
+        ...currentSlot,
+        errorMessage: null,
+        fileName: file.name,
+        fileSize: file.size,
+        fingerprint: getFileFingerprint(file),
+        image: null,
+        objectUrl,
+        source: "upload",
+        src: objectUrl,
+        status: "loading",
+      };
+      const nextSlots = slotsRef.current.map((slot, slotIndex) =>
+        slotIndex === index ? nextSlot : slot,
       );
-
-      image.onload = () => {
-        if (objectUrlsRef.current[index] !== objectUrl || loadIdsRef.current[index] !== loadId) {
-          return;
-        }
-
-        setSlots((current) =>
-          current.map((slot, slotIndex) =>
-            slotIndex === index
-              ? {
-                  ...slot,
-                  errorMessage: null,
-                  image,
-                  status: "ready",
-                }
-              : slot,
-          ),
-        );
-      };
-
-      image.onerror = () => {
-        if (objectUrlsRef.current[index] !== objectUrl || loadIdsRef.current[index] !== loadId) {
-          return;
-        }
-
-        revokeSlotUrl(index);
-        setSlots((current) =>
-          current.map((slot, slotIndex) =>
-            slotIndex === index
-              ? {
-                  ...slot,
-                  errorMessage: "This image could not be loaded.",
-                  image: null,
-                  objectUrl: null,
-                  status: "error",
-                }
-              : slot,
-          ),
-        );
-      };
-
-      image.src = objectUrl;
+      applySlots(nextSlots);
+      decodeSlotSource(currentSlot.id, objectUrl, `${file.name}: the image could not be decoded.`);
     },
-    [revokeSlotUrl],
+    [applySlots, decodeSlotSource, invalidateSlotLoad],
   );
 
-  const clearSlot = useCallback(
-    (index: number) => {
-      revokeSlotUrl(index);
-      loadIdsRef.current[index] += 1;
-      setSlots((current) =>
-        current.map((slot, slotIndex) =>
-          slotIndex === index
-            ? {
-              ...slot,
-                errorMessage: null,
-                fileName: null,
-                image: null,
-                objectUrl: null,
-                status: "empty",
-              }
-            : slot,
-        ),
+  const addFiles = useCallback(
+    (files: File[]): AddFilesResult => {
+      finishUndo();
+      const errors: string[] = [];
+      let added = 0;
+      const fingerprints = new Set(
+        slotsRef.current.flatMap((slot) => (slot.fingerprint ? [slot.fingerprint] : [])),
       );
+
+      files.forEach((file) => {
+        const validationError = validateFile(file);
+        if (validationError) {
+          errors.push(validationError);
+          return;
+        }
+
+        const fingerprint = getFileFingerprint(file);
+        if (fingerprints.has(fingerprint)) {
+          errors.push(`${file.name}: this image is already in the media set.`);
+          return;
+        }
+
+        const emptyIndex = slotsRef.current.findIndex(
+          (slot) => slot.status === "empty" || slot.status === "error",
+        );
+        if (emptyIndex < 0) {
+          errors.push(`${file.name}: all four slots are full.`);
+          return;
+        }
+
+        loadFileIntoSlot(emptyIndex, file);
+        fingerprints.add(fingerprint);
+        added += 1;
+        if (added === 1) {
+          updateSelectedId(slotsRef.current[emptyIndex].id);
+        }
+      });
+
+      const parts = [
+        added ? `${added} image${added === 1 ? "" : "s"} added.` : "",
+        ...errors,
+      ].filter(Boolean);
+      setMediaNotice(parts.join(" ") || null);
+      if (added) {
+        setMediaAnnouncement(`${added} image${added === 1 ? "" : "s"} added to the carousel.`);
+      }
+      return { added, errors };
     },
-    [revokeSlotUrl],
+    [finishUndo, loadFileIntoSlot, updateSelectedId],
+  );
+
+  const replaceSlot = useCallback(
+    (index: number, file: File) => {
+      const validationError = validateFile(file);
+      if (validationError) {
+        setMediaNotice(validationError);
+        return false;
+      }
+
+      const fingerprint = getFileFingerprint(file);
+      const isDuplicate = slotsRef.current.some(
+        (slot, slotIndex) => slotIndex !== index && slot.fingerprint === fingerprint,
+      );
+      if (isDuplicate) {
+        setMediaNotice(`${file.name}: this image is already in another slot.`);
+        return false;
+      }
+
+      finishUndo();
+      loadFileIntoSlot(index, file);
+      updateSelectedId(slotsRef.current[index].id);
+      setMediaNotice(`${file.name} added to Slot ${index + 1}.`);
+      setMediaAnnouncement(`Slot ${index + 1} replaced with ${file.name}.`);
+      return true;
+    },
+    [finishUndo, loadFileIntoSlot, updateSelectedId],
+  );
+
+  const removeSlot = useCallback(
+    (index: number) => {
+      const current = slotsRef.current;
+      const slot = current[index];
+      if (!slot || slot.status === "empty") {
+        return;
+      }
+
+      beginUndo(current.slice(), `${slot.fileName ?? `Slot ${index + 1}`} removed.`);
+      invalidateSlotLoad(slot.id);
+      const nextSlots = current.map((item, slotIndex) =>
+        slotIndex === index ? createEmptySlot(item.id) : item,
+      );
+      applySlots(nextSlots);
+
+      if (selectedSlotIdRef.current === slot.id) {
+        const nextIndex = index < nextSlots.length - 1 ? index + 1 : Math.max(0, index - 1);
+        updateSelectedId(nextSlots[nextIndex].id);
+      }
+      setMediaNotice(null);
+      setMediaAnnouncement(`Slot ${index + 1} removed. Undo is available.`);
+    },
+    [applySlots, beginUndo, invalidateSlotLoad, updateSelectedId],
   );
 
   const clearAllSlots = useCallback(() => {
-    objectUrlsRef.current.forEach((objectUrl) => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
+    const current = slotsRef.current;
+    if (current.every((slot) => slot.status === "empty")) {
+      return;
+    }
+
+    beginUndo(current.slice(), "All media cleared.");
+    current.forEach((slot) => invalidateSlotLoad(slot.id));
+    const nextSlots = current.map((slot) => createEmptySlot(slot.id));
+    applySlots(nextSlots);
+    updateSelectedId(nextSlots[0].id);
+    setMediaNotice(null);
+    setMediaAnnouncement("All media cleared. Undo is available.");
+  }, [applySlots, beginUndo, invalidateSlotLoad, updateSelectedId]);
+
+  const undo = useCallback(() => {
+    const snapshot = undoRef.current;
+    if (!snapshot) {
+      return;
+    }
+
+    if (undoTimerRef.current !== null) {
+      window.clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+    revokeDiscardedUrls(slotsRef.current, snapshot.slots);
+    undoRef.current = null;
+    setUndoAction(null);
+    applySlots(snapshot.slots);
+    updateSelectedId(snapshot.selectedId);
+    snapshot.slots.forEach((slot) => {
+      if (slot.status === "loading" && slot.src) {
+        decodeSlotSource(
+          slot.id,
+          slot.src,
+          `${slot.fileName ?? "Image"}: the image could not be decoded.`,
+        );
       }
     });
-    objectUrlsRef.current = createEmptySlots(slotCount).map(() => null);
-    loadIdsRef.current = createEmptySlots(slotCount).map(() => 0);
-    setSlots(createEmptySlots(slotCount));
-  }, [slotCount]);
+    setMediaAnnouncement("Media restored.");
+  }, [applySlots, decodeSlotSource, updateSelectedId]);
 
   const loadDemoSlots = useCallback(() => {
-    objectUrlsRef.current.forEach((objectUrl) => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
+    finishUndo();
+    const current = slotsRef.current;
+    revokeDiscardedUrls(current, []);
+    const nextSlots = current.map((slot, index) => {
+      invalidateSlotLoad(slot.id);
+      const src = createDemoImageDataUrl(index);
+      return {
+        ...createEmptySlot(slot.id),
+        fileName: `Demo image ${index + 1}`,
+        source: "demo" as const,
+        src,
+        status: "loading" as const,
+      };
+    });
+    applySlots(nextSlots);
+    nextSlots.forEach((slot) => {
+      if (slot.src) {
+        decodeSlotSource(slot.id, slot.src, "Demo image could not be decoded.");
       }
     });
-    objectUrlsRef.current = createEmptySlots(slotCount).map(() => null);
-    loadIdsRef.current = loadIdsRef.current.map((loadId) => loadId + 1);
+    updateSelectedId(nextSlots[0].id);
+    setMediaNotice("Demo images loaded. Replace any slot with your own media.");
+    setMediaAnnouncement("Four demo images loaded.");
+  }, [applySlots, decodeSlotSource, finishUndo, invalidateSlotLoad, updateSelectedId]);
 
-    setSlots((current) =>
-      current.map((slot, index) => ({
-        ...slot,
-        errorMessage: null,
-        fileName: `Demo card ${index + 1}`,
-        image: null,
-        objectUrl: null,
-        status: "loading",
-      })),
-    );
+  const selectSlot = useCallback(
+    (index: number) => {
+      const slot = slotsRef.current[index];
+      if (!slot) {
+        return;
+      }
+      updateSelectedId(slot.id);
+      setMediaAnnouncement(`Slot ${index + 1} selected.`);
+    },
+    [updateSelectedId],
+  );
 
-    Array.from({ length: slotCount }, (_, index) => {
-      const loadId = loadIdsRef.current[index];
-      const image = new Image();
+  const moveSlot = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const current = slotsRef.current;
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= current.length ||
+        toIndex >= current.length
+      ) {
+        return;
+      }
 
-      image.decoding = "async";
-      image.onload = () => {
-        if (loadIdsRef.current[index] !== loadId) {
-          return;
-        }
-
-        setSlots((current) =>
-          current.map((slot, slotIndex) =>
-            slotIndex === index
-              ? {
-                  ...slot,
-                  errorMessage: null,
-                  image,
-                  status: "ready",
-                }
-              : slot,
-          ),
-        );
-      };
-      image.onerror = () => {
-        if (loadIdsRef.current[index] !== loadId) {
-          return;
-        }
-
-        setSlots((current) =>
-          current.map((slot, slotIndex) =>
-            slotIndex === index
-              ? {
-                  ...slot,
-                  errorMessage: "Demo image could not be loaded.",
-                  image: null,
-                  status: "error",
-                }
-              : slot,
-          ),
-        );
-      };
-      image.src = createDemoImageDataUrl(index);
-    });
-  }, [slotCount]);
+      const nextSlots = current.slice();
+      const [moved] = nextSlots.splice(fromIndex, 1);
+      nextSlots.splice(toIndex, 0, moved);
+      applySlots(nextSlots);
+      updateSelectedId(moved.id);
+      setMediaAnnouncement(
+        `${moved.fileName ?? "Empty media slot"} moved to Slot ${toIndex + 1}.`,
+      );
+    },
+    [applySlots, updateSelectedId],
+  );
 
   useEffect(() => {
-    setSlots((current) => {
-      if (current.length === slotCount) {
-        return current;
-      }
-
-      objectUrlsRef.current.forEach((objectUrl) => {
-        if (objectUrl) {
-          URL.revokeObjectURL(objectUrl);
-        }
-      });
-
-      objectUrlsRef.current = createEmptySlots(slotCount).map(() => null);
-      loadIdsRef.current = createEmptySlots(slotCount).map(() => 0);
-      return createEmptySlots(slotCount);
-    });
-  }, [slotCount]);
+    if (slotsRef.current.length === slotCount) {
+      return;
+    }
+    finishUndo();
+    revokeDiscardedUrls(slotsRef.current, []);
+    const nextSlots = createEmptySlots(slotCount);
+    applySlots(nextSlots);
+    updateSelectedId(nextSlots[0]?.id ?? 0);
+  }, [applySlots, finishUndo, slotCount, updateSelectedId]);
 
   useEffect(() => {
     return () => {
-      objectUrlsRef.current.forEach((objectUrl) => {
-        if (objectUrl) {
-          URL.revokeObjectURL(objectUrl);
-        }
-      });
+      if (undoTimerRef.current !== null) {
+        window.clearTimeout(undoTimerRef.current);
+      }
+      const pendingSlots = undoRef.current?.slots ?? [];
+      revokeDiscardedUrls([...slotsRef.current, ...pendingSlots], []);
     };
   }, []);
 
+  const selectedIndex = Math.max(
+    0,
+    slots.findIndex((slot) => slot.id === selectedSlotId),
+  );
+
   return {
-    slots,
-    slotImages: slots.map((slot) => slot.image),
-    setSlotFile,
-    clearSlot,
+    addFiles,
     clearAllSlots,
+    dismissNotice: () => setMediaNotice(null),
     loadDemoSlots,
+    mediaAnnouncement,
+    mediaNotice,
+    moveSlot,
+    removeSlot,
+    replaceSlot,
+    selectSlot,
+    selectedIndex,
+    slotImages: slots.map((slot) => (slot.status === "ready" ? slot.image : null)),
+    slots,
+    undo,
+    undoAction,
   };
 }
 

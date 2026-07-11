@@ -1,20 +1,25 @@
-import { useState } from "react";
-import type { ImageSlot } from "../hooks/useImageSlots";
+import { useRef, useState } from "react";
+import { ACCEPTED_IMAGE_TYPES } from "../hooks/useImageSlots";
+import type { AddFilesResult, ImageSlot } from "../hooks/useImageSlots";
 import { MediaSlotControl } from "./MediaSlotControl";
 
-const rigs = [
-  { id: "orbit-carousel", name: "Orbit Carousel", status: "Active" },
-];
+const rigs = [{ id: "orbit-carousel", name: "Orbit Carousel", status: "Active" }];
 
 interface LeftPanelProps {
   activeRigId: string;
+  addFiles: (files: File[]) => AddFilesResult;
   clearAllSlots: () => void;
-  clearSlot: (index: number) => void;
   isDrawer: boolean;
   isVisible: boolean;
+  mediaAnnouncement: string;
+  mediaNotice: string | null;
+  moveSlot: (fromIndex: number, toIndex: number) => void;
   onLoadDemo: () => void;
   onRequestClose: () => void;
-  setSlotFile: (index: number, file: File) => void;
+  removeSlot: (index: number) => void;
+  replaceSlot: (index: number, file: File) => boolean;
+  selectSlot: (index: number) => void;
+  selectedIndex: number;
   slots: ImageSlot[];
 }
 
@@ -22,16 +27,43 @@ type WorkspaceSection = "create" | "media" | "presets";
 
 export function LeftPanel({
   activeRigId,
+  addFiles,
   clearAllSlots,
-  clearSlot,
   isDrawer,
   isVisible,
+  mediaAnnouncement,
+  mediaNotice,
+  moveSlot,
   onLoadDemo,
   onRequestClose,
-  setSlotFile,
+  removeSlot,
+  replaceSlot,
+  selectSlot,
+  selectedIndex,
   slots,
 }: LeftPanelProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const dragDepthRef = useRef(0);
   const [activeSection, setActiveSection] = useState<WorkspaceSection>("media");
+  const [dropState, setDropState] = useState<"idle" | "valid" | "invalid">("idle");
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [pendingReplacement, setPendingReplacement] = useState<File | null>(null);
+
+  const receiveFiles = (files: File[]) => {
+    if (!files.length) {
+      return;
+    }
+    const hasEmptySlot = slots.some((slot) => slot.status === "empty" || slot.status === "error");
+    if (!hasEmptySlot) {
+      setPendingReplacement(files[0]);
+      return;
+    }
+    addFiles(files);
+  };
+
+  const isValidDrag = (types: string[]) =>
+    types.length > 0 && types.every((type) => ACCEPTED_IMAGE_TYPES.split(",").includes(type));
 
   return (
     <aside
@@ -77,10 +109,7 @@ export function LeftPanel({
                   key={rig.id}
                   type="button"
                 >
-                  <span>
-                    <strong>{rig.name}</strong>
-                    <small>4 image spatial loop</small>
-                  </span>
+                  <span><strong>{rig.name}</strong><small>4 image spatial loop</small></span>
                   <small>{rig.status}</small>
                 </button>
               ))}
@@ -93,27 +122,123 @@ export function LeftPanel({
             <div className="section-heading-row">
               <div>
                 <p className="eyebrow">Media</p>
-                <h2 id="media-heading">4 image slots</h2>
+                <h2 id="media-heading">Carousel sequence</h2>
               </div>
-              <button className="quiet-button" type="button" onClick={clearAllSlots}>
-                Clear all
-              </button>
+              <span className="media-count">
+                {slots.filter((slot) => slot.status === "ready" || slot.status === "loading").length}/4
+              </span>
             </div>
-            <div className="media-quick-action">
-              <span>Need a fresh set?</span>
-              <button type="button" onClick={onLoadDemo}>Load demo</button>
+
+            <div
+              className={`media-dropzone media-dropzone-${dropState}`}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                dragDepthRef.current += 1;
+                const types = Array.from(event.dataTransfer.items)
+                  .filter((item) => item.kind === "file")
+                  .map((item) => item.type);
+                setDropState(isValidDrag(types) ? "valid" : "invalid");
+              }}
+              onDragLeave={() => {
+                dragDepthRef.current -= 1;
+                if (dragDepthRef.current <= 0) {
+                  dragDepthRef.current = 0;
+                  setDropState("idle");
+                }
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "copy";
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                dragDepthRef.current = 0;
+                setDropState("idle");
+                receiveFiles(Array.from(event.dataTransfer.files));
+              }}
+            >
+              <input
+                accept={ACCEPTED_IMAGE_TYPES}
+                className="media-slot-input"
+                multiple
+                onChange={(event) => {
+                  receiveFiles(Array.from(event.target.files ?? []));
+                  event.currentTarget.value = "";
+                }}
+                ref={inputRef}
+                type="file"
+              />
+              <strong>{dropState === "invalid" ? "That file type isn’t supported" : "Drop images here"}</strong>
+              <span>JPEG, PNG, WebP, or GIF · up to 25 MB each</span>
+              <button type="button" onClick={() => inputRef.current?.click()}>Add images</button>
             </div>
-            <div className="media-slot-list">
+
+            <p className="media-guidance">
+              Portrait images around 900 × 1160 work best. Files stay in this browser session and are not uploaded.
+            </p>
+
+            {pendingReplacement ? (
+              <div className="replacement-prompt" role="status" aria-live="polite">
+                <strong>All slots are full</strong>
+                <p>Replace selected Slot {selectedIndex + 1} with {pendingReplacement.name}?</p>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      replaceSlot(selectedIndex, pendingReplacement);
+                      setPendingReplacement(null);
+                    }}
+                  >
+                    Replace selected
+                  </button>
+                  <button type="button" onClick={() => setPendingReplacement(null)}>Cancel</button>
+                </div>
+              </div>
+            ) : null}
+
+            {mediaNotice ? <p className="media-notice" role="status">{mediaNotice}</p> : null}
+
+            <div className="media-slot-list" role="list" aria-label="Orbit Carousel media order">
               {slots.map((slot, index) => (
                 <MediaSlotControl
+                  dragOver={dragOverIndex === index}
                   index={index}
+                  isSelected={selectedIndex === index}
                   key={slot.id}
-                  onClear={clearSlot}
-                  onUpload={setSlotFile}
+                  onDragEnd={() => {
+                    setDraggingIndex(null);
+                    setDragOverIndex(null);
+                  }}
+                  onDragOver={setDragOverIndex}
+                  onDragStart={setDraggingIndex}
+                  onDrop={(toIndex) => {
+                    if (draggingIndex !== null) {
+                      moveSlot(draggingIndex, toIndex);
+                    }
+                    setDraggingIndex(null);
+                    setDragOverIndex(null);
+                  }}
+                  onMove={moveSlot}
+                  onRemove={removeSlot}
+                  onReplace={replaceSlot}
+                  onSelect={selectSlot}
                   slot={slot}
+                  slotCount={slots.length}
                 />
               ))}
             </div>
+
+            <div className="media-utility-row">
+              <button type="button" onClick={onLoadDemo}>Load demo</button>
+              <button
+                disabled={slots.every((slot) => slot.status === "empty")}
+                type="button"
+                onClick={clearAllSlots}
+              >
+                Clear all
+              </button>
+            </div>
+            <p className="sr-only" aria-live="polite">{mediaAnnouncement}</p>
           </section>
         ) : null}
 
@@ -122,15 +247,8 @@ export function LeftPanel({
             <p className="eyebrow">Presets</p>
             <h2 id="presets-heading">Starting looks</h2>
             <div className="preset-list" aria-label="Preset previews">
-              {[
-                ["Studio", "Balanced depth"],
-                ["Editorial", "Tighter composition"],
-                ["Launch", "Wide spatial spread"],
-              ].map(([name, description]) => (
-                <button disabled key={name} type="button">
-                  <span>{name}</span>
-                  <small>{description} · Soon</small>
-                </button>
+              {[["Studio", "Balanced depth"], ["Editorial", "Tighter composition"], ["Launch", "Wide spatial spread"]].map(([name, description]) => (
+                <button disabled key={name} type="button"><span>{name}</span><small>{description} · Soon</small></button>
               ))}
             </div>
           </section>

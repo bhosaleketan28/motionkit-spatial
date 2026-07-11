@@ -29,6 +29,7 @@ interface CenterStageProps {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   rig: MotionRigDefinition;
+  selectedSlotIndex?: number;
   settings: OrbitRigSettings;
   slotImages: Array<HTMLImageElement | null>;
   variant?: "editor" | "onboarding";
@@ -57,6 +58,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   onZoomIn = () => undefined,
   onZoomOut = () => undefined,
   rig,
+  selectedSlotIndex,
   settings,
   slotImages,
   variant = "editor",
@@ -94,10 +96,11 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       rig,
       progress: progressRef.current,
       renderFrameGuide: true,
+      selectedSlotIndex,
       settings,
       slotImages,
     });
-  }, [frame, rig, settings, slotImages]);
+  }, [frame, rig, selectedSlotIndex, settings, slotImages]);
 
   const updateProgress = useCallback((progress: number) => {
     const clampedProgress = Math.min(1, Math.max(0, progress));

@@ -42,14 +42,11 @@ export function StartScreen({
       <section className="start-content" aria-labelledby="start-heading">
         <p className="eyebrow">Orbit Carousel</p>
         <h1 id="start-heading">Create spatial motion from your screenshots.</h1>
-        <p>Upload 4 images, shape the orbit, and export a clean looping WebM.</p>
+        <p>Add 1–4 images, shape the orbit, and export a clean looping WebM.</p>
 
         <div className="start-actions">
-          <button className="primary-button" type="button" onClick={onLoadDemo}>
-            Start with demo
-          </button>
           <input
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             className="media-slot-input"
             multiple
             onChange={(event) => {
@@ -61,8 +58,11 @@ export function StartScreen({
             ref={inputRef}
             type="file"
           />
-          <button className="secondary-button" type="button" onClick={() => inputRef.current?.click()}>
-            Upload 4 images
+          <button className="primary-button" type="button" onClick={() => inputRef.current?.click()}>
+            Add your images
+          </button>
+          <button className="secondary-button" type="button" onClick={onLoadDemo}>
+            Start with demo
           </button>
         </div>
 
@@ -70,7 +70,7 @@ export function StartScreen({
 
         <ul className="start-metadata" aria-label="Orbit Carousel details">
           <li>Orbit Carousel</li>
-          <li>4 images</li>
+          <li>1–4 local images</li>
           <li>Looping WebM</li>
           <li>1:1 · 16:9 · 9:16</li>
         </ul>
