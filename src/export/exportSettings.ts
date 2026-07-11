@@ -1,4 +1,4 @@
-import type { FrameRatio, FrameSize, MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { FrameRatio, FrameSize, OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
 
 export const WEBM_MIME_TYPES = [
   "video/webm;codecs=vp9",
@@ -41,7 +41,7 @@ export interface ExportOptions {
 }
 
 export interface ExportRenderInput {
-  rig: MotionRigDefinition;
+  rig: OrbitCarouselRigDefinition;
   settings: OrbitRigSettings;
   slotImages: Array<HTMLImageElement | null>;
 }
@@ -191,7 +191,7 @@ export function createDefaultExportFileName(
   ].join("");
   const ratio = input.settings.frameRatio.replace(":", "x");
 
-  return `motionkit-${input.rig.id}-${ratio}-${dateStamp}-${timeStamp}.${extension}`;
+  return `motionkit-${input.rig.exportMetadata.fileNamePrefix}-${ratio}-${dateStamp}-${timeStamp}.${extension}`;
 }
 
 export function normalizeExportFileName(fileName: string, extension: ExportFormat) {
@@ -207,18 +207,18 @@ export function normalizeExportFileName(fileName: string, extension: ExportForma
 }
 
 export function validateExportMedia(input: ExportRenderInput) {
-  if (input.slotImages.length !== input.rig.mediaSlotCount) {
+  if (input.slotImages.length !== input.rig.slotCount) {
     throw new ExportProcessError(
       "invalid-media",
-      `Orbit Carousel requires ${input.rig.mediaSlotCount} valid images before export.`,
+      `${input.rig.name} requires ${input.rig.mediaRequirements.requiredForExport} valid images before export.`,
     );
   }
 
-  const invalidImage = input.slotImages.some(
-    (image) => !image || !image.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0,
-  );
+  const validImageCount = input.slotImages.filter(
+    (image) => image && image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
+  ).length;
 
-  if (invalidImage) {
+  if (validImageCount < input.rig.mediaRequirements.requiredForExport) {
     throw new ExportProcessError(
       "invalid-media",
       "One or more media slots are empty, still loading, or contain an image that could not be decoded.",

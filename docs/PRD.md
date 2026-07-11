@@ -10,6 +10,21 @@ It is inspired by the category of spatial motion tools, but it must be built fro
 
 Users upload images into media slots, choose a motion rig, adjust simple spatial parameters, preview the animation, and export a WebM.
 
+## Motion Rig Contract
+
+A motion rig is a versioned product definition, not only a renderer. Each rig owns:
+
+- identity, category, and user-facing descriptions;
+- slot count, slot labels, and media requirements;
+- supported and default frame ratios;
+- validated default settings;
+- inspector sections and supported capabilities;
+- its Canvas renderer and demo media generator;
+- export naming, duration, and transparency metadata;
+- preset compatibility metadata.
+
+Available rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 10 adds this architecture without adding a second rig or rig-switching UI.
+
 ## Target User
 
 Designers, creators, product marketers, and visual teams who want to quickly showcase designs, product screens, or image sets in motion without using After Effects, Blender, or complex 3D tools.
@@ -61,16 +76,7 @@ The effect can be created with Canvas 2D using:
 
 ### Left Panel
 
-Motion rig list.
-
-For MVP:
-
-- Orbit Carousel active
-- Film Strip placeholder
-- Card Totem placeholder
-- Showcase Stream placeholder
-
-Only Orbit Carousel should work.
+The active rig and its media sequence. Orbit Carousel is the only registered rig in the MVP; no inactive placeholder rigs are shown.
 
 ### Center Stage
 
@@ -96,8 +102,11 @@ Use:
 - TypeScript
 - Canvas 2D
 - MediaRecorder for WebM export
+- A generic rig definition contract and validated registry
 
 Do not use Three.js in the first version unless Canvas 2D proves insufficient.
+
+Rig-specific geometry and control implementations may remain specialized, but workspace metadata, media sizing, stage descriptions, ratio availability, export validation, demo generation, and session ownership must flow through the active rig definition.
 
 ## Export
 

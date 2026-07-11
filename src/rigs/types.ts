@@ -18,6 +18,11 @@ export interface BackgroundSettings {
   solidColor: string;
 }
 
+export interface BaseRigSettings {
+  durationSeconds: number;
+  frameRatio: FrameRatio;
+}
+
 export interface MotionRigControlDefaults {
   background: BackgroundSettings;
   cardShape: CardShape;
@@ -33,11 +38,82 @@ export interface OrbitRigSettings extends MotionRigControlDefaults {
   frameRatio: FrameRatio;
 }
 
-export interface MotionRigDefinition {
-  id: string;
-  name: string;
-  description: string;
-  mediaSlotCount: number;
-  defaultFrameRatio: FrameRatio;
-  defaults: MotionRigControlDefaults;
+export type RigInspectorSectionId = "motion" | "appearance" | "background" | "export";
+
+export interface RigInspectorSection {
+  defaultOpen: boolean;
+  id: RigInspectorSectionId;
+  label: string;
 }
+
+export interface RigMediaRequirements {
+  acceptedTypes: string[];
+  maxFileBytes: number;
+  maxItems: number;
+  minItems: number;
+  preferredDimensions: string;
+  requiredForExport: number;
+}
+
+export interface RigCapabilities {
+  looping: boolean;
+  supportsBackground: boolean;
+  supportsDirection: boolean;
+  supportsShapes: boolean;
+  supportsTransparentBackground: boolean;
+}
+
+export interface RigExportMetadata {
+  defaultDuration: number;
+  fileNamePrefix: string;
+  supportsTransparentBackground: boolean;
+}
+
+export interface RigPresetCompatibility {
+  schemaId: string;
+  version: number;
+}
+
+export interface RigDemoMedia {
+  label: string;
+  src: string;
+}
+
+export interface RigRenderInput<Settings extends BaseRigSettings> {
+  context: CanvasRenderingContext2D;
+  frame: FrameSize;
+  progress: number;
+  renderFrameGuide?: boolean;
+  selectedSlotIndex?: number;
+  settings: Settings;
+  slotCount: number;
+  slotImages?: Array<HTMLImageElement | null>;
+}
+
+export type RigRenderer<Settings extends BaseRigSettings> = (
+  input: RigRenderInput<Settings>,
+) => void;
+
+export interface RigDefinition<Settings extends BaseRigSettings> {
+  capabilities: RigCapabilities;
+  category: string;
+  defaultRatio: FrameRatio;
+  defaultSettings: Settings;
+  exportMetadata: RigExportMetadata;
+  generateDemoMedia: () => RigDemoMedia[];
+  id: string;
+  inspectorSections: RigInspectorSection[];
+  isSettings: (value: unknown) => value is Settings;
+  longDescription: string;
+  mediaRequirements: RigMediaRequirements;
+  name: string;
+  presetCompatibility: RigPresetCompatibility;
+  render: RigRenderer<Settings>;
+  shortDescription: string;
+  slotCount: number;
+  slotLabels: string[];
+  supportedRatios: FrameRatio[];
+  version: number;
+}
+
+export type OrbitCarouselRigDefinition = RigDefinition<OrbitRigSettings>;

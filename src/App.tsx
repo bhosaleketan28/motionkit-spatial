@@ -11,8 +11,8 @@ import type { ExportStatus } from "./export/exportSettings";
 import { useImageSlots } from "./hooks/useImageSlots";
 import type { ImageSlot } from "./hooks/useImageSlots";
 import { useMediaQuery } from "./hooks/useMediaQuery";
-import { orbitCarouselRig } from "./rigs/orbitCarousel";
-import type { OrbitRigSettings } from "./rigs/types";
+import { getRigById, rigRegistry } from "./rigs/registry";
+import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "./rigs/types";
 import { readWorkspaceSession, writeWorkspaceSession } from "./utils/workspaceSession";
 import type { WorkspaceSession } from "./utils/workspaceSession";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -25,26 +25,31 @@ const MIN_ZOOM = 50;
 const MAX_ZOOM = 200;
 const ZOOM_STEP = 10;
 
-function createDefaultSettings(): OrbitRigSettings {
+function createDefaultSettings(rig: OrbitCarouselRigDefinition): OrbitRigSettings {
   return {
-    ...orbitCarouselRig.defaults,
-    frameRatio: orbitCarouselRig.defaultFrameRatio,
+    ...rig.defaultSettings,
+    background: { ...rig.defaultSettings.background },
   };
 }
 
-function normalizeSettings(settings: OrbitRigSettings): OrbitRigSettings {
-  const defaults = createDefaultSettings();
+function normalizeSettings(
+  rig: OrbitCarouselRigDefinition,
+  settings: OrbitRigSettings,
+): OrbitRigSettings {
+  const defaults = createDefaultSettings(rig);
 
-  return {
+  const normalized = {
     ...defaults,
     ...settings,
     background: settings.background ?? defaults.background,
     cardShape: settings.cardShape ?? defaults.cardShape,
   };
+  return rig.isSettings(normalized) ? normalized : defaults;
 }
 
 export default function App() {
   const [initialSession] = useState(readWorkspaceSession);
+  const activeRig = getRigById(initialSession.session?.activeRigId);
   const previousDrawerRef = useRef<WorkspacePanel | null>(null);
   const latestSessionRef = useRef<WorkspaceSession | null>(null);
   const noticeIdRef = useRef(1);
@@ -71,14 +76,14 @@ export default function App() {
   );
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
   const [settings, setSettings] = useState<OrbitRigSettings>(
-    () => initialSession.session?.settings ?? createDefaultSettings(),
+    () => initialSession.session?.settings ?? createDefaultSettings(activeRig),
   );
   const [appNotice, setAppNotice] = useState<AppNotice | null>(() =>
     initialSession.issue
       ? { id: 0, message: initialSession.issue, tone: "warning" }
       : null,
   );
-  const normalizedSettings = normalizeSettings(settings);
+  const normalizedSettings = normalizeSettings(activeRig, settings);
   const {
     addFiles,
     clearAllSlots,
@@ -95,8 +100,8 @@ export default function App() {
     slots,
     undo,
     undoAction,
-  } = useImageSlots(orbitCarouselRig.mediaSlotCount);
-  const exportMediaIssue = getExportMediaIssue(slots);
+  } = useImageSlots(activeRig);
+  const exportMediaIssue = getExportMediaIssue(activeRig, slots);
   const showNotice = useCallback(
     (message: string, tone: NoticeTone, action?: Pick<AppNotice, "actionLabel" | "onAction">) => {
       setAppNotice({
@@ -114,8 +119,9 @@ export default function App() {
   const handleStartUpload = (files: FileList) => {
     const selectedFiles = Array.from(files);
 
-    if (selectedFiles.length < 1 || selectedFiles.length > orbitCarouselRig.mediaSlotCount) {
-      setStartUploadError("Choose between 1 and 4 images to begin.");
+    const { minItems, maxItems } = activeRig.mediaRequirements;
+    if (selectedFiles.length < minItems || selectedFiles.length > maxItems) {
+      setStartUploadError(`Choose between ${minItems} and ${maxItems} images to begin.`);
       return;
     }
     const result = addFiles(selectedFiles);
@@ -133,7 +139,7 @@ export default function App() {
 
   const handleResetSettings = () => {
     const previousSettings = normalizedSettings;
-    setSettings(createDefaultSettings());
+    setSettings(createDefaultSettings(activeRig));
     showNotice("Rig settings reset to defaults.", "undo", {
       actionLabel: "Undo",
       onAction: () => setSettings(previousSettings),
@@ -204,12 +210,13 @@ export default function App() {
       return;
     }
     const session: WorkspaceSession = {
+      activeRigId: activeRig.id,
       hasEditorSession: true,
       isFitMode,
       isLeftRailCollapsed,
       isRightRailCollapsed,
       settings: normalizedSettings,
-      version: 1,
+      version: 2,
       zoomPercent,
     };
     latestSessionRef.current = session;
@@ -223,6 +230,7 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [
     hasEnteredEditor,
+    activeRig.id,
     isFitMode,
     isLeftRailCollapsed,
     isRightRailCollapsed,
@@ -393,7 +401,7 @@ export default function App() {
         onLoadDemo={handleLoadDemo}
         onUploadFiles={handleStartUpload}
         prefersReducedMotion={prefersReducedMotion}
-        rig={orbitCarouselRig}
+        rig={activeRig}
         settings={normalizedSettings}
       />
     );
@@ -408,7 +416,7 @@ export default function App() {
           setIsExportSheetOpen(true);
         }}
         onReset={handleResetSettings}
-        rigName={orbitCarouselRig.name}
+        rigName={activeRig.name}
       />
       <div
         className={[
@@ -419,8 +427,9 @@ export default function App() {
         ].filter(Boolean).join(" ")}
       >
         <LeftPanel
-          activeRigId={orbitCarouselRig.id}
+          activeRig={activeRig}
           addFiles={addFiles}
+          availableRigs={rigRegistry}
           clearAllSlots={clearAllSlots}
           isDrawer={isNarrowWorkspace}
           isVisible={
@@ -466,7 +475,7 @@ export default function App() {
           onToggleStageOnly={toggleStageOnly}
           onZoomIn={() => handleZoom(1)}
           onZoomOut={() => handleZoom(-1)}
-          rig={orbitCarouselRig}
+          rig={activeRig}
           ref={stageRef}
           settings={normalizedSettings}
           selectedSlotIndex={selectedIndex}
@@ -483,7 +492,7 @@ export default function App() {
           onRequestClose={() =>
             isNarrowWorkspace ? setActiveDrawer(null) : setIsRightRailCollapsed(true)
           }
-          rig={orbitCarouselRig}
+          rig={activeRig}
           settings={normalizedSettings}
           setSettings={setSettings}
         />
@@ -504,7 +513,7 @@ export default function App() {
             setSettings({ ...normalizedSettings, frameRatio })
           }
           onStatusChange={setExportStatus}
-          rig={orbitCarouselRig}
+          rig={activeRig}
           settings={normalizedSettings}
           slotImages={slotImages}
         />
@@ -522,7 +531,7 @@ export default function App() {
   );
 }
 
-function getExportMediaIssue(slots: ImageSlot[]) {
+function getExportMediaIssue(rig: OrbitCarouselRigDefinition, slots: ImageSlot[]) {
   if (slots.some((slot) => slot.status === "loading")) {
     return "Wait for every image to finish loading before export.";
   }
@@ -531,8 +540,9 @@ function getExportMediaIssue(slots: ImageSlot[]) {
     return "Replace media that could not be decoded before export.";
   }
 
-  if (slots.some((slot) => slot.status !== "ready" || !slot.image)) {
-    return "Fill all four media slots with valid images before export.";
+  const validItemCount = slots.filter((slot) => slot.status === "ready" && slot.image).length;
+  if (validItemCount < rig.mediaRequirements.requiredForExport) {
+    return `Fill all ${rig.mediaRequirements.requiredForExport} ${rig.name} media slots with valid images before export.`;
   }
 
   return null;

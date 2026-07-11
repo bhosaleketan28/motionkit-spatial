@@ -1,17 +1,6 @@
-import type { FrameSize, MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { FrameSize, OrbitRigSettings, RigRenderInput } from "../rigs/types";
 import { getOrbitCardLayouts } from "./geometry";
 import { createCardPath } from "./shapePaths";
-
-interface RenderOrbitCarouselOptions {
-  context: CanvasRenderingContext2D;
-  frame: FrameSize;
-  rig: MotionRigDefinition;
-  progress: number;
-  renderFrameGuide?: boolean;
-  selectedSlotIndex?: number;
-  settings: OrbitRigSettings;
-  slotImages?: Array<HTMLImageElement | null>;
-}
 
 const placeholderPalettes = [
   { fill: "#64d6b5", accent: "#dff8ef", deep: "#287861", text: "#111719" },
@@ -23,13 +12,13 @@ const placeholderPalettes = [
 export function renderOrbitCarousel({
   context,
   frame,
-  rig,
   progress,
   renderFrameGuide = false,
   selectedSlotIndex,
   settings,
+  slotCount,
   slotImages = [],
-}: RenderOrbitCarouselOptions) {
+}: RigRenderInput<OrbitRigSettings>) {
   const { width, height } = frame;
 
   context.clearRect(0, 0, width, height);
@@ -41,7 +30,7 @@ export function renderOrbitCarousel({
 
   const cards = getOrbitCardLayouts({
     frame,
-    slotCount: rig.mediaSlotCount,
+    slotCount,
     progress,
     settings,
   });

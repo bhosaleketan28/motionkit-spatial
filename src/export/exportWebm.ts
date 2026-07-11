@@ -1,4 +1,3 @@
-import { renderOrbitCarousel } from "../renderer/canvasRenderer";
 import {
   createExportCanvas,
   ExportProcessError,
@@ -13,7 +12,7 @@ import type {
   ExportRenderInput,
 } from "./exportSettings";
 
-export async function exportOrbitCarouselWebm(
+export async function exportRigWebm(
   input: ExportRenderInput,
   options: ExportOptions,
 ): Promise<ExportArtifact> {
@@ -39,12 +38,12 @@ export async function exportOrbitCarouselWebm(
     );
   }
 
-  renderOrbitCarousel({
+  input.rig.render({
     context,
     frame,
     progress: 0,
-    rig: input.rig,
     settings: input.settings,
+    slotCount: input.rig.slotCount,
     slotImages: input.slotImages,
   });
 
@@ -135,12 +134,12 @@ export async function exportOrbitCarouselWebm(
         durationMs,
         signal: options.signal,
         draw: (progress) => {
-          renderOrbitCarousel({
+          input.rig.render({
             context,
             frame,
             progress,
-            rig: input.rig,
             settings: input.settings,
+            slotCount: input.rig.slotCount,
             slotImages: input.slotImages,
           });
         },

@@ -8,8 +8,7 @@ import {
 } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
 import { getFrameSize } from "../renderer/geometry";
-import { renderOrbitCarousel } from "../renderer/canvasRenderer";
-import type { FrameRatio, MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { FrameRatio, OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
 import { StageTransport } from "./StageTransport";
 import type { StageTransportHandle } from "./StageTransport";
 
@@ -28,7 +27,7 @@ interface CenterStageProps {
   onToggleStageOnly?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
-  rig: MotionRigDefinition;
+  rig: OrbitCarouselRigDefinition;
   selectedSlotIndex?: number;
   settings: OrbitRigSettings;
   slotImages: Array<HTMLImageElement | null>;
@@ -96,13 +95,13 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       lastDescriptionSecondRef.current = wholeSecond;
       stageDescriptionRef.current.textContent = [
         `${rig.name} rig.`,
-        `${loadedMediaCount} of ${rig.mediaSlotCount} media items loaded.`,
+        `${loadedMediaCount} of ${rig.slotCount} media items loaded.`,
         `${settings.frameRatio} frame ratio.`,
         isPlaying ? "Playback is running." : "Playback is paused.",
         `Current time ${formatAccessibleTime(currentSeconds)} of ${formatAccessibleTime(settings.durationSeconds)}.`,
       ].join(" ");
     },
-    [isPlaying, loadedMediaCount, rig.mediaSlotCount, rig.name, settings.durationSeconds, settings.frameRatio, variant],
+    [isPlaying, loadedMediaCount, rig.name, rig.slotCount, settings.durationSeconds, settings.frameRatio, variant],
   );
 
   const draw = useCallback(() => {
@@ -113,14 +112,14 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       return;
     }
 
-    renderOrbitCarousel({
+    rig.render({
       context,
       frame,
-      rig,
       progress: progressRef.current,
       renderFrameGuide: true,
       selectedSlotIndex,
       settings,
+      slotCount: rig.slotCount,
       slotImages,
     });
     updateStageDescription(progressRef.current);
@@ -365,9 +364,9 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
                 value={settings.frameRatio}
                 onChange={(event) => onChangeFrameRatio(event.currentTarget.value as FrameRatio)}
               >
-                <option value="1:1">1:1</option>
-                <option value="16:9">16:9</option>
-                <option value="9:16">9:16</option>
+                {rig.supportedRatios.map((ratio) => (
+                  <option key={ratio} value={ratio}>{ratio}</option>
+                ))}
               </select>
             </label>
           </div>
@@ -377,7 +376,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       <div className="canvas-wrap" ref={canvasWrapRef}>
         <div className="canvas-scroll-surface" ref={canvasSurfaceRef}>
           <canvas
-            aria-label="Orbit Carousel visual preview"
+            aria-label={`${rig.name} visual preview`}
             className="preview-canvas"
             ref={canvasRef}
           />

@@ -1,4 +1,3 @@
-import { renderOrbitCarousel } from "../renderer/canvasRenderer";
 import {
   createExportCanvas,
   ExportProcessError,
@@ -12,7 +11,7 @@ import type {
   ExportRenderInput,
 } from "./exportSettings";
 
-export async function exportOrbitCarouselPng(
+export async function exportRigPng(
   input: ExportRenderInput,
   options: ExportOptions,
 ): Promise<ExportArtifact> {
@@ -27,12 +26,12 @@ export async function exportOrbitCarouselPng(
     progress: 0.12,
     remainingMs: 700,
   });
-  renderOrbitCarousel({
+  input.rig.render({
     context,
     frame,
     progress: 0,
-    rig: input.rig,
     settings: input.settings,
+    slotCount: input.rig.slotCount,
     slotImages: input.slotImages,
   });
   options.onProgress({

@@ -21,6 +21,7 @@
 - Phase 9.4: Precision inspector and output controls
 - Phase 9.5: Accessibility, recovery, and product hardening
 - Phase 9.6: Alpha readiness cleanup
+- Phase 10: Rig system architecture
 
 ## Phase 8 Highlights
 
@@ -108,3 +109,13 @@
 - Compacted the Media rail uploader when all slots are populated while preserving the full empty-slot dropzone.
 - Removed duplicate Direction and Card shape group naming, improved shortcut-help presentation, and added concise in-app alpha guidance.
 - Reverified the stage-first layout at 1440×900, 1280×720, 960×800, 768×1024, and 390×844.
+
+## Phase 10 Highlights
+
+- Added a generic `RigDefinition<Settings>` contract covering identity, descriptions, category, slots, ratios, settings, media requirements, inspector sections, rendering, export metadata, capabilities, preset compatibility, validation, demo generation, and versioning.
+- Added a validated central rig registry with id lookup and a safe Orbit Carousel fallback for missing or invalid ids.
+- Migrated Orbit Carousel metadata, defaults, renderer reference, demo generator, requirements, slot labels, and capabilities into its definition.
+- Generalized media initialization, validation, selection announcements, replacement, reordering, undo, cleanup, and future rig-change reset behavior around the active rig contract.
+- Made first run, Media, stage accessibility, ratio controls, inspector exposure, export validation, filenames, and render dispatch read from active rig metadata.
+- Upgraded workspace sessions to version 2 with active rig persistence, version 1 migration, invalid-id fallback, and settings validation through the rig definition.
+- Kept Orbit Carousel as the only visible rig and intentionally deferred rig switching, a second rig, and presets.

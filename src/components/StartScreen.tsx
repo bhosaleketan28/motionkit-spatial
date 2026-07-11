@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
 import { CenterStage } from "./CenterStage";
 
 interface StartScreenProps {
@@ -8,7 +8,7 @@ interface StartScreenProps {
   onUploadFiles: (files: FileList) => void;
   noticeMessage?: string | null;
   prefersReducedMotion: boolean;
-  rig: MotionRigDefinition;
+  rig: OrbitCarouselRigDefinition;
   settings: OrbitRigSettings;
 }
 
@@ -40,7 +40,7 @@ export function StartScreen({
           onTogglePlay={() => undefined}
           rig={rig}
           settings={previewSettings}
-          slotImages={Array.from({ length: rig.mediaSlotCount }, () => null)}
+          slotImages={Array.from({ length: rig.slotCount }, () => null)}
           variant="onboarding"
         />
       </div>
@@ -62,9 +62,12 @@ export function StartScreen({
       </div>
 
       <section className="start-content" aria-labelledby="start-heading">
-        <p className="eyebrow">Orbit Carousel</p>
+        <p className="eyebrow">{rig.name}</p>
         <h1 id="start-heading">Turn screenshots into spatial motion.</h1>
-        <p>Add 1–4 images, tune the orbit, then export a clean looping WebM.</p>
+        <p>
+          Add {rig.mediaRequirements.minItems}–{rig.mediaRequirements.maxItems} images,
+          tune the motion, then export a clean looping WebM.
+        </p>
 
         <div className="start-actions">
           <input
@@ -91,11 +94,11 @@ export function StartScreen({
         {errorMessage ? <p className="start-error" role="alert">{errorMessage}</p> : null}
         {noticeMessage ? <p className="start-notice" role="status">{noticeMessage}</p> : null}
 
-        <ul className="start-metadata" aria-label="Orbit Carousel details">
-          <li>Orbit Carousel</li>
-          <li>1–4 local images</li>
+        <ul className="start-metadata" aria-label={`${rig.name} details`}>
+          <li>{rig.name}</li>
+          <li>{rig.mediaRequirements.minItems}–{rig.mediaRequirements.maxItems} local images</li>
           <li>Looping WebM</li>
-          <li>1:1 · 16:9 · 9:16</li>
+          <li>{rig.supportedRatios.join(" · ")}</li>
         </ul>
       </section>
     </main>

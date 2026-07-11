@@ -1,11 +1,11 @@
 import { RigControls } from "./RigControls";
-import type { MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
 
 interface RightPanelProps {
   isDrawer: boolean;
   isVisible: boolean;
   onRequestClose: () => void;
-  rig: MotionRigDefinition;
+  rig: OrbitCarouselRigDefinition;
   settings: OrbitRigSettings;
   setSettings: (settings: OrbitRigSettings) => void;
 }
@@ -21,7 +21,7 @@ export function RightPanel({
   return (
     <aside
       aria-hidden={!isVisible}
-      aria-label={isDrawer ? "Orbit Carousel inspector drawer" : "Orbit Carousel inspector"}
+      aria-label={isDrawer ? `${rig.name} inspector drawer` : `${rig.name} inspector`}
       className={isVisible ? "panel right-panel panel-open" : "panel right-panel"}
       data-workspace-drawer="inspector"
       id="inspector-panel"
@@ -44,7 +44,7 @@ export function RightPanel({
         </div>
       </div>
 
-      <RigControls defaults={rig.defaults} settings={settings} onChange={setSettings} />
+      <RigControls rig={rig} settings={settings} onChange={setSettings} />
     </aside>
   );
 }

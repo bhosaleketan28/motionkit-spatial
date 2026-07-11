@@ -1,13 +1,12 @@
 import { useRef, useState } from "react";
-import { ACCEPTED_IMAGE_TYPES } from "../hooks/useImageSlots";
 import type { AddFilesResult, ImageSlot } from "../hooks/useImageSlots";
+import type { OrbitCarouselRigDefinition } from "../rigs/types";
 import { MediaSlotControl } from "./MediaSlotControl";
 
-const rigs = [{ id: "orbit-carousel", name: "Orbit Carousel", status: "Active" }];
-
 interface LeftPanelProps {
-  activeRigId: string;
+  activeRig: OrbitCarouselRigDefinition;
   addFiles: (files: File[]) => AddFilesResult;
+  availableRigs: readonly OrbitCarouselRigDefinition[];
   clearAllSlots: () => void;
   isDrawer: boolean;
   isVisible: boolean;
@@ -28,8 +27,9 @@ type WorkspaceSection = "create" | "media";
 const workspaceSections: WorkspaceSection[] = ["create", "media"];
 
 export function LeftPanel({
-  activeRigId,
+  activeRig,
   addFiles,
+  availableRigs,
   clearAllSlots,
   isDrawer,
   isVisible,
@@ -68,7 +68,7 @@ export function LeftPanel({
   };
 
   const isValidDrag = (types: string[]) =>
-    types.length > 0 && types.every((type) => ACCEPTED_IMAGE_TYPES.split(",").includes(type));
+    types.length > 0 && types.every((type) => activeRig.mediaRequirements.acceptedTypes.includes(type));
 
   return (
     <aside
@@ -129,14 +129,14 @@ export function LeftPanel({
             <p className="eyebrow">Create</p>
             <h2 id="create-heading">Motion rig</h2>
             <div className="rig-list">
-              {rigs.map((rig) => (
+              {availableRigs.map((rig) => (
                 <button
-                  className={rig.id === activeRigId ? "rig-item rig-item-active" : "rig-item"}
+                  className={rig.id === activeRig.id ? "rig-item rig-item-active" : "rig-item"}
                   key={rig.id}
                   type="button"
                 >
-                  <span><strong>{rig.name}</strong><small>4 image spatial loop</small></span>
-                  <small>{rig.status}</small>
+                  <span><strong>{rig.name}</strong><small>{rig.shortDescription}</small></span>
+                  <small>{rig.id === activeRig.id ? "Active" : "Available"}</small>
                 </button>
               ))}
             </div>
@@ -155,7 +155,7 @@ export function LeftPanel({
                 <h2 id="media-heading">Carousel sequence</h2>
               </div>
               <span className="media-count">
-                {slots.filter((slot) => slot.status === "ready" || slot.status === "loading").length}/4
+                {slots.filter((slot) => slot.status === "ready" || slot.status === "loading").length}/{activeRig.slotCount}
               </span>
             </div>
 
@@ -188,7 +188,7 @@ export function LeftPanel({
               }}
             >
               <input
-                accept={ACCEPTED_IMAGE_TYPES}
+                accept={activeRig.mediaRequirements.acceptedTypes.join(",")}
                 className="media-slot-input"
                 multiple
                 onChange={(event) => {
@@ -207,8 +207,8 @@ export function LeftPanel({
               </strong>
               <span>
                 {isMediaFull
-                  ? `Drop or choose an image for selected Slot ${selectedIndex + 1}`
-                  : "JPEG, PNG, WebP, or GIF · up to 25 MB each"}
+                  ? `Drop or choose an image for selected ${activeRig.slotLabels[selectedIndex]}`
+                  : `${formatAcceptedTypes(activeRig.mediaRequirements.acceptedTypes)} · up to ${formatMegabytes(activeRig.mediaRequirements.maxFileBytes)} MB each`}
               </span>
               <button type="button" onClick={() => inputRef.current?.click()}>
                 {isMediaFull ? "Choose image" : "Add images"}
@@ -218,13 +218,13 @@ export function LeftPanel({
             <p className="media-guidance">
               {isMediaFull
                 ? "Files stay local to this browser session and are not uploaded."
-                : "Portrait images around 900 × 1160 work best. Files stay in this browser session and are not uploaded."}
+                : `${activeRig.mediaRequirements.preferredDimensions} Files stay in this browser session and are not uploaded.`}
             </p>
 
             {pendingReplacement ? (
               <div className="replacement-prompt" role="status" aria-live="polite">
                 <strong>All slots are full</strong>
-                <p>Replace selected Slot {selectedIndex + 1} with {pendingReplacement.name}?</p>
+                <p>Replace selected {activeRig.slotLabels[selectedIndex]} with {pendingReplacement.name}?</p>
                 <div>
                   <button
                     type="button"
@@ -242,9 +242,10 @@ export function LeftPanel({
 
             {mediaNotice ? <p className="media-notice" role="status">{mediaNotice}</p> : null}
 
-            <div className="media-slot-list" role="list" aria-label="Orbit Carousel media order">
+            <div className="media-slot-list" role="list" aria-label={`${activeRig.name} media order`}>
               {slots.map((slot, index) => (
                 <MediaSlotControl
+                  acceptedTypes={activeRig.mediaRequirements.acceptedTypes}
                   dragOver={dragOverIndex === index}
                   index={index}
                   isSelected={selectedIndex === index}
@@ -267,6 +268,7 @@ export function LeftPanel({
                   onReplace={replaceSlot}
                   onSelect={selectSlot}
                   slot={slot}
+                  slotLabel={activeRig.slotLabels[index] ?? `Slot ${index + 1}`}
                   slotCount={slots.length}
                 />
               ))}
@@ -288,4 +290,21 @@ export function LeftPanel({
       </div>
     </aside>
   );
+}
+
+function formatAcceptedTypes(types: string[]) {
+  const labels = types.map((type) => {
+    if (type === "image/jpeg") return "JPEG";
+    if (type === "image/png") return "PNG";
+    if (type === "image/webp") return "WebP";
+    if (type === "image/gif") return "GIF";
+    return type.split("/").pop()?.toUpperCase() ?? type;
+  });
+  return labels.length > 1
+    ? `${labels.slice(0, -1).join(", ")}, or ${labels.at(-1)}`
+    : labels[0] ?? "Image";
+}
+
+function formatMegabytes(bytes: number) {
+  return Math.max(1, Math.round(bytes / (1024 * 1024)));
 }

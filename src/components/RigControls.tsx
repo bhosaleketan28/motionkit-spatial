@@ -2,14 +2,14 @@ import { useEffect, useId, useRef, useState } from "react";
 import type {
   BackgroundMode,
   CardShape,
-  MotionRigControlDefaults,
+  OrbitCarouselRigDefinition,
   OrbitDirection,
   OrbitRigSettings,
 } from "../rigs/types";
 
 interface RigControlsProps {
-  defaults: MotionRigControlDefaults;
   onChange: (settings: OrbitRigSettings) => void;
+  rig: OrbitCarouselRigDefinition;
   settings: OrbitRigSettings;
 }
 
@@ -17,7 +17,12 @@ const directions: OrbitDirection[] = ["clockwise", "counter-clockwise"];
 const backgroundModes: BackgroundMode[] = ["transparent", "solid", "gradient"];
 const cardShapes: CardShape[] = ["rectangle", "square", "circle", "star"];
 
-export function RigControls({ defaults, settings, onChange }: RigControlsProps) {
+export function RigControls({ rig, settings, onChange }: RigControlsProps) {
+  const defaults = rig.defaultSettings;
+  const motionSection = rig.inspectorSections.find((section) => section.id === "motion");
+  const appearanceSection = rig.inspectorSections.find((section) => section.id === "appearance");
+  const backgroundSection = rig.inspectorSections.find((section) => section.id === "background");
+  const exportSection = rig.inspectorSections.find((section) => section.id === "export");
   const lastIncludedModeRef = useRef<Exclude<BackgroundMode, "transparent">>(
     settings.background.mode === "solid" ? "solid" : "gradient",
   );
@@ -34,9 +39,10 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
   const includesBackground = settings.background.mode !== "transparent";
 
   return (
-    <div className="inspector-sections" aria-label="Orbit Carousel controls">
-      <details className="inspector-section" open>
-        <summary>Motion</summary>
+    <div className="inspector-sections" aria-label={`${rig.name} controls`}>
+      {motionSection ? (
+      <details className="inspector-section" open={motionSection.defaultOpen}>
+        <summary>{motionSection.label}</summary>
         <div className="inspector-content">
           <PrecisionControl
             defaultValue={defaults.durationSeconds}
@@ -84,6 +90,7 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
             onChange={(value) => updateSetting("depthFade", value / 100)}
           />
 
+          {rig.capabilities.supportsDirection ? (
           <div className="segmented-field">
             <ControlHeading
               changed={settings.direction !== defaults.direction}
@@ -121,11 +128,14 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
               ))}
             </div>
           </div>
+          ) : null}
         </div>
       </details>
+      ) : null}
 
-      <details className="inspector-section" open>
-        <summary>Appearance</summary>
+      {appearanceSection ? (
+      <details className="inspector-section" open={appearanceSection.defaultOpen}>
+        <summary>{appearanceSection.label}</summary>
         <div className="inspector-content">
           <PrecisionControl
             defaultValue={defaults.cardSize * 100}
@@ -158,6 +168,7 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
             onChange={(value) => updateSetting("cornerRadius", value)}
           />
 
+          {rig.capabilities.supportsShapes ? (
           <div className="segmented-field">
             <ControlHeading
               changed={settings.cardShape !== defaults.cardShape}
@@ -195,12 +206,16 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
               ))}
             </div>
           </div>
+          ) : null}
         </div>
       </details>
+      ) : null}
 
-      <details className="inspector-section" open>
-        <summary>Background</summary>
+      {backgroundSection && rig.capabilities.supportsBackground ? (
+      <details className="inspector-section" open={backgroundSection.defaultOpen}>
+        <summary>{backgroundSection.label}</summary>
         <div className="inspector-content">
+          {rig.capabilities.supportsTransparentBackground ? (
           <label className="toggle-control">
             <span>
               <strong>Include background</strong>
@@ -218,6 +233,7 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
               }
             />
           </label>
+          ) : null}
 
           <label className="select-control">
             <ControlHeading
@@ -236,7 +252,9 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
                 })
               }
             >
-              {backgroundModes.map((mode) => (
+              {backgroundModes
+                .filter((mode) => mode !== "transparent" || rig.capabilities.supportsTransparentBackground)
+                .map((mode) => (
                 <option key={mode} value={mode}>{formatBackgroundMode(mode)}</option>
               ))}
             </select>
@@ -279,9 +297,11 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
           </p>
         </div>
       </details>
+      ) : null}
 
-      <details className="inspector-section">
-        <summary>Export summary</summary>
+      {exportSection ? (
+      <details className="inspector-section" open={exportSection.defaultOpen}>
+        <summary>{exportSection.label}</summary>
         <div className="inspector-content">
           <dl className="inspector-output-summary">
             <div><dt>Ratio</dt><dd>{settings.frameRatio}</dd></div>
@@ -291,6 +311,7 @@ export function RigControls({ defaults, settings, onChange }: RigControlsProps) 
           <p className="control-note">Use Export in the top bar to review format, resolution, and FPS.</p>
         </div>
       </details>
+      ) : null}
     </div>
   );
 }

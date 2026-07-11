@@ -1,14 +1,16 @@
+import { DEFAULT_RIG_ID, getRigById, hasRig } from "../rigs/registry";
 import type { OrbitRigSettings } from "../rigs/types";
 
 export const WORKSPACE_SESSION_KEY = "motionkit-spatial.workspace.v1";
 
 export interface WorkspaceSession {
+  activeRigId: string;
   hasEditorSession: true;
   isFitMode: boolean;
   isLeftRailCollapsed: boolean;
   isRightRailCollapsed: boolean;
   settings: OrbitRigSettings;
-  version: 1;
+  version: 2;
   zoomPercent: number;
 }
 
@@ -24,16 +26,11 @@ export function readWorkspaceSession(): WorkspaceSessionReadResult {
       return { issue: null, session: null };
     }
 
-    const parsed: unknown = JSON.parse(raw);
-    if (!isWorkspaceSession(parsed)) {
+    const result = parseWorkspaceSession(JSON.parse(raw));
+    if (!result.session) {
       window.localStorage.removeItem(WORKSPACE_SESSION_KEY);
-      return {
-        issue: "Saved workspace settings were invalid and have been reset safely.",
-        session: null,
-      };
     }
-
-    return { issue: null, session: parsed };
+    return result;
   } catch {
     try {
       window.localStorage.removeItem(WORKSPACE_SESSION_KEY);
@@ -47,6 +44,44 @@ export function readWorkspaceSession(): WorkspaceSessionReadResult {
   }
 }
 
+export function parseWorkspaceSession(value: unknown): WorkspaceSessionReadResult {
+  if (!isSessionShell(value)) {
+    return {
+      issue: "Saved workspace settings were invalid and have been reset safely.",
+      session: null,
+    };
+  }
+
+  const requestedRigId = value.version === 2 && typeof value.activeRigId === "string"
+    ? value.activeRigId
+    : DEFAULT_RIG_ID;
+  const rigWasFound = hasRig(requestedRigId);
+  const rig = getRigById(requestedRigId);
+  const settingsAreValid = rigWasFound && rig.isSettings(value.settings);
+  const settings = rigWasFound && rig.isSettings(value.settings)
+    ? value.settings
+    : cloneSettings(rig.defaultSettings);
+  const issue = !rigWasFound
+    ? "The saved motion rig is unavailable. Orbit Carousel was restored safely."
+    : !settingsAreValid
+      ? "Some saved rig settings were invalid and have been reset safely."
+      : null;
+
+  return {
+    issue,
+    session: {
+      activeRigId: rig.id,
+      hasEditorSession: true,
+      isFitMode: value.isFitMode,
+      isLeftRailCollapsed: value.isLeftRailCollapsed,
+      isRightRailCollapsed: value.isRightRailCollapsed,
+      settings,
+      version: 2,
+      zoomPercent: value.zoomPercent,
+    },
+  };
+}
+
 export function writeWorkspaceSession(session: WorkspaceSession) {
   try {
     window.localStorage.setItem(WORKSPACE_SESSION_KEY, JSON.stringify(session));
@@ -56,8 +91,20 @@ export function writeWorkspaceSession(session: WorkspaceSession) {
   }
 }
 
-function isWorkspaceSession(value: unknown): value is WorkspaceSession {
-  if (!isRecord(value) || value.version !== 1 || value.hasEditorSession !== true) {
+function isSessionShell(value: unknown): value is Record<string, unknown> & {
+  hasEditorSession: true;
+  isFitMode: boolean;
+  isLeftRailCollapsed: boolean;
+  isRightRailCollapsed: boolean;
+  settings: unknown;
+  version: 1 | 2;
+  zoomPercent: number;
+} {
+  if (
+    !isRecord(value) ||
+    (value.version !== 1 && value.version !== 2) ||
+    value.hasEditorSession !== true
+  ) {
     return false;
   }
 
@@ -66,30 +113,15 @@ function isWorkspaceSession(value: unknown): value is WorkspaceSession {
     typeof value.isLeftRailCollapsed === "boolean" &&
     typeof value.isRightRailCollapsed === "boolean" &&
     isFiniteNumberInRange(value.zoomPercent, 50, 200) &&
-    isRigSettings(value.settings)
+    "settings" in value
   );
 }
 
-function isRigSettings(value: unknown): value is OrbitRigSettings {
-  if (!isRecord(value) || !isRecord(value.background)) {
-    return false;
-  }
-
-  const background = value.background;
-  return (
-    isFiniteNumberInRange(value.durationSeconds, 4, 20) &&
-    isFiniteNumberInRange(value.spread, 0.38, 1) &&
-    isFiniteNumberInRange(value.depthFade, 0.05, 0.85) &&
-    isFiniteNumberInRange(value.cardSize, 0.22, 0.44) &&
-    isFiniteNumberInRange(value.cornerRadius, 0, 32) &&
-    (value.direction === "clockwise" || value.direction === "counter-clockwise") &&
-    (["rectangle", "square", "circle", "star"] as unknown[]).includes(value.cardShape) &&
-    (["1:1", "16:9", "9:16"] as unknown[]).includes(value.frameRatio) &&
-    (["transparent", "solid", "gradient"] as unknown[]).includes(background.mode) &&
-    isHex(background.solidColor) &&
-    isHex(background.gradientStart) &&
-    isHex(background.gradientEnd)
-  );
+function cloneSettings(settings: OrbitRigSettings): OrbitRigSettings {
+  return {
+    ...settings,
+    background: { ...settings.background },
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -98,8 +130,4 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isFiniteNumberInRange(value: unknown, min: number, max: number) {
   return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
-}
-
-function isHex(value: unknown) {
-  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
 }

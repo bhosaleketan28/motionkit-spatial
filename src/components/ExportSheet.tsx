@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { exportOrbitCarouselPng } from "../export/exportPng";
-import { exportOrbitCarouselWebm } from "../export/exportWebm";
+import { exportRigPng } from "../export/exportPng";
+import { exportRigWebm } from "../export/exportWebm";
 import {
   createDefaultExportFileName,
   detectExportCapability,
@@ -22,7 +22,7 @@ import type {
   ExportRenderInput,
   ExportStatus,
 } from "../export/exportSettings";
-import type { MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
 import type { FrameRatio } from "../rigs/types";
 
 interface ExportSheetProps {
@@ -30,7 +30,7 @@ interface ExportSheetProps {
   onClose: () => void;
   onFrameRatioChange: (ratio: FrameRatio) => void;
   onStatusChange: (status: ExportStatus) => void;
-  rig: MotionRigDefinition;
+  rig: OrbitCarouselRigDefinition;
   settings: OrbitRigSettings;
   slotImages: Array<HTMLImageElement | null>;
 }
@@ -184,8 +184,8 @@ export function ExportSheet({
       };
       const result =
         format === "webm"
-          ? await exportOrbitCarouselWebm(input, options)
-          : await exportOrbitCarouselPng(input, options);
+          ? await exportRigWebm(input, options)
+          : await exportRigPng(input, options);
 
       throwIfExportCancelled(controller.signal);
       const downloadingProgress: ExportProgress = {
@@ -319,6 +319,7 @@ export function ExportSheet({
               onFrameRatioChange={changeFrameRatio}
               pngConsent={pngConsent}
               quality={quality}
+              rig={rig}
               settings={settings}
               onFileNameChange={setFileName}
               onFpsChange={setFps}
@@ -414,6 +415,7 @@ interface ExportReviewProps {
   onSelectFormat: (format: ExportFormat) => void;
   pngConsent: boolean;
   quality: ExportQuality;
+  rig: OrbitCarouselRigDefinition;
   settings: OrbitRigSettings;
 }
 
@@ -432,6 +434,7 @@ function ExportReview({
   onSelectFormat,
   pngConsent,
   quality,
+  rig,
   settings,
 }: ExportReviewProps) {
   const estimatedSeconds =
@@ -583,9 +586,9 @@ function ExportReview({
             value={settings.frameRatio}
             onChange={(event) => onFrameRatioChange(event.currentTarget.value as FrameRatio)}
           >
-            <option value="1:1">1:1</option>
-            <option value="16:9">16:9</option>
-            <option value="9:16">9:16</option>
+            {rig.supportedRatios.map((ratio) => (
+              <option key={ratio} value={ratio}>{ratio}</option>
+            ))}
           </select>
         </label>
 
@@ -595,10 +598,12 @@ function ExportReview({
             <output>{settings.durationSeconds.toFixed(1)} s</output>
           </div>
         ) : null}
+        {rig.capabilities.supportsBackground ? (
         <div className="export-output-row export-readonly-row">
           <span>Background</span>
           <output>{formatBackgroundMode(settings.background.mode)}</output>
         </div>
+        ) : null}
 
         <label className="export-filename-field export-output-row">
           <span>Filename</span>

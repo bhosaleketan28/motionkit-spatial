@@ -82,6 +82,12 @@ Do not build:
 - Avoid heavy dependencies unless required.
 - Use Canvas 2D first, not Three.js.
 - Run lint/build after implementation if scripts exist.
+- Treat `RigDefinition<Settings>` as the UI-facing source of truth for rig metadata and behavior.
+- Register rigs only in `src/rigs/registry.ts`; never add scattered id-based lookup tables.
+- Do not hardcode slot counts, slot labels, supported ratios, export requirements, or rig names in shared UI.
+- Keep rig-specific renderers, settings validation, and demo generation beside the rig definition.
+- A future rig must provide a complete media, inspector, renderer, export, session, capability, and version contract before it is registered.
+- Invalid or unavailable rig ids must resolve through the registry fallback rather than crashing or exposing stale settings.
 
 ## First Milestone
 

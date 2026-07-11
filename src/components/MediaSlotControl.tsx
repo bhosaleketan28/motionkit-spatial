@@ -1,8 +1,8 @@
 import { useRef } from "react";
-import { ACCEPTED_IMAGE_TYPES } from "../hooks/useImageSlots";
 import type { ImageSlot } from "../hooks/useImageSlots";
 
 interface MediaSlotControlProps {
+  acceptedTypes: string[];
   dragOver: boolean;
   index: number;
   isSelected: boolean;
@@ -16,9 +16,11 @@ interface MediaSlotControlProps {
   onSelect: (index: number) => void;
   slot: ImageSlot;
   slotCount: number;
+  slotLabel: string;
 }
 
 export function MediaSlotControl({
+  acceptedTypes,
   dragOver,
   index,
   isSelected,
@@ -32,13 +34,14 @@ export function MediaSlotControl({
   onSelect,
   slot,
   slotCount,
+  slotLabel,
 }: MediaSlotControlProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasMedia = slot.status !== "empty" && slot.status !== "error";
 
   return (
     <div
-      aria-label={`Slot ${index + 1}, ${getSlotLabel(slot)}`}
+      aria-label={`${slotLabel}, ${getSlotLabel(slot)}`}
       aria-current={isSelected ? "true" : undefined}
       className={[
         "media-card",
@@ -76,14 +79,14 @@ export function MediaSlotControl({
         </div>
         <div className="media-card-copy">
           <div className="media-card-title-row">
-            <strong>Slot {index + 1}</strong>
+            <strong>{slotLabel}</strong>
             {isSelected ? <span className="selected-badge">Selected</span> : null}
           </div>
           <span>{getSlotLabel(slot)}</span>
           <small>{getSourceLabel(slot)}</small>
         </div>
         <button
-          aria-label={`Drag Slot ${index + 1} to reorder`}
+          aria-label={`Drag ${slotLabel} to reorder`}
           className="drag-handle"
           draggable
           onClick={(event) => event.stopPropagation()}
@@ -104,7 +107,7 @@ export function MediaSlotControl({
 
       <div className="media-card-actions">
         <input
-          accept={ACCEPTED_IMAGE_TYPES}
+          accept={acceptedTypes.join(",")}
           className="media-slot-input"
           onChange={(event) => {
             const file = event.target.files?.[0];
@@ -117,7 +120,7 @@ export function MediaSlotControl({
           type="file"
         />
         <button
-          aria-label={`${hasMedia ? "Replace" : "Add image to"} Slot ${index + 1}`}
+          aria-label={`${hasMedia ? "Replace" : "Add image to"} ${slotLabel}`}
           onClick={(event) => {
             event.stopPropagation();
             inputRef.current?.click();
@@ -127,7 +130,7 @@ export function MediaSlotControl({
           {hasMedia ? "Replace" : "Add image"}
         </button>
         <button
-          aria-label={`Remove image from Slot ${index + 1}`}
+          aria-label={`Remove image from ${slotLabel}`}
           disabled={!hasMedia && slot.status !== "error"}
           onClick={(event) => {
             event.stopPropagation();
@@ -137,9 +140,9 @@ export function MediaSlotControl({
         >
           Remove
         </button>
-        <div className="media-order-actions" aria-label={`Reorder Slot ${index + 1}`}>
+        <div className="media-order-actions" aria-label={`Reorder ${slotLabel}`}>
           <button
-            aria-label={`Move Slot ${index + 1} earlier`}
+            aria-label={`Move ${slotLabel} earlier`}
             disabled={index === 0}
             onClick={(event) => {
               event.stopPropagation();
@@ -151,7 +154,7 @@ export function MediaSlotControl({
             ↑
           </button>
           <button
-            aria-label={`Move Slot ${index + 1} later`}
+            aria-label={`Move ${slotLabel} later`}
             disabled={index === slotCount - 1}
             onClick={(event) => {
               event.stopPropagation();
