@@ -39,10 +39,6 @@ export function renderOrbitCarousel({
     drawFrameGuide(context, frame);
   }
 
-  if (settings.background.mode !== "transparent") {
-    drawCenterGlow(context, frame);
-  }
-
   const cards = getOrbitCardLayouts({
     frame,
     slotCount: rig.mediaSlotCount,
@@ -132,26 +128,6 @@ function drawFrameGuide(context: CanvasRenderingContext2D, frame: FrameSize) {
   context.strokeStyle = "rgba(30, 34, 38, 0.13)";
   context.lineWidth = 3;
   context.strokeRect(24, 24, frame.width - 48, frame.height - 48);
-  context.restore();
-}
-
-function drawCenterGlow(context: CanvasRenderingContext2D, frame: FrameSize) {
-  const radius = Math.min(frame.width, frame.height) * 0.25;
-  const gradient = context.createRadialGradient(
-    frame.width / 2,
-    frame.height / 2,
-    radius * 0.08,
-    frame.width / 2,
-    frame.height / 2,
-    radius,
-  );
-
-  gradient.addColorStop(0, "rgba(255, 255, 255, 0.62)");
-  gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-  context.save();
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, frame.width, frame.height);
   context.restore();
 }
 
