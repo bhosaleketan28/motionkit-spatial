@@ -4,7 +4,7 @@ MotionKit Spatial is a private local browser prototype for creating animated spa
 
 Users can upload four images or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
 
-The Phase 9.1 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor.
+The Phase 9.2 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor. Export opens a capability-aware review sheet before any rendering or download begins.
 
 ## Run Locally
 
@@ -52,7 +52,10 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Rig controls for duration, spread, depth fade, card size, corner radius, and direction
 - Card shape control: Rectangle, Square, Circle, Star
 - Background modes: Transparent, Solid, Gradient
-- Local WebM export with PNG snapshot fallback
+- Local WebM export with an explicit PNG snapshot alternative
+- Export review with format, dimensions, FPS, quality, duration, filename, and browser capability preflight
+- Actual loop-render progress phases, elapsed and remaining time, safe cancellation, and detailed completion metadata
+- Explicitly confirmed PNG snapshot fallback when WebM is unavailable or fails
 - Preview-only frame guide so exports render as clean compositions
 
 ## Current Limitations

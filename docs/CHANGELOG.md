@@ -16,6 +16,7 @@
 - Phase 8: UX architecture redesign
 - Phase 9: Stage-first workspace architecture
 - Phase 9.1: Motion transport and scrubbing
+- Phase 9.2: Export confidence
 
 ## Phase 8 Highlights
 
@@ -42,3 +43,14 @@
 - Added synchronized replay, duration changes, and frame stepping without per-frame React rendering.
 - Added Left/Right Arrow stepping at 1/30 second and Shift+Left/Right stepping at 0.25 second.
 - Added accessible transport labels, playback announcements, range semantics, and responsive transport layouts.
+
+## Phase 9.2 Highlights
+
+- Replaced immediate export with a focused review sheet showing format, dimensions, ratio, duration, FPS, background, filename, estimated time, and browser capability.
+- Added WebM capability preflight for MediaRecorder, canvas capture streams, and preferred codec availability.
+- Added Standard and High output resolutions plus 30 and 60 FPS WebM options.
+- Added real loop-render progress with Preparing, Rendering, Encoding, Finalizing, Downloading, and Complete phases.
+- Added safe cancellation that stops the render loop, recorder, and media tracks without downloading partial output.
+- Removed silent WebM-to-PNG switching; PNG snapshots now require explicit user confirmation.
+- Added detailed completion metadata and specific unsupported-browser, media, recorder, encoding, cancellation, and download failure states.
+- Added modal focus containment, Escape handling, reduced-motion support, and mobile bottom-sheet behavior.

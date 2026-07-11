@@ -1,13 +1,13 @@
 import { CenterStage } from "./components/CenterStage";
 import type { CenterStageHandle } from "./components/CenterStage";
+import { ExportSheet } from "./components/ExportSheet";
 import { LeftPanel } from "./components/LeftPanel";
 import { RightPanel } from "./components/RightPanel";
 import { StartScreen } from "./components/StartScreen";
 import { TopBar } from "./components/TopBar";
-import { exportOrbitCarouselPng } from "./export/exportPng";
-import { exportOrbitCarouselWebm } from "./export/exportWebm";
 import type { ExportStatus } from "./export/exportSettings";
 import { useImageSlots } from "./hooks/useImageSlots";
+import type { ImageSlot } from "./hooks/useImageSlots";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { orbitCarouselRig } from "./rigs/orbitCarousel";
 import type { OrbitRigSettings } from "./rigs/types";
@@ -39,11 +39,11 @@ function normalizeSettings(settings: OrbitRigSettings): OrbitRigSettings {
 }
 
 export default function App() {
-  const exportInProgressRef = useRef(false);
   const previousDrawerRef = useRef<WorkspacePanel | null>(null);
   const stageRef = useRef<CenterStageHandle | null>(null);
   const isNarrowWorkspace = useMediaQuery(NARROW_WORKSPACE_QUERY);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("ready");
+  const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isLeftRailCollapsed, setIsLeftRailCollapsed] = useState(false);
   const [isRightRailCollapsed, setIsRightRailCollapsed] = useState(false);
@@ -57,6 +57,7 @@ export default function App() {
   const { slots, slotImages, setSlotFile, clearSlot, clearAllSlots, loadDemoSlots } =
     useImageSlots(orbitCarouselRig.mediaSlotCount);
   const hasMedia = slots.some((slot) => slot.status === "loading" || slot.status === "ready");
+  const exportMediaIssue = getExportMediaIssue(slots);
 
   const handleStartUpload = (files: FileList) => {
     const selectedFiles = Array.from(files);
@@ -148,6 +149,10 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) {
+        return;
+      }
+
       const target = event.target as HTMLElement | null;
       const tagName = target?.tagName;
       const isEditableTarget =
@@ -230,37 +235,6 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeDrawer]);
 
-  const handleExport = async () => {
-    if (exportInProgressRef.current) {
-      return;
-    }
-
-    exportInProgressRef.current = true;
-    setExportStatus("exporting");
-
-    try {
-      await exportOrbitCarouselWebm({
-        rig: orbitCarouselRig,
-        settings: normalizedSettings,
-        slotImages,
-      });
-      setExportStatus("done");
-    } catch {
-      try {
-        await exportOrbitCarouselPng({
-          rig: orbitCarouselRig,
-          settings: normalizedSettings,
-          slotImages,
-        });
-        setExportStatus("fallback");
-      } catch {
-        setExportStatus("error");
-      }
-    } finally {
-      exportInProgressRef.current = false;
-    }
-  };
-
   if (!hasMedia) {
     return (
       <StartScreen
@@ -279,7 +253,10 @@ export default function App() {
     <main className="app-shell">
       <TopBar
         exportStatus={exportStatus}
-        onExport={handleExport}
+        onExport={() => {
+          setExportStatus("ready");
+          setIsExportSheetOpen(true);
+        }}
         onReset={resetSettings}
         rigName={orbitCarouselRig.name}
       />
@@ -362,6 +339,32 @@ export default function App() {
           />
         ) : null}
       </div>
+      {isExportSheetOpen ? (
+        <ExportSheet
+          mediaIssue={exportMediaIssue}
+          onClose={() => setIsExportSheetOpen(false)}
+          onStatusChange={setExportStatus}
+          rig={orbitCarouselRig}
+          settings={normalizedSettings}
+          slotImages={slotImages}
+        />
+      ) : null}
     </main>
   );
+}
+
+function getExportMediaIssue(slots: ImageSlot[]) {
+  if (slots.some((slot) => slot.status === "loading")) {
+    return "Wait for every image to finish loading before export.";
+  }
+
+  if (slots.some((slot) => slot.status === "error")) {
+    return "Replace media that could not be decoded before export.";
+  }
+
+  if (slots.some((slot) => slot.status !== "ready" || !slot.image)) {
+    return "Fill all four media slots with valid images before export.";
+  }
+
+  return null;
 }

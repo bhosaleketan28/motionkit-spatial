@@ -60,6 +60,7 @@ function getCompactStatus(status: ExportStatus) {
   if (status === "exporting") return "Rendering loop";
   if (status === "done") return "WebM downloaded";
   if (status === "fallback") return "Snapshot downloaded";
+  if (status === "cancelled") return "Export cancelled";
   if (status === "error") return "Export failed";
   return "Ready";
 }
