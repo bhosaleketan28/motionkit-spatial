@@ -40,8 +40,6 @@ export interface CenterStageHandle {
   stepBySeconds: (seconds: number) => void;
 }
 
-const frameRatios: FrameRatio[] = ["1:1", "16:9", "9:16"];
-
 export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(function CenterStage({
   isFitMode = true,
   isInspectorOpen = false,
@@ -329,18 +327,18 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
             >
               Focus
             </button>
-            <div className="stage-ratio-control" aria-label="Frame ratio">
-              {frameRatios.map((ratio) => (
-                <button
-                  className={settings.frameRatio === ratio ? "selected" : ""}
-                  key={ratio}
-                  type="button"
-                  onClick={() => onChangeFrameRatio(ratio)}
-                >
-                  {ratio}
-                </button>
-              ))}
-            </div>
+            <label className="stage-ratio-control">
+              <span>Ratio</span>
+              <select
+                aria-label="Frame ratio"
+                value={settings.frameRatio}
+                onChange={(event) => onChangeFrameRatio(event.currentTarget.value as FrameRatio)}
+              >
+                <option value="1:1">1:1</option>
+                <option value="16:9">16:9</option>
+                <option value="9:16">9:16</option>
+              </select>
+            </label>
           </div>
         </div>
       ) : null}

@@ -9,8 +9,8 @@
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.16);
   --text: #eef1f3;
-  --text-muted: #a3abb3;
-  --text-subtle: #737c85;
+  --text-muted: #b1b8bf;
+  --text-subtle: #89939d;
   --accent: #70e0bf;
   --accent-strong: #91efd3;
   --accent-ink: #07130f;
@@ -55,7 +55,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -65,6 +66,7 @@ button {
 
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -1265,34 +1267,36 @@ h2 {
 
 .stage-ratio-control {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: 132px;
-  padding: 3px;
+  grid-template-columns: auto minmax(64px, 1fr);
+  align-items: center;
+  gap: 7px;
+  width: 122px;
+  min-height: 30px;
+  padding: 3px 3px 3px 8px;
+  color: var(--text-subtle);
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: 6px;
-}
-
-.stage-ratio-control button {
-  min-height: 24px;
-  padding: 0 4px;
-  color: var(--text-subtle);
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-radius: 4px;
-  font-size: 0.66rem;
+  font-size: 12px;
   font-weight: 700;
 }
 
-.stage-ratio-control button:hover {
+.stage-ratio-control select {
+  min-width: 0;
+  height: 24px;
+  padding: 0 22px 0 7px;
   color: var(--text);
-  background: var(--surface-hover);
+  cursor: pointer;
+  background: var(--surface-3);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.stage-ratio-control button.selected {
-  color: var(--accent-ink);
-  background: var(--accent);
+.stage-ratio-control select:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
 }
 
 .canvas-wrap {
@@ -1728,6 +1732,228 @@ h2 {
   color: var(--accent);
 }
 
+/* Precision inspector controls */
+
+.inspector-heading span { font-size: 12px; }
+.inspector-section summary { font-size: 14px; }
+.inspector-content { gap: 14px; }
+
+.control-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.control-heading > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.control-heading i {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(112, 224, 191, 0.08);
+}
+
+.property-reset {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease;
+}
+
+.property-reset:not(:disabled),
+.precision-control:focus-within .property-reset,
+.segmented-field:focus-within .property-reset,
+.color-control:focus-within .property-reset,
+.select-control:focus-within .property-reset {
+  opacity: 1;
+}
+
+.property-reset:hover:not(:disabled) {
+  background: rgba(112, 224, 191, 0.08);
+  border-color: rgba(112, 224, 191, 0.25);
+}
+
+.property-reset:disabled {
+  color: var(--text-subtle);
+  pointer-events: none;
+  opacity: 0.28;
+}
+
+.precision-control,
+.color-control,
+.select-control {
+  display: grid;
+  gap: 7px;
+}
+
+.precision-control-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 86px;
+  align-items: center;
+  gap: 10px;
+}
+
+.precision-control-row > input[type="range"] {
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.numeric-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  height: 34px;
+  overflow: hidden;
+  color: var(--text-subtle);
+  background: #0a0c0e;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.numeric-input:focus-within {
+  border-color: rgba(112, 224, 191, 0.62);
+  box-shadow: 0 0 0 2px rgba(112, 224, 191, 0.08);
+}
+
+.numeric-input input {
+  min-width: 0;
+  width: 100%;
+  height: 32px;
+  padding: 0 2px 0 8px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.numeric-input > span:last-child {
+  padding-right: 8px;
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+.control-invalid .numeric-input,
+.color-control.control-invalid .color-input-row { border-color: var(--danger); }
+
+.segmented-field > .control-heading { margin-bottom: 7px; }
+.segmented-control button { min-height: 34px; font-size: 12px; }
+
+.color-input-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  height: 34px;
+  overflow: hidden;
+  background: #0a0c0e;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+}
+
+.color-control .color-input-row input[type="color"] {
+  width: 36px;
+  height: 34px;
+  padding: 4px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.color-control .color-input-row input[type="text"] {
+  min-width: 0;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.color-validation {
+  color: #ffaaa2;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.color-validation:empty { display: none; }
+
+.select-control select,
+.export-select-row select {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 30px 0 10px;
+  color: var(--text);
+  cursor: pointer;
+  background: #0a0c0e;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+.select-control select:disabled { cursor: not-allowed; opacity: 0.48; }
+
+.toggle-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+}
+
+.toggle-control > span { display: grid; gap: 2px; }
+.toggle-control strong { color: var(--text-muted); font-size: 14px; }
+.toggle-control small { color: var(--text-subtle); font-size: 12px; }
+.toggle-control input { width: 34px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+.control-note { font-size: 12px; }
+
+.inspector-output-summary {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.inspector-output-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.inspector-output-summary dt,
+.inspector-output-summary dd { font-size: 12px; }
+.inspector-output-summary dt { color: var(--text-subtle); }
+.inspector-output-summary dd { margin: 0; color: var(--text); font-weight: 700; }
+
 /* Export confidence sheet */
 
 .export-modal-layer {
@@ -2082,6 +2308,103 @@ h2 {
 
 .export-png-consent .quiet-button {
   justify-self: start;
+}
+
+.export-review { gap: 14px; }
+.export-capability strong { font-size: 13px; }
+.export-capability p,
+.export-capability small,
+.export-callout,
+.export-png-consent p,
+.export-png-consent label { font-size: 12px; }
+
+.export-control-list {
+  display: grid;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.export-output-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  min-height: 46px;
+  padding: 6px 12px;
+  margin: 0;
+  color: var(--text-muted);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.export-output-row:last-child { border-bottom: 0; }
+
+.export-output-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.export-output-label small {
+  color: var(--text-subtle);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.export-output-row .export-segmented-control {
+  min-width: 0;
+}
+
+.export-segmented-control button {
+  min-height: 34px;
+  font-size: 12px;
+}
+
+.export-select-row > span,
+.export-readonly-row > span,
+.export-filename-field > span:first-child {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.export-readonly-row output {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.export-filename-input-wrap {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.export-filename-field input {
+  min-height: 34px;
+  font-size: 13px;
+}
+
+.export-filename-field small {
+  font-size: 12px;
+}
+
+.export-estimate {
+  margin: -4px 0 0;
+  color: var(--text-subtle);
+  font-size: 12px;
+  text-align: right;
 }
 
 .export-sheet-footer {
@@ -2448,6 +2771,12 @@ h2 {
   .stage-ratio-control {
     grid-column: 1 / -1;
     width: 100%;
+    min-height: 42px;
+    padding-left: 12px;
+  }
+
+  .stage-ratio-control select {
+    height: 34px;
   }
 
   .stage-transport {
@@ -2489,6 +2818,24 @@ h2 {
     border-bottom: 0;
     border-left: 0;
     border-radius: 11px 11px 0 0;
+  }
+
+  .numeric-input,
+  .color-input-row,
+  .select-control select,
+  .segmented-control button {
+    min-height: 42px;
+  }
+
+  .numeric-input input,
+  .color-control .color-input-row input[type="color"],
+  .color-control .color-input-row input[type="text"] {
+    height: 40px;
+  }
+
+  .property-reset {
+    width: 40px;
+    height: 40px;
   }
 
   .start-screen {
@@ -2568,6 +2915,24 @@ h2 {
   .export-review-details,
   .export-result-details {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .export-output-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .export-output-row .export-segmented-control,
+  .export-select-row select,
+  .export-filename-field input {
+    min-height: 42px;
+  }
+
+  .export-readonly-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 44px;
   }
 
   .export-alternative {

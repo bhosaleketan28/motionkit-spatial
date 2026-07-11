@@ -18,6 +18,7 @@
 - Phase 9.1: Motion transport and scrubbing
 - Phase 9.2: Export confidence
 - Phase 9.3: Media workflow
+- Phase 9.4: Precision inspector and output controls
 
 ## Phase 8 Highlights
 
@@ -68,3 +69,15 @@
 - Updated first run to accept one to four images while keeping demo content as a secondary path.
 - Added live-region announcements for selection, reorder, removal, restore, and media loading outcomes.
 - Documented that media stays local, is held only for the current browser session, and must be re-added after reload.
+
+## Phase 9.4 Highlights
+
+- Paired loop duration, spread, depth fade, card size, and corner radius sliders with synchronized typed numeric fields.
+- Added clamping and protected draft editing so invalid or non-numeric values never reach the Canvas renderer.
+- Added normal, Shift-modified, and Alt/Option fine keyboard increments tailored to each numeric property.
+- Added isolated reset controls and subtle modified-state indicators for numeric, direction, shape, mode, and color properties.
+- Replaced the stage ratio segments with a native, keyboard-accessible ratio select and connected the export ratio control to the same setting.
+- Added an Include background toggle, context-aware background mode selection, and preview-only transparency guidance.
+- Added aligned color swatches and hex fields with three- and six-digit normalization, immediate preview updates, and polite validation feedback.
+- Reorganized export review into compact Format, Resolution, FPS, Ratio, Duration, Background, and Filename rows with exact WebM/PNG action labels.
+- Increased inspector working labels to 14px, metadata to at least 12px, and narrow-screen targets to approximately 40–42px.

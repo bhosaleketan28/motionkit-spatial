@@ -4,7 +4,7 @@ MotionKit Spatial is a private local browser prototype for creating animated spa
 
 Users can add one to four images incrementally or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
 
-The Phase 9.3 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor. The Media rail supports incremental add, selection, replacement, removal, recovery, and sequence reordering. Export opens a capability-aware review sheet before any rendering or download begins.
+The Phase 9.4 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor. The Media rail supports incremental add, selection, replacement, removal, recovery, and sequence reordering. A precision inspector pairs sliders with typed values and isolated resets, while Export provides a compact capability-aware output review before rendering.
 
 ## Run Locally
 
@@ -54,10 +54,14 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Frame stepping at 1/30 second and 0.25 second increments
 - Frame ratios: 1:1, 16:9, 9:16
 - Rig controls for duration, spread, depth fade, card size, corner radius, and direction
+- Synchronized slider and numeric entry with clamping, modifier-key increments, units, and per-property resets
+- Shared stage/export ratio dropdowns backed by one frame-ratio setting
+- Context-aware background inclusion, mode, and validated three- or six-digit hex controls
 - Card shape control: Rectangle, Square, Circle, Star
 - Background modes: Transparent, Solid, Gradient
 - Local WebM export with an explicit PNG snapshot alternative
 - Export review with format, dimensions, FPS, quality, duration, filename, and browser capability preflight
+- Compact output rows for format, resolution, FPS, ratio, duration, background, and filename
 - Actual loop-render progress phases, elapsed and remaining time, safe cancellation, and detailed completion metadata
 - Explicitly confirmed PNG snapshot fallback when WebM is unavailable or fails
 - Preview-only frame guide so exports render as clean compositions

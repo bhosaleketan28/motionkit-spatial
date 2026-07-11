@@ -23,10 +23,12 @@ import type {
   ExportStatus,
 } from "../export/exportSettings";
 import type { MotionRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { FrameRatio } from "../rigs/types";
 
 interface ExportSheetProps {
   mediaIssue: string | null;
   onClose: () => void;
+  onFrameRatioChange: (ratio: FrameRatio) => void;
   onStatusChange: (status: ExportStatus) => void;
   rig: MotionRigDefinition;
   settings: OrbitRigSettings;
@@ -54,6 +56,7 @@ const INITIAL_PROGRESS: ExportProgress = {
 export function ExportSheet({
   mediaIssue,
   onClose,
+  onFrameRatioChange,
   onStatusChange,
   rig,
   settings,
@@ -107,7 +110,7 @@ export function ExportSheet({
 
       const focusableElements = Array.from(
         dialogRef.current?.querySelectorAll<HTMLElement>(
-          'button:not(:disabled), input:not(:disabled), [tabindex]:not([tabindex="-1"])',
+          'button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])',
         ) ?? [],
       ).filter((element) => element.getClientRects().length > 0);
       const firstElement = focusableElements[0];
@@ -296,6 +299,7 @@ export function ExportSheet({
               fps={fps}
               frame={frame}
               mediaIssue={mediaIssue}
+              onFrameRatioChange={onFrameRatioChange}
               pngConsent={pngConsent}
               quality={quality}
               settings={settings}
@@ -346,7 +350,7 @@ export function ExportSheet({
               type="button"
               onClick={startExport}
             >
-              {format === "webm" ? "Export WebM" : "Export PNG snapshot"}
+              {format === "webm" ? "Export WebM" : "Export PNG"}
             </button>
           </footer>
         ) : null}
@@ -386,6 +390,7 @@ interface ExportReviewProps {
   frame: { width: number; height: number };
   mediaIssue: string | null;
   onFileNameChange: (fileName: string) => void;
+  onFrameRatioChange: (ratio: FrameRatio) => void;
   onFpsChange: (fps: ExportFps) => void;
   onPngConsentChange: (consent: boolean) => void;
   onQualityChange: (quality: ExportQuality) => void;
@@ -403,6 +408,7 @@ function ExportReview({
   frame,
   mediaIssue,
   onFileNameChange,
+  onFrameRatioChange,
   onFpsChange,
   onPngConsentChange,
   onQualityChange,
@@ -427,40 +433,35 @@ function ExportReview({
 
       {mediaIssue ? <p className="export-callout error" role="alert">{mediaIssue}</p> : null}
 
-      <label className="export-filename-field">
-        <span>Filename</span>
-        <input
-          aria-label="Export filename"
-          data-export-view-focus
-          maxLength={140}
-          type="text"
-          value={fileName}
-          onBlur={() => onFileNameChange(normalizeExportFileName(fileName, format))}
-          onChange={(event) => onFileNameChange(event.currentTarget.value)}
-        />
-        <small>Final file: {normalizeExportFileName(fileName, format)}</small>
-      </label>
-
-      <div className="export-setting-grid">
-        <fieldset className="export-choice-field">
-          <legend>Frames per second</legend>
+      <div className="export-control-list">
+        <div aria-labelledby="export-format-label" className="export-output-row" role="group">
+          <span className="export-output-label" id="export-format-label">Format</span>
           <div className="export-segmented-control">
-            {([30, 60] as ExportFps[]).map((option) => (
-              <button
-                aria-pressed={fps === option}
-                className={fps === option ? "selected" : ""}
-                disabled={format === "png"}
-                key={option}
-                type="button"
-                onClick={() => onFpsChange(option)}
-              >
-                {option} FPS
-              </button>
-            ))}
+            <button
+              aria-pressed={format === "webm"}
+              className={format === "webm" ? "selected" : ""}
+              disabled={!capability.webmSupported}
+              type="button"
+              onClick={() => onSelectFormat("webm")}
+            >
+              WebM
+            </button>
+            <button
+              aria-pressed={format === "png"}
+              className={format === "png" ? "selected" : ""}
+              type="button"
+              onClick={() => onSelectFormat("png")}
+            >
+              PNG
+            </button>
           </div>
-        </fieldset>
-        <fieldset className="export-choice-field">
-          <legend>Quality</legend>
+        </div>
+
+        <div aria-labelledby="export-resolution-label" className="export-output-row" role="group">
+          <span className="export-output-label" id="export-resolution-label">
+            <span>Resolution</span>
+            <small>{frame.width} × {frame.height}</small>
+          </span>
           <div className="export-segmented-control">
             {(["standard", "high"] as ExportQuality[]).map((option) => (
               <button
@@ -474,27 +475,68 @@ function ExportReview({
               </button>
             ))}
           </div>
-        </fieldset>
+        </div>
+
+        <div aria-labelledby="export-fps-label" className="export-output-row" role="group">
+          <span className="export-output-label" id="export-fps-label">FPS</span>
+          <div className="export-segmented-control">
+            {([30, 60] as ExportFps[]).map((option) => (
+              <button
+                aria-pressed={fps === option}
+                className={fps === option ? "selected" : ""}
+                disabled={format === "png"}
+                key={option}
+                type="button"
+                onClick={() => onFpsChange(option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label className="export-output-row export-select-row">
+          <span>Ratio</span>
+          <select
+            aria-label="Export frame ratio"
+            value={settings.frameRatio}
+            onChange={(event) => onFrameRatioChange(event.currentTarget.value as FrameRatio)}
+          >
+            <option value="1:1">1:1</option>
+            <option value="16:9">16:9</option>
+            <option value="9:16">9:16</option>
+          </select>
+        </label>
+
+        <div className="export-output-row export-readonly-row">
+          <span>Duration</span>
+          <output>{settings.durationSeconds.toFixed(1)} s</output>
+        </div>
+        <div className="export-output-row export-readonly-row">
+          <span>Background</span>
+          <output>{formatBackgroundMode(settings.background.mode)}</output>
+        </div>
+
+        <label className="export-filename-field export-output-row">
+          <span>Filename</span>
+          <span className="export-filename-input-wrap">
+            <input
+              aria-label="Export filename"
+              data-export-view-focus
+              maxLength={140}
+              type="text"
+              value={fileName}
+              onBlur={() => onFileNameChange(normalizeExportFileName(fileName, format))}
+              onChange={(event) => onFileNameChange(event.currentTarget.value)}
+            />
+            <small>{normalizeExportFileName(fileName, format)}</small>
+          </span>
+        </label>
       </div>
 
-      <dl className="export-review-details">
-        <div><dt>Format</dt><dd>{format === "webm" ? "WebM video" : "PNG snapshot"}</dd></div>
-        <div><dt>Dimensions</dt><dd>{frame.width} × {frame.height}</dd></div>
-        <div><dt>Frame ratio</dt><dd>{settings.frameRatio}</dd></div>
-        <div><dt>Duration</dt><dd>{settings.durationSeconds.toFixed(1)} seconds</dd></div>
-        <div><dt>FPS</dt><dd>{format === "webm" ? `${fps} FPS` : "Not applicable"}</dd></div>
-        <div><dt>Background</dt><dd>{formatBackgroundMode(settings.background.mode)}</dd></div>
-        <div><dt>Estimated time</dt><dd>{estimatedSeconds ? `About ${estimatedSeconds.toFixed(1)} seconds` : "Usually under 1 second"}</dd></div>
-      </dl>
-
-      {format === "webm" ? (
-        <div className="export-alternative">
-          <span>Need one still frame instead of a looping video?</span>
-          <button className="quiet-button" type="button" onClick={() => onSelectFormat("png")}>
-            Review PNG snapshot
-          </button>
-        </div>
-      ) : null}
+      <p className="export-estimate">
+        Estimated export time: {estimatedSeconds ? `about ${estimatedSeconds.toFixed(1)} seconds` : "usually under 1 second"}.
+      </p>
 
       {format === "png" ? (
         <div className="export-png-consent">

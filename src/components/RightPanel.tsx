@@ -44,7 +44,7 @@ export function RightPanel({
         </div>
       </div>
 
-      <RigControls settings={settings} onChange={setSettings} />
+      <RigControls defaults={rig.defaults} settings={settings} onChange={setSettings} />
     </aside>
   );
 }

@@ -183,7 +183,7 @@ export default function App() {
         const drawer = document.getElementById(`${activeDrawer}-panel`);
         const focusableElements = Array.from(
           drawer?.querySelectorAll<HTMLElement>(
-            'button:not(:disabled), input:not(:disabled), summary, [tabindex]:not([tabindex="-1"])',
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), summary, [tabindex]:not([tabindex="-1"])',
           ) ?? [],
         ).filter((element) => element.getClientRects().length > 0);
         const firstElement = focusableElements[0];
@@ -362,6 +362,9 @@ export default function App() {
         <ExportSheet
           mediaIssue={exportMediaIssue}
           onClose={() => setIsExportSheetOpen(false)}
+          onFrameRatioChange={(frameRatio) =>
+            setSettings({ ...normalizedSettings, frameRatio })
+          }
           onStatusChange={setExportStatus}
           rig={orbitCarouselRig}
           settings={normalizedSettings}
