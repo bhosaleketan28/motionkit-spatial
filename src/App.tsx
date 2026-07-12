@@ -12,6 +12,8 @@ import { useImageSlots } from "./hooks/useImageSlots";
 import type { ImageSlot } from "./hooks/useImageSlots";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { getRigById, rigRegistry } from "./rigs/registry";
+import { getPresetById, getPresetsForRig } from "./rigs/presetRegistry";
+import { applyRigPreset, getPresetApplicationState } from "./rigs/presetSystem";
 import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "./rigs/types";
 import { readWorkspaceSession, writeWorkspaceSession } from "./utils/workspaceSession";
 import type { WorkspaceSession } from "./utils/workspaceSession";
@@ -78,12 +80,20 @@ export default function App() {
   const [settings, setSettings] = useState<OrbitRigSettings>(
     () => initialSession.session?.settings ?? createDefaultSettings(activeRig),
   );
+  const [activePresetId, setActivePresetId] = useState<string | null>(
+    () => initialSession.session?.activePresetId ?? null,
+  );
   const [appNotice, setAppNotice] = useState<AppNotice | null>(() =>
     initialSession.issue
       ? { id: 0, message: initialSession.issue, tone: "warning" }
       : null,
   );
   const normalizedSettings = normalizeSettings(activeRig, settings);
+  const availablePresets = getPresetsForRig(activeRig);
+  const activePreset = getPresetById(activeRig, activePresetId);
+  const activePresetState = activePreset
+    ? getPresetApplicationState(activePreset, normalizedSettings)
+    : null;
   const {
     addFiles,
     clearAllSlots,
@@ -139,11 +149,32 @@ export default function App() {
 
   const handleResetSettings = () => {
     const previousSettings = normalizedSettings;
+    const previousPresetId = activePresetId;
     setSettings(createDefaultSettings(activeRig));
+    setActivePresetId(null);
     showNotice("Rig settings reset to defaults.", "undo", {
       actionLabel: "Undo",
-      onAction: () => setSettings(previousSettings),
+      onAction: () => {
+        setSettings(previousSettings);
+        setActivePresetId(previousPresetId);
+      },
     });
+  };
+
+  const handleApplyPreset = (presetId: string) => {
+    const preset = getPresetById(activeRig, presetId);
+    if (!preset) {
+      showNotice("That preset is unavailable for the active rig. No settings were changed.", "warning");
+      return;
+    }
+    const result = applyRigPreset(activeRig, preset, normalizedSettings);
+    if (!result.ok) {
+      showNotice(`${result.error} No settings were changed.`, "warning");
+      return;
+    }
+    setSettings(result.settings);
+    setActivePresetId(preset.id);
+    showNotice(`${preset.name} applied to ${activeRig.name}.`, "success");
   };
 
   const togglePlayback = () => setIsPlaying((current) => !current);
@@ -210,13 +241,14 @@ export default function App() {
       return;
     }
     const session: WorkspaceSession = {
+      activePresetId,
       activeRigId: activeRig.id,
       hasEditorSession: true,
       isFitMode,
       isLeftRailCollapsed,
       isRightRailCollapsed,
       settings: normalizedSettings,
-      version: 2,
+      version: 3,
       zoomPercent,
     };
     latestSessionRef.current = session;
@@ -231,6 +263,7 @@ export default function App() {
   }, [
     hasEnteredEditor,
     activeRig.id,
+    activePresetId,
     isFitMode,
     isLeftRailCollapsed,
     isRightRailCollapsed,
@@ -428,6 +461,8 @@ export default function App() {
       >
         <LeftPanel
           activeRig={activeRig}
+          activePresetId={activePreset?.id ?? null}
+          activePresetState={activePresetState}
           addFiles={addFiles}
           availableRigs={rigRegistry}
           clearAllSlots={clearAllSlots}
@@ -440,6 +475,7 @@ export default function App() {
           mediaAnnouncement={mediaAnnouncement}
           mediaNotice={mediaNotice}
           moveSlot={moveSlot}
+          onApplyPreset={handleApplyPreset}
           onLoadDemo={handleLoadDemo}
           onRequestClose={() =>
             isNarrowWorkspace ? setActiveDrawer(null) : setIsLeftRailCollapsed(true)
@@ -449,6 +485,8 @@ export default function App() {
           selectSlot={selectSlot}
           selectedIndex={selectedIndex}
           slots={slots}
+          presets={availablePresets}
+          onReturnToDefaults={handleResetSettings}
         />
         <CenterStage
           isFitMode={isFitMode}

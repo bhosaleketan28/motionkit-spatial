@@ -1,10 +1,13 @@
 import { useRef, useState } from "react";
 import type { AddFilesResult, ImageSlot } from "../hooks/useImageSlots";
-import type { OrbitCarouselRigDefinition } from "../rigs/types";
+import type { PresetApplicationState } from "../rigs/presetSystem";
+import type { OrbitCarouselRigDefinition, OrbitRigSettings, RigPreset } from "../rigs/types";
 import { MediaSlotControl } from "./MediaSlotControl";
 
 interface LeftPanelProps {
   activeRig: OrbitCarouselRigDefinition;
+  activePresetId: string | null;
+  activePresetState: PresetApplicationState | null;
   addFiles: (files: File[]) => AddFilesResult;
   availableRigs: readonly OrbitCarouselRigDefinition[];
   clearAllSlots: () => void;
@@ -13,8 +16,11 @@ interface LeftPanelProps {
   mediaAnnouncement: string;
   mediaNotice: string | null;
   moveSlot: (fromIndex: number, toIndex: number) => void;
+  onApplyPreset: (presetId: string) => void;
   onLoadDemo: () => void;
   onRequestClose: () => void;
+  onReturnToDefaults: () => void;
+  presets: readonly RigPreset<OrbitRigSettings>[];
   removeSlot: (index: number) => void;
   replaceSlot: (index: number, file: File) => boolean;
   selectSlot: (index: number) => void;
@@ -22,12 +28,13 @@ interface LeftPanelProps {
   slots: ImageSlot[];
 }
 
-type WorkspaceSection = "create" | "media";
-// Presets can be added here once the destination has a complete workflow.
-const workspaceSections: WorkspaceSection[] = ["create", "media"];
+type WorkspaceSection = "create" | "media" | "presets";
+const workspaceSections: WorkspaceSection[] = ["create", "media", "presets"];
 
 export function LeftPanel({
   activeRig,
+  activePresetId,
+  activePresetState,
   addFiles,
   availableRigs,
   clearAllSlots,
@@ -36,8 +43,11 @@ export function LeftPanel({
   mediaAnnouncement,
   mediaNotice,
   moveSlot,
+  onApplyPreset,
   onLoadDemo,
   onRequestClose,
+  onReturnToDefaults,
+  presets,
   removeSlot,
   replaceSlot,
   selectSlot,
@@ -73,15 +83,15 @@ export function LeftPanel({
   return (
     <aside
       aria-hidden={!isVisible}
-      aria-label={isDrawer ? "Media drawer" : "Media rail"}
+      aria-label={isDrawer ? "Workspace drawer" : "Workspace rail"}
       className={isVisible ? "panel left-panel panel-open" : "panel left-panel"}
       data-workspace-drawer="media"
       id="media-panel"
     >
       <div className="panel-chrome">
-        <span>{isDrawer ? "Media drawer" : "Media rail"}</span>
+        <span>{isDrawer ? "Workspace drawer" : "Workspace rail"}</span>
         <button
-          aria-label={isDrawer ? "Close media drawer" : "Collapse media rail"}
+          aria-label={isDrawer ? "Close workspace drawer" : "Collapse workspace rail"}
           data-drawer-close
           type="button"
           onClick={onRequestClose}
@@ -285,6 +295,93 @@ export function LeftPanel({
               </button>
             </div>
             <p className="sr-only" aria-live="polite">{mediaAnnouncement}</p>
+          </section>
+        ) : null}
+
+        {activeSection === "presets" ? (
+          <section
+            aria-labelledby="presets-workspace-tab"
+            id="presets-workspace-panel"
+            role="tabpanel"
+          >
+            <p className="eyebrow">Presets</p>
+            <h2 id="presets-heading">Starting points for {activeRig.name}</h2>
+            <p className="preset-intro">
+              Apply a focused visual direction, then refine it in the inspector. Media and unowned settings stay unchanged.
+            </p>
+
+            <div
+              aria-label={`${activeRig.name} presets`}
+              className="preset-list"
+              role="radiogroup"
+            >
+              {presets.map((preset, presetIndex) => {
+                const isActive = preset.id === activePresetId;
+                return (
+                  <button
+                    aria-checked={isActive}
+                    className={isActive ? "preset-card preset-card-active" : "preset-card"}
+                    id={`preset-option-${preset.id}`}
+                    key={preset.id}
+                    onClick={() => onApplyPreset(preset.id)}
+                    onKeyDown={(event) => {
+                      let nextIndex = presetIndex;
+                      if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+                        nextIndex = (presetIndex + 1) % presets.length;
+                      } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+                        nextIndex = (presetIndex - 1 + presets.length) % presets.length;
+                      } else if (event.key === "Home") {
+                        nextIndex = 0;
+                      } else if (event.key === "End") {
+                        nextIndex = presets.length - 1;
+                      } else {
+                        return;
+                      }
+                      event.preventDefault();
+                      const nextPreset = presets[nextIndex];
+                      onApplyPreset(nextPreset.id);
+                      window.requestAnimationFrame(() =>
+                        document.getElementById(`preset-option-${nextPreset.id}`)?.focus(),
+                      );
+                    }}
+                    role="radio"
+                    tabIndex={isActive || (!activePresetId && presetIndex === 0) ? 0 : -1}
+                    type="button"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="preset-swatch"
+                      style={{
+                        background: `linear-gradient(135deg, ${preset.previewStyle.colors[0]}, ${preset.previewStyle.colors[1]})`,
+                        borderColor: preset.previewStyle.accent,
+                      }}
+                    />
+                    <span className="preset-copy">
+                      <span className="preset-name-row">
+                        <strong>{preset.name}</strong>
+                        {isActive && activePresetState ? (
+                          <small className={`preset-state preset-state-${activePresetState}`}>
+                            {activePresetState === "applied" ? "Applied" : "Modified"}
+                          </small>
+                        ) : null}
+                      </span>
+                      <small>{preset.description}</small>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="preset-actions">
+              {activePresetId ? (
+                <button className="secondary-button" type="button" onClick={() => onApplyPreset(activePresetId)}>
+                  Reapply preset
+                </button>
+              ) : null}
+              <button className="quiet-button" type="button" onClick={onReturnToDefaults}>
+                Return to rig defaults
+              </button>
+            </div>
           </section>
         ) : null}
       </div>

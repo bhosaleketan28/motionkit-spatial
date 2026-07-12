@@ -4,7 +4,7 @@ MotionKit Spatial is a private local browser prototype for creating animated spa
 
 Users can add one to four images incrementally or load generated demo cards, preview a smooth Canvas 2D orbit animation, adjust basic rig settings, and export a local WebM file.
 
-The Phase 10 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Orbit Carousel now runs through a reusable rig definition and validated registry rather than being hardcoded across the product. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor.
+The Phase 10.1 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Orbit Carousel runs through a reusable rig definition and validated registry rather than being hardcoded across the product. Its four rig-owned presets provide intentional starting points without altering media or unrelated settings. Desktop media and inspector rails can collapse, tablet and mobile controls open in drawers, and a compact motion transport provides playback, replay, scrubbing, and precise time inspection without introducing a full timeline editor.
 
 ## Run Locally
 
@@ -39,6 +39,10 @@ The app is static and browser-only. Uploaded images are processed locally in the
 
 - React + Vite + TypeScript local app
 - Generic UI-facing rig contract with a validated central registry and safe fallback lookup
+- Generic versioned preset contract with explicit rig ownership, compatibility, and property ownership
+- Four Orbit Carousel starting points: Cinematic, Clean Studio, Launch Glow, and Minimal Light
+- Functional Presets workspace with text-based Applied/Modified status, keyboard radio navigation, reapply, and rig-default recovery
+- Preset application that preserves media, playback, frame ratio, direction, card shape, and every other unowned setting
 - Canvas 2D Orbit Carousel renderer
 - Original locally generated Luma Field showcase cards for first-use testing
 - Four local media slots with incremental multi-image add, thumbnail previews, replace, remove, and clear-all
@@ -70,7 +74,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Accessible stage description covering rig, loaded media, ratio, playback state, and coarse loop time
 - System reduced-motion support: previews start paused and non-essential transitions are minimized
 - Safe localStorage restoration for rig settings, ratio, panel collapse state, fit mode, and zoom
-- Versioned session persistence for active rig id plus safe migration of pre-registry sessions
+- Versioned session persistence for active rig and preset identity plus safe migration of older sessions and incompatible preset data
 - Unified success, warning, error, info, and Undo notices with controlled live-region behavior
 - Actual loop-render progress phases, elapsed and remaining time, safe cancellation, and detailed completion metadata
 - Explicitly confirmed PNG snapshot fallback when WebM is unavailable or fails
@@ -94,6 +98,6 @@ The app is static and browser-only. Uploaded images are processed locally in the
 
 ## Rig Architecture
 
-Orbit Carousel is the only registered rig. Its definition owns its metadata, slot contract, ratios, default settings, media requirements, inspector sections, renderer, demo generator, export metadata, capabilities, preset compatibility, settings validation, and version.
+Orbit Carousel is the only registered rig. Its definition owns its metadata, slot contract, ratios, default settings, media requirements, inspector sections, renderer, demo generator, export metadata, capabilities, compatible preset collection, settings validation, and version.
 
 The registry lives in `src/rigs/registry.ts`. Future rigs should be added as self-contained definitions and registered only after their renderer, settings validator, media contract, demo media, inspector behavior, export metadata, and session compatibility are complete. See `docs/RIG_ARCHITECTURE.md` for the extension checklist.

@@ -1,16 +1,18 @@
 import { DEFAULT_RIG_ID, getRigById, hasRig } from "../rigs/registry";
+import { getPresetById } from "../rigs/presetRegistry";
 import type { OrbitRigSettings } from "../rigs/types";
 
 export const WORKSPACE_SESSION_KEY = "motionkit-spatial.workspace.v1";
 
 export interface WorkspaceSession {
+  activePresetId: string | null;
   activeRigId: string;
   hasEditorSession: true;
   isFitMode: boolean;
   isLeftRailCollapsed: boolean;
   isRightRailCollapsed: boolean;
   settings: OrbitRigSettings;
-  version: 2;
+  version: 3;
   zoomPercent: number;
 }
 
@@ -52,7 +54,7 @@ export function parseWorkspaceSession(value: unknown): WorkspaceSessionReadResul
     };
   }
 
-  const requestedRigId = value.version === 2 && typeof value.activeRigId === "string"
+  const requestedRigId = value.version >= 2 && typeof value.activeRigId === "string"
     ? value.activeRigId
     : DEFAULT_RIG_ID;
   const rigWasFound = hasRig(requestedRigId);
@@ -61,22 +63,29 @@ export function parseWorkspaceSession(value: unknown): WorkspaceSessionReadResul
   const settings = rigWasFound && rig.isSettings(value.settings)
     ? value.settings
     : cloneSettings(rig.defaultSettings);
+  const requestedPresetId = value.version === 3 && typeof value.activePresetId === "string"
+    ? value.activePresetId
+    : null;
+  const activePreset = rigWasFound ? getPresetById(rig, requestedPresetId) : null;
   const issue = !rigWasFound
     ? "The saved motion rig is unavailable. Orbit Carousel was restored safely."
     : !settingsAreValid
       ? "Some saved rig settings were invalid and have been reset safely."
+      : requestedPresetId && !activePreset
+        ? "The saved preset is unavailable. Your compatible rig settings were preserved."
       : null;
 
   return {
     issue,
     session: {
+      activePresetId: activePreset?.id ?? null,
       activeRigId: rig.id,
       hasEditorSession: true,
       isFitMode: value.isFitMode,
       isLeftRailCollapsed: value.isLeftRailCollapsed,
       isRightRailCollapsed: value.isRightRailCollapsed,
       settings,
-      version: 2,
+      version: 3,
       zoomPercent: value.zoomPercent,
     },
   };
@@ -97,12 +106,12 @@ function isSessionShell(value: unknown): value is Record<string, unknown> & {
   isLeftRailCollapsed: boolean;
   isRightRailCollapsed: boolean;
   settings: unknown;
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   zoomPercent: number;
 } {
   if (
     !isRecord(value) ||
-    (value.version !== 1 && value.version !== 2) ||
+    (value.version !== 1 && value.version !== 2 && value.version !== 3) ||
     value.hasEditorSession !== true
   ) {
     return false;

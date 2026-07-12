@@ -22,6 +22,7 @@
 - Phase 9.5: Accessibility, recovery, and product hardening
 - Phase 9.6: Alpha readiness cleanup
 - Phase 10: Rig system architecture
+- Phase 10.1: Rig-aware preset system
 
 ## Phase 8 Highlights
 
@@ -119,3 +120,13 @@
 - Made first run, Media, stage accessibility, ratio controls, inspector exposure, export validation, filenames, and render dispatch read from active rig metadata.
 - Upgraded workspace sessions to version 2 with active rig persistence, version 1 migration, invalid-id fallback, and settings validation through the rig definition.
 - Kept Orbit Carousel as the only visible rig and intentionally deferred rig switching, a second rig, and presets.
+
+## Phase 10.1 Highlights
+
+- Added a generic, versioned rig preset contract with stable identity, compatibility metadata, preview styling, settings patches, and explicit owned properties.
+- Added startup validation and a rig-aware preset registry that rejects incompatible, foreign, undeclared, unknown, or invalid settings before they can reach the workspace.
+- Added exactly four Orbit Carousel presets: Cinematic, Clean Studio, Launch Glow, and Minimal Light.
+- Restored Presets as a complete workspace destination with compact visual swatches, descriptions, active selection, and text-based Applied/Modified status.
+- Preserved media and all unowned settings during preset application and reapplication, with a separate return-to-rig-defaults action.
+- Added radio semantics, roving focus, arrow-key application, visible focus treatment, and polite preset application announcements.
+- Upgraded workspace sessions to version 3 with active preset identity, derived status restoration, older-session migration, and safe incompatible-preset removal.

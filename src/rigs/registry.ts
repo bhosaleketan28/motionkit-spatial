@@ -1,4 +1,5 @@
 import { orbitCarouselRig } from "./orbitCarousel";
+import { validateRigPresetCollection } from "./presetSystem";
 import type { OrbitCarouselRigDefinition } from "./types";
 
 export const DEFAULT_RIG_ID = orbitCarouselRig.id;
@@ -54,6 +55,7 @@ function validateRigRegistry(rigs: OrbitCarouselRigDefinition[]) {
     ) {
       throw new Error(`${rig.name} transparency capabilities are inconsistent.`);
     }
+    validateRigPresetCollection(rig);
     ids.add(rig.id);
   });
 

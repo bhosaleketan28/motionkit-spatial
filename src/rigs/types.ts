@@ -74,6 +74,23 @@ export interface RigPresetCompatibility {
   version: number;
 }
 
+export interface RigPresetPreviewStyle {
+  accent: string;
+  colors: readonly [string, string];
+}
+
+export interface RigPreset<Settings extends BaseRigSettings> {
+  description: string;
+  id: string;
+  name: string;
+  ownedProperties: readonly (keyof Settings)[];
+  previewStyle: RigPresetPreviewStyle;
+  rigId: string;
+  schemaId: string;
+  settingsPatch: Partial<Settings>;
+  version: number;
+}
+
 export interface RigDemoMedia {
   label: string;
   src: string;
@@ -108,6 +125,7 @@ export interface RigDefinition<Settings extends BaseRigSettings> {
   mediaRequirements: RigMediaRequirements;
   name: string;
   presetCompatibility: RigPresetCompatibility;
+  presets: readonly RigPreset<Settings>[];
   render: RigRenderer<Settings>;
   shortDescription: string;
   slotCount: number;

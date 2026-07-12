@@ -22,8 +22,20 @@ A motion rig is a versioned product definition, not only a renderer. Each rig ow
 - its Canvas renderer and demo media generator;
 - export naming, duration, and transparency metadata;
 - preset compatibility metadata.
+- a versioned collection of rig-aware presets with explicit property ownership.
 
-Available rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 10 adds this architecture without adding a second rig or rig-switching UI.
+Available rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 10.1 adds four Orbit Carousel presets through this contract without adding a second rig or rig-switching UI.
+
+## Preset Workflow
+
+Presets are intentional rig-specific starting points, not saved projects or global themes. The Presets workspace shows only definitions compatible with the active rig. Applying one updates its declared settings while preserving media and all unowned values. The product visibly distinguishes an unchanged Applied preset from a Modified preset, supports reapplication, and provides a return-to-rig-defaults path.
+
+Orbit Carousel includes exactly four presets:
+
+- Cinematic
+- Clean Studio
+- Launch Glow
+- Minimal Light
 
 ## Target User
 

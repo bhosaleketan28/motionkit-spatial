@@ -1,5 +1,6 @@
 import { renderOrbitCarousel } from "../renderer/canvasRenderer";
 import { generateOrbitCarouselDemoMedia } from "./orbitCarouselDemo";
+import { orbitCarouselPresets } from "./orbitCarouselPresets";
 import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "./types";
 
 export const orbitCarouselRig: OrbitCarouselRigDefinition = {
@@ -57,6 +58,7 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
     schemaId: "orbit-carousel-settings",
     version: 1,
   },
+  presets: orbitCarouselPresets,
   render: renderOrbitCarousel,
   shortDescription: "Four-image spatial loop",
   slotCount: 4,
