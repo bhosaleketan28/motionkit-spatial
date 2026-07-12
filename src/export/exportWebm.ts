@@ -16,7 +16,7 @@ export async function exportRigWebm(
   input: ExportRenderInput,
   options: ExportOptions,
 ): Promise<ExportArtifact> {
-  validateExportMedia(input);
+  validateExportMedia(input, "webm");
   throwIfExportCancelled(options.signal);
 
   const startedAt = performance.now();

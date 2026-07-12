@@ -1,15 +1,15 @@
 import { useRef, useState } from "react";
 import type { AddFilesResult, ImageSlot } from "../hooks/useImageSlots";
 import type { PresetApplicationState } from "../rigs/presetSystem";
-import type { OrbitCarouselRigDefinition, OrbitRigSettings, RigPreset } from "../rigs/types";
+import type { RegisteredRigDefinition, RigPreset } from "../rigs/types";
 import { MediaSlotControl } from "./MediaSlotControl";
 
 interface LeftPanelProps {
-  activeRig: OrbitCarouselRigDefinition;
+  activeRig: RegisteredRigDefinition;
   activePresetId: string | null;
   activePresetState: PresetApplicationState | null;
   addFiles: (files: File[]) => AddFilesResult;
-  availableRigs: readonly OrbitCarouselRigDefinition[];
+  availableRigs: readonly RegisteredRigDefinition[];
   clearAllSlots: () => void;
   isDrawer: boolean;
   isVisible: boolean;
@@ -20,7 +20,8 @@ interface LeftPanelProps {
   onLoadDemo: () => void;
   onRequestClose: () => void;
   onReturnToDefaults: () => void;
-  presets: readonly RigPreset<OrbitRigSettings>[];
+  onSelectRig: (rigId: string) => void;
+  presets: readonly RigPreset<any>[];
   removeSlot: (index: number) => void;
   replaceSlot: (index: number, file: File) => boolean;
   selectSlot: (index: number) => void;
@@ -47,6 +48,7 @@ export function LeftPanel({
   onLoadDemo,
   onRequestClose,
   onReturnToDefaults,
+  onSelectRig,
   presets,
   removeSlot,
   replaceSlot,
@@ -138,11 +140,28 @@ export function LeftPanel({
           >
             <p className="eyebrow">Create</p>
             <h2 id="create-heading">Motion rig</h2>
-            <div className="rig-list">
-              {availableRigs.map((rig) => (
+            <div aria-label="Motion rig" className="rig-list" role="radiogroup">
+              {availableRigs.map((rig, rigIndex) => (
                 <button
+                  aria-checked={rig.id === activeRig.id}
                   className={rig.id === activeRig.id ? "rig-item rig-item-active" : "rig-item"}
+                  id={`rig-option-${rig.id}`}
                   key={rig.id}
+                  onClick={() => onSelectRig(rig.id)}
+                  onKeyDown={(event) => {
+                    let nextIndex = rigIndex;
+                    if (event.key === "ArrowDown" || event.key === "ArrowRight") nextIndex = (rigIndex + 1) % availableRigs.length;
+                    else if (event.key === "ArrowUp" || event.key === "ArrowLeft") nextIndex = (rigIndex - 1 + availableRigs.length) % availableRigs.length;
+                    else if (event.key === "Home") nextIndex = 0;
+                    else if (event.key === "End") nextIndex = availableRigs.length - 1;
+                    else return;
+                    event.preventDefault();
+                    const nextRig = availableRigs[nextIndex];
+                    document.getElementById(`rig-option-${nextRig.id}`)?.focus();
+                    onSelectRig(nextRig.id);
+                  }}
+                  role="radio"
+                  tabIndex={rig.id === activeRig.id ? 0 : -1}
                   type="button"
                 >
                   <span><strong>{rig.name}</strong><small>{rig.shortDescription}</small></span>
@@ -162,7 +181,7 @@ export function LeftPanel({
             <div className="section-heading-row">
               <div>
                 <p className="eyebrow">Media</p>
-                <h2 id="media-heading">Carousel sequence</h2>
+                <h2 id="media-heading">Media sequence</h2>
               </div>
               <span className="media-count">
                 {slots.filter((slot) => slot.status === "ready" || slot.status === "loading").length}/{activeRig.slotCount}

@@ -1,11 +1,13 @@
+import { filmStripRig } from "./filmStrip";
 import { orbitCarouselRig } from "./orbitCarousel";
 import { validateRigPresetCollection } from "./presetSystem";
-import type { OrbitCarouselRigDefinition } from "./types";
+import type { RegisteredRigDefinition } from "./types";
 
 export const DEFAULT_RIG_ID = orbitCarouselRig.id;
 
-export const rigRegistry: readonly OrbitCarouselRigDefinition[] = validateRigRegistry([
+export const rigRegistry: readonly RegisteredRigDefinition[] = validateRigRegistry([
   orbitCarouselRig,
+  filmStripRig,
 ]);
 
 const rigById = new Map(rigRegistry.map((rig) => [rig.id, rig]));
@@ -14,7 +16,7 @@ export function getDefaultRig() {
   return orbitCarouselRig;
 }
 
-export function getRigById(rigId: string | null | undefined): OrbitCarouselRigDefinition {
+export function getRigById(rigId: string | null | undefined): RegisteredRigDefinition {
   return (rigId ? rigById.get(rigId) : undefined) ?? getDefaultRig();
 }
 
@@ -22,7 +24,7 @@ export function hasRig(rigId: string | null | undefined) {
   return Boolean(rigId && rigById.has(rigId));
 }
 
-function validateRigRegistry(rigs: OrbitCarouselRigDefinition[]) {
+function validateRigRegistry(rigs: RegisteredRigDefinition[]) {
   const ids = new Set<string>();
 
   rigs.forEach((rig) => {
@@ -36,7 +38,9 @@ function validateRigRegistry(rigs: OrbitCarouselRigDefinition[]) {
       rig.mediaRequirements.maxItems !== rig.slotCount ||
       rig.mediaRequirements.minItems < 1 ||
       rig.mediaRequirements.minItems > rig.mediaRequirements.maxItems ||
-      rig.mediaRequirements.requiredForExport > rig.slotCount
+      rig.mediaRequirements.requiredForExport > rig.slotCount ||
+      rig.mediaRequirements.requiredForPng < 1 ||
+      rig.mediaRequirements.requiredForPng > rig.slotCount
     ) {
       throw new Error(`${rig.name} media requirements do not match its slot contract.`);
     }
@@ -46,6 +50,23 @@ function validateRigRegistry(rigs: OrbitCarouselRigDefinition[]) {
     if (!rig.isSettings(rig.defaultSettings)) {
       throw new Error(`${rig.name} default settings do not satisfy its settings validator.`);
     }
+    const controlKeys = new Set<string>();
+    rig.inspectorControls.forEach((control) => {
+      const sectionExists = rig.inspectorSections.some((section) => section.id === control.section);
+      const defaultValue = (rig.defaultSettings as unknown as Record<string, unknown>)[control.key];
+      if (!sectionExists || controlKeys.has(control.key) || defaultValue === undefined) {
+        throw new Error(`${rig.name} has an invalid inspector control: ${control.key}.`);
+      }
+      if (control.kind === "number") {
+        const displayValue = Number(defaultValue) * (control.scale ?? 1);
+        if (!Number.isFinite(displayValue) || displayValue < control.min || displayValue > control.max) {
+          throw new Error(`${rig.name} inspector range does not include the default for ${control.key}.`);
+        }
+      } else if (!control.options.some((option) => option.value === defaultValue)) {
+        throw new Error(`${rig.name} inspector options do not include the default for ${control.key}.`);
+      }
+      controlKeys.add(control.key);
+    });
     if (rig.defaultSettings.durationSeconds !== rig.exportMetadata.defaultDuration) {
       throw new Error(`${rig.name} export duration must match its default settings.`);
     }

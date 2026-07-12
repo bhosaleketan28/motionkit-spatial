@@ -5,18 +5,19 @@ import { LeftPanel } from "./components/LeftPanel";
 import { NoticeCenter } from "./components/NoticeCenter";
 import type { AppNotice, NoticeTone } from "./components/NoticeCenter";
 import { RightPanel } from "./components/RightPanel";
+import { RigSwitchDialog } from "./components/RigSwitchDialog";
 import { StartScreen } from "./components/StartScreen";
 import { TopBar } from "./components/TopBar";
-import type { ExportStatus } from "./export/exportSettings";
+import type { ExportFormat, ExportStatus } from "./export/exportSettings";
 import { useImageSlots } from "./hooks/useImageSlots";
 import type { ImageSlot } from "./hooks/useImageSlots";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { getRigById, rigRegistry } from "./rigs/registry";
 import { getPresetById, getPresetsForRig } from "./rigs/presetRegistry";
 import { applyRigPreset, getPresetApplicationState } from "./rigs/presetSystem";
-import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "./rigs/types";
-import { readWorkspaceSession, writeWorkspaceSession } from "./utils/workspaceSession";
-import type { WorkspaceSession } from "./utils/workspaceSession";
+import type { AnyRigSettings, RegisteredRigDefinition } from "./rigs/types";
+import { createDefaultRigState, readWorkspaceSession, writeWorkspaceSession } from "./utils/workspaceSession";
+import type { PersistedRigState, WorkspaceSession } from "./utils/workspaceSession";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type WorkspacePanel = "media" | "inspector";
@@ -27,7 +28,7 @@ const MIN_ZOOM = 50;
 const MAX_ZOOM = 200;
 const ZOOM_STEP = 10;
 
-function createDefaultSettings(rig: OrbitCarouselRigDefinition): OrbitRigSettings {
+function createDefaultSettings(rig: RegisteredRigDefinition): AnyRigSettings {
   return {
     ...rig.defaultSettings,
     background: { ...rig.defaultSettings.background },
@@ -35,23 +36,30 @@ function createDefaultSettings(rig: OrbitCarouselRigDefinition): OrbitRigSetting
 }
 
 function normalizeSettings(
-  rig: OrbitCarouselRigDefinition,
-  settings: OrbitRigSettings,
-): OrbitRigSettings {
+  rig: RegisteredRigDefinition,
+  settings: AnyRigSettings,
+): AnyRigSettings {
   const defaults = createDefaultSettings(rig);
 
   const normalized = {
     ...defaults,
     ...settings,
-    background: settings.background ?? defaults.background,
-    cardShape: settings.cardShape ?? defaults.cardShape,
+    background: { ...defaults.background, ...settings.background },
   };
   return rig.isSettings(normalized) ? normalized : defaults;
 }
 
 export default function App() {
   const [initialSession] = useState(readWorkspaceSession);
-  const activeRig = getRigById(initialSession.session?.activeRigId);
+  const [activeRigId, setActiveRigId] = useState(
+    () => initialSession.session?.activeRigId ?? getRigById(null).id,
+  );
+  const [rigStates, setRigStates] = useState<Record<string, PersistedRigState>>(() =>
+    initialSession.session?.rigStates ?? Object.fromEntries(
+      rigRegistry.map((rig) => [rig.id, createDefaultRigState(rig)]),
+    ),
+  );
+  const activeRig = getRigById(activeRigId);
   const previousDrawerRef = useRef<WorkspacePanel | null>(null);
   const latestSessionRef = useRef<WorkspaceSession | null>(null);
   const noticeIdRef = useRef(1);
@@ -77,18 +85,33 @@ export default function App() {
     () => initialSession.session?.hasEditorSession ?? false,
   );
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
-  const [settings, setSettings] = useState<OrbitRigSettings>(
-    () => initialSession.session?.settings ?? createDefaultSettings(activeRig),
-  );
-  const [activePresetId, setActivePresetId] = useState<string | null>(
-    () => initialSession.session?.activePresetId ?? null,
-  );
+  const [pendingRigId, setPendingRigId] = useState<string | null>(null);
   const [appNotice, setAppNotice] = useState<AppNotice | null>(() =>
     initialSession.issue
       ? { id: 0, message: initialSession.issue, tone: "warning" }
       : null,
   );
-  const normalizedSettings = normalizeSettings(activeRig, settings);
+  const activeRigState = rigStates[activeRig.id] ?? createDefaultRigState(activeRig);
+  const normalizedSettings = normalizeSettings(activeRig, activeRigState.settings);
+  const activePresetId = activeRigState.activePresetId;
+  const setSettings = useCallback((nextSettings: AnyRigSettings) => {
+    setRigStates((current) => ({
+      ...current,
+      [activeRig.id]: {
+        activePresetId: current[activeRig.id]?.activePresetId ?? null,
+        settings: normalizeSettings(activeRig, nextSettings),
+      },
+    }));
+  }, [activeRig]);
+  const setActivePresetId = useCallback((presetId: string | null) => {
+    setRigStates((current) => ({
+      ...current,
+      [activeRig.id]: {
+        activePresetId: presetId,
+        settings: current[activeRig.id]?.settings ?? createDefaultSettings(activeRig),
+      },
+    }));
+  }, [activeRig]);
   const availablePresets = getPresetsForRig(activeRig);
   const activePreset = getPresetById(activeRig, activePresetId);
   const activePresetState = activePreset
@@ -108,10 +131,14 @@ export default function App() {
     selectedIndex,
     slotImages,
     slots,
+    switchRigMedia,
     undo,
     undoAction,
   } = useImageSlots(activeRig);
-  const exportMediaIssue = getExportMediaIssue(activeRig, slots);
+  const exportMediaIssues = {
+    png: getExportMediaIssue(activeRig, slots, "png"),
+    webm: getExportMediaIssue(activeRig, slots, "webm"),
+  };
   const showNotice = useCallback(
     (message: string, tone: NoticeTone, action?: Pick<AppNotice, "actionLabel" | "onAction">) => {
       setAppNotice({
@@ -175,6 +202,35 @@ export default function App() {
     setSettings(result.settings);
     setActivePresetId(preset.id);
     showNotice(`${preset.name} applied to ${activeRig.name}.`, "success");
+  };
+
+  const completeRigSwitch = (nextRigId: string) => {
+    const nextRig = getRigById(nextRigId);
+    const result = switchRigMedia(nextRig);
+    setRigStates((current) => current[nextRig.id]
+      ? current
+      : { ...current, [nextRig.id]: createDefaultRigState(nextRig) });
+    setActiveRigId(nextRig.id);
+    setPendingRigId(null);
+    setIsExportSheetOpen(false);
+    setExportStatus("ready");
+    setIsFitMode(true);
+    setZoomPercent(100);
+    const detail = result.preservedCount
+      ? `${result.preservedCount} media item${result.preservedCount === 1 ? "" : "s"} preserved.`
+      : "Media slots are ready.";
+    showNotice(`${nextRig.name} selected. ${detail}`, "info");
+  };
+
+  const handleSelectRig = (nextRigId: string) => {
+    if (nextRigId === activeRig.id) return;
+    const nextRig = getRigById(nextRigId);
+    const hasOverflow = slots.slice(nextRig.slotCount).some((slot) => slot.status !== "empty");
+    if (hasOverflow) {
+      setPendingRigId(nextRig.id);
+      return;
+    }
+    completeRigSwitch(nextRig.id);
   };
 
   const togglePlayback = () => setIsPlaying((current) => !current);
@@ -241,14 +297,13 @@ export default function App() {
       return;
     }
     const session: WorkspaceSession = {
-      activePresetId,
       activeRigId: activeRig.id,
       hasEditorSession: true,
       isFitMode,
       isLeftRailCollapsed,
       isRightRailCollapsed,
-      settings: normalizedSettings,
-      version: 3,
+      rigStates,
+      version: 4,
       zoomPercent,
     };
     latestSessionRef.current = session;
@@ -263,11 +318,10 @@ export default function App() {
   }, [
     hasEnteredEditor,
     activeRig.id,
-    activePresetId,
     isFitMode,
     isLeftRailCollapsed,
     isRightRailCollapsed,
-    normalizedSettings,
+    rigStates,
     showNotice,
     zoomPercent,
   ]);
@@ -487,6 +541,7 @@ export default function App() {
           slots={slots}
           presets={availablePresets}
           onReturnToDefaults={handleResetSettings}
+          onSelectRig={handleSelectRig}
         />
         <CenterStage
           isFitMode={isFitMode}
@@ -545,7 +600,7 @@ export default function App() {
       </div>
       {isExportSheetOpen ? (
         <ExportSheet
-          mediaIssue={exportMediaIssue}
+          mediaIssues={exportMediaIssues}
           onClose={() => setIsExportSheetOpen(false)}
           onFrameRatioChange={(frameRatio) =>
             setSettings({ ...normalizedSettings, frameRatio })
@@ -554,6 +609,15 @@ export default function App() {
           rig={activeRig}
           settings={normalizedSettings}
           slotImages={slotImages}
+        />
+      ) : null}
+      {pendingRigId ? (
+        <RigSwitchDialog
+          discardedCount={slots.slice(getRigById(pendingRigId).slotCount).filter((slot) => slot.status !== "empty").length}
+          fromRig={activeRig}
+          onCancel={() => setPendingRigId(null)}
+          onConfirm={() => completeRigSwitch(pendingRigId)}
+          toRig={getRigById(pendingRigId)}
         />
       ) : null}
       <NoticeCenter
@@ -569,7 +633,7 @@ export default function App() {
   );
 }
 
-function getExportMediaIssue(rig: OrbitCarouselRigDefinition, slots: ImageSlot[]) {
+function getExportMediaIssue(rig: RegisteredRigDefinition, slots: ImageSlot[], format: ExportFormat) {
   if (slots.some((slot) => slot.status === "loading")) {
     return "Wait for every image to finish loading before export.";
   }
@@ -579,8 +643,12 @@ function getExportMediaIssue(rig: OrbitCarouselRigDefinition, slots: ImageSlot[]
   }
 
   const validItemCount = slots.filter((slot) => slot.status === "ready" && slot.image).length;
-  if (validItemCount < rig.mediaRequirements.requiredForExport) {
-    return `Fill all ${rig.mediaRequirements.requiredForExport} ${rig.name} media slots with valid images before export.`;
+  const required = format === "png"
+    ? rig.mediaRequirements.requiredForPng
+    : rig.mediaRequirements.requiredForExport;
+  if (validItemCount < required) {
+    const formatLabel = format === "webm" ? "WebM" : "PNG";
+    return `${rig.name} needs at least ${required} valid image${required === 1 ? "" : "s"} for ${formatLabel} export.`;
   }
 
   return null;

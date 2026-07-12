@@ -923,6 +923,50 @@ h2 {
   width: 100%;
 }
 
+.rig-switch-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+}
+
+.rig-switch-scrim {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  background: rgba(3, 4, 6, 0.72);
+  border: 0;
+  backdrop-filter: blur(3px);
+}
+
+.rig-switch-dialog {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 22px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.68);
+}
+
+.rig-switch-dialog h2 {
+  font-size: 1.08rem;
+}
+
+.rig-switch-dialog > p:not(.eyebrow) {
+  margin: 10px 0 18px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.rig-switch-dialog > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .section-heading-row {
   display: flex;
   align-items: center;
@@ -3025,6 +3069,19 @@ h2 {
 }
 
 @media (max-width: 680px) {
+  .rig-switch-layer {
+    padding: 12px;
+    place-items: end center;
+  }
+
+  .rig-switch-dialog > div {
+    display: grid;
+  }
+
+  .rig-switch-dialog > div button {
+    min-height: 42px;
+  }
+
   .preset-actions button {
     min-height: 42px;
   }

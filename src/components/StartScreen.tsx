@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { AnyRigSettings, RegisteredRigDefinition } from "../rigs/types";
 import { CenterStage } from "./CenterStage";
 
 interface StartScreenProps {
@@ -8,8 +8,8 @@ interface StartScreenProps {
   onUploadFiles: (files: FileList) => void;
   noticeMessage?: string | null;
   prefersReducedMotion: boolean;
-  rig: OrbitCarouselRigDefinition;
-  settings: OrbitRigSettings;
+  rig: RegisteredRigDefinition;
+  settings: AnyRigSettings;
 }
 
 export function StartScreen({
@@ -23,7 +23,7 @@ export function StartScreen({
 }: StartScreenProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(!prefersReducedMotion);
-  const previewSettings: OrbitRigSettings = { ...settings, frameRatio: "16:9" };
+  const previewSettings: AnyRigSettings = { ...settings, frameRatio: "16:9" };
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -71,7 +71,7 @@ export function StartScreen({
 
         <div className="start-actions">
           <input
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept={rig.mediaRequirements.acceptedTypes.join(",")}
             className="media-slot-input"
             multiple
             onChange={(event) => {

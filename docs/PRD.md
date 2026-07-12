@@ -24,7 +24,7 @@ A motion rig is a versioned product definition, not only a renderer. Each rig ow
 - preset compatibility metadata.
 - a versioned collection of rig-aware presets with explicit property ownership.
 
-Available rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 10.1 adds four Orbit Carousel presets through this contract without adding a second rig or rig-switching UI.
+Available rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 11 adds Film Strip as the second complete rig and introduces compact rig switching with per-rig state.
 
 ## Preset Workflow
 
@@ -37,6 +37,21 @@ Orbit Carousel includes exactly four presets:
 - Launch Glow
 - Minimal Light
 
+Film Strip includes exactly four presets:
+
+- Editorial Flow
+- Cinematic Sweep
+- Social Stream
+- Flat Gallery
+
+## Film Strip
+
+Film Strip is a continuous horizontal track of up to six rectangular media frames. Progress deterministically offsets a repeating track; cards wrap seamlessly, preserve cover-cropped image proportions, and gain controlled scale and opacity near the center. Ratio-aware geometry shows more of the track in 16:9, stronger center emphasis in 9:16, and balanced spacing in 1:1.
+
+Its inspector owns duration, direction, card width and height, gap, perspective, tilt, center scale, edge opacity, corner radius, and background. WebM requires two valid images; PNG requires one.
+
+Switching rigs preserves media order and decoded image identity when compatible. Growing from four to six slots adds empty frames. Shrinking to four slots requires confirmation before populated overflow is removed. Each rig restores its own validated settings and active preset.
+
 ## Target User
 
 Designers, creators, product marketers, and visual teams who want to quickly showcase designs, product screens, or image sets in motion without using After Effects, Blender, or complex 3D tools.
@@ -45,7 +60,7 @@ Designers, creators, product marketers, and visual teams who want to quickly sho
 
 Help me turn a few static images into a polished animated spatial showcase that I can export and share.
 
-## First MVP
+## Supported Rigs
 
 Build one working motion rig:
 
@@ -62,6 +77,10 @@ The effect can be created with Canvas 2D using:
 - rounded card drawing
 - shadows
 - simple perspective illusion
+
+### Film Strip
+
+A cinematic editorial stream with six media slots, horizontal looping motion, adjustable card framing, gap, perspective, tilt, center scale, edge opacity, radius, direction, and background.
 
 ## MVP User Flow
 
@@ -88,7 +107,7 @@ The effect can be created with Canvas 2D using:
 
 ### Left Panel
 
-The active rig and its media sequence. Orbit Carousel is the only registered rig in the MVP; no inactive placeholder rigs are shown.
+The compact rig selector, active rig presets, and active media sequence. Only complete registered rigs are shown.
 
 ### Center Stage
 

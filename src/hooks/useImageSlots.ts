@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { OrbitCarouselRigDefinition, RigMediaRequirements } from "../rigs/types";
+import type { RegisteredRigDefinition, RigMediaRequirements } from "../rigs/types";
 
 export interface ImageSlot {
   errorMessage: string | null;
@@ -83,7 +83,7 @@ function revokeDiscardedUrls(discarded: ImageSlot[], retained: ImageSlot[]) {
   });
 }
 
-export function useImageSlots(rig: OrbitCarouselRigDefinition) {
+export function useImageSlots(rig: RegisteredRigDefinition) {
   const [slots, setSlots] = useState<ImageSlot[]>(() => createEmptyMediaSlots(rig.slotCount));
   const slotsRef = useRef(slots);
   const activeRigIdRef = useRef(rig.id);
@@ -444,19 +444,48 @@ export function useImageSlots(rig: OrbitCarouselRigDefinition) {
     [applySlots, rig.slotLabels, updateSelectedId],
   );
 
+  const switchRigMedia = useCallback(
+    (nextRig: RegisteredRigDefinition) => {
+      finishUndo();
+      const current = slotsRef.current;
+      const retained = current.slice(0, nextRig.slotCount);
+      const discarded = current.slice(nextRig.slotCount);
+      const preservedCount = retained.filter((slot) => slot.status !== "empty").length;
+      const discardedCount = discarded.filter((slot) => slot.status !== "empty").length;
+      revokeDiscardedUrls(discarded, retained);
+
+      let nextId = Math.max(-1, ...current.map((slot) => slot.id)) + 1;
+      const nextSlots = retained.slice();
+      while (nextSlots.length < nextRig.slotCount) {
+        nextSlots.push(createEmptySlot(nextId));
+        nextId += 1;
+      }
+
+      activeRigIdRef.current = nextRig.id;
+      applySlots(nextSlots);
+      const selectionStillExists = nextSlots.some((slot) => slot.id === selectedSlotIdRef.current);
+      if (!selectionStillExists) {
+        updateSelectedId(nextSlots[Math.max(0, nextSlots.length - 1)]?.id ?? 0);
+      }
+      const preservedMessage = preservedCount
+        ? `${preservedCount} media item${preservedCount === 1 ? "" : "s"} preserved.`
+        : "No media needed preservation.";
+      const discardedMessage = discardedCount
+        ? ` ${discardedCount} overflow item${discardedCount === 1 ? " was" : "s were"} removed.`
+        : "";
+      setMediaNotice(`${nextRig.name} is ready. ${preservedMessage}${discardedMessage}`);
+      setMediaAnnouncement(`${nextRig.name} selected. ${preservedMessage}${discardedMessage}`);
+      return { discardedCount, preservedCount };
+    },
+    [applySlots, finishUndo, updateSelectedId],
+  );
+
   useEffect(() => {
     if (activeRigIdRef.current === rig.id && slotsRef.current.length === rig.slotCount) {
       return;
     }
-    finishUndo();
-    revokeDiscardedUrls(slotsRef.current, []);
-    const nextSlots = createEmptyMediaSlots(rig.slotCount);
-    activeRigIdRef.current = rig.id;
-    applySlots(nextSlots);
-    updateSelectedId(nextSlots[0]?.id ?? 0);
-    setMediaNotice(`${rig.name} media slots are ready.`);
-    setMediaAnnouncement(`${rig.name} media slots initialized.`);
-  }, [applySlots, finishUndo, rig.id, rig.name, rig.slotCount, updateSelectedId]);
+    switchRigMedia(rig);
+  }, [rig, switchRigMedia]);
 
   useEffect(() => {
     return () => {
@@ -488,6 +517,7 @@ export function useImageSlots(rig: OrbitCarouselRigDefinition) {
     selectedIndex,
     slotImages: slots.map((slot) => (slot.status === "ready" ? slot.image : null)),
     slots,
+    switchRigMedia,
     undo,
     undoAction,
   };

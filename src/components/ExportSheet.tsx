@@ -22,16 +22,15 @@ import type {
   ExportRenderInput,
   ExportStatus,
 } from "../export/exportSettings";
-import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
-import type { FrameRatio } from "../rigs/types";
+import type { AnyRigSettings, BackgroundMode, FrameRatio, RegisteredRigDefinition } from "../rigs/types";
 
 interface ExportSheetProps {
-  mediaIssue: string | null;
+  mediaIssues: Record<ExportFormat, string | null>;
   onClose: () => void;
   onFrameRatioChange: (ratio: FrameRatio) => void;
   onStatusChange: (status: ExportStatus) => void;
-  rig: OrbitCarouselRigDefinition;
-  settings: OrbitRigSettings;
+  rig: RegisteredRigDefinition;
+  settings: AnyRigSettings;
   slotImages: Array<HTMLImageElement | null>;
 }
 
@@ -54,7 +53,7 @@ const INITIAL_PROGRESS: ExportProgress = {
 };
 
 export function ExportSheet({
-  mediaIssue,
+  mediaIssues,
   onClose,
   onFrameRatioChange,
   onStatusChange,
@@ -84,6 +83,7 @@ export function ExportSheet({
   const [isCancelling, setIsCancelling] = useState(false);
   const frame = getExportFrameSize(settings.frameRatio, quality);
   const isRunning = view === "running";
+  const mediaIssue = mediaIssues[format];
 
   useEffect(() => {
     const focusFrame = window.requestAnimationFrame(() => {
@@ -415,8 +415,8 @@ interface ExportReviewProps {
   onSelectFormat: (format: ExportFormat) => void;
   pngConsent: boolean;
   quality: ExportQuality;
-  rig: OrbitCarouselRigDefinition;
-  settings: OrbitRigSettings;
+  rig: RegisteredRigDefinition;
+  settings: AnyRigSettings;
 }
 
 function ExportReview({
@@ -778,7 +778,7 @@ function formatElapsed(milliseconds: number) {
   return `${Math.max(0, milliseconds / 1000).toFixed(1)}s`;
 }
 
-function formatBackgroundMode(mode: OrbitRigSettings["background"]["mode"]) {
+function formatBackgroundMode(mode: BackgroundMode) {
   return mode.charAt(0).toUpperCase() + mode.slice(1);
 }
 

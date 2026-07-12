@@ -23,6 +23,7 @@
 - Phase 9.6: Alpha readiness cleanup
 - Phase 10: Rig system architecture
 - Phase 10.1: Rig-aware preset system
+- Phase 11: Second rig — Film Strip
 
 ## Phase 8 Highlights
 
@@ -130,3 +131,12 @@
 - Preserved media and all unowned settings during preset application and reapplication, with a separate return-to-rig-defaults action.
 - Added radio semantics, roving focus, arrow-key application, visible focus treatment, and polite preset application announcements.
 - Upgraded workspace sessions to version 3 with active preset identity, derived status restoration, older-session migration, and safe incompatible-preset removal.
+
+## Phase 11 Highlights
+
+- Registered Film Strip as the second complete motion rig with six slots, ratio-aware horizontal track geometry, seamless looping, and a dedicated Canvas 2D renderer.
+- Added declarative rig-owned inspector controls and Film Strip settings for direction, width, height, gap, perspective, tilt, center scale, edge opacity, radius, duration, and background.
+- Added the original six-frame Northline Editorial demo and four Film Strip presets: Editorial Flow, Cinematic Sweep, Social Stream, and Flat Gallery.
+- Added a compact keyboard-accessible rig selector, safe media growth, confirmed populated-overflow removal, stable selection, and decoded-image preservation.
+- Upgraded workspace sessions to version 4 with separate validated settings and active preset identity for every registered rig.
+- Added format-specific media validation so Film Strip WebM requires two images and PNG permits one while Orbit Carousel requirements remain unchanged.

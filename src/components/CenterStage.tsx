@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
 import { getFrameSize } from "../renderer/geometry";
-import type { FrameRatio, OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { AnyRigSettings, FrameRatio, RegisteredRigDefinition } from "../rigs/types";
 import { StageTransport } from "./StageTransport";
 import type { StageTransportHandle } from "./StageTransport";
 
@@ -27,9 +27,9 @@ interface CenterStageProps {
   onToggleStageOnly?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
-  rig: OrbitCarouselRigDefinition;
+  rig: RegisteredRigDefinition;
   selectedSlotIndex?: number;
-  settings: OrbitRigSettings;
+  settings: AnyRigSettings;
   slotImages: Array<HTMLImageElement | null>;
   variant?: "editor" | "onboarding";
   zoomPercent?: number;
@@ -393,6 +393,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
           onSeek={updateProgress}
           onStep={stepBySeconds}
           onTogglePlay={onTogglePlay}
+          rigName={rig.name}
           ref={transportRef}
         />
       ) : null}

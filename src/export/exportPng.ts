@@ -15,7 +15,7 @@ export async function exportRigPng(
   input: ExportRenderInput,
   options: ExportOptions,
 ): Promise<ExportArtifact> {
-  validateExportMedia(input);
+  validateExportMedia(input, "png");
   throwIfExportCancelled(options.signal);
   const startedAt = performance.now();
   const { canvas, context, frame } = createExportCanvas(input.settings, options.quality);

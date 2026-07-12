@@ -9,6 +9,7 @@ interface StageTransportProps {
   onSeek: (progress: number) => void;
   onStep: (seconds: number) => void;
   onTogglePlay: () => void;
+  rigName: string;
 }
 
 export interface StageTransportHandle {
@@ -26,6 +27,7 @@ export const StageTransport = forwardRef<StageTransportHandle, StageTransportPro
       onSeek,
       onStep,
       onTogglePlay,
+      rigName,
     },
     ref,
   ) {
@@ -90,9 +92,9 @@ export const StageTransport = forwardRef<StageTransportHandle, StageTransportPro
         </div>
 
         <label className="transport-scrubber">
-          <span className="sr-only">Orbit loop scrubber</span>
+          <span className="sr-only">{rigName} loop scrubber</span>
           <input
-            aria-label="Orbit loop scrubber"
+            aria-label={`${rigName} loop scrubber`}
             max={1}
             min={0}
             ref={scrubberRef}

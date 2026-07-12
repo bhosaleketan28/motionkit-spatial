@@ -19,6 +19,7 @@ export interface BackgroundSettings {
 }
 
 export interface BaseRigSettings {
+  background: BackgroundSettings;
   durationSeconds: number;
   frameRatio: FrameRatio;
 }
@@ -38,6 +39,22 @@ export interface OrbitRigSettings extends MotionRigControlDefaults {
   frameRatio: FrameRatio;
 }
 
+export type FilmStripDirection = "left" | "right";
+
+export interface FilmStripRigSettings extends BaseRigSettings {
+  cardHeight: number;
+  cardWidth: number;
+  centerScale: number;
+  cornerRadius: number;
+  direction: FilmStripDirection;
+  edgeOpacity: number;
+  gap: number;
+  perspective: number;
+  tilt: number;
+}
+
+export type AnyRigSettings = OrbitRigSettings | FilmStripRigSettings;
+
 export type RigInspectorSectionId = "motion" | "appearance" | "background" | "export";
 
 export interface RigInspectorSection {
@@ -46,6 +63,38 @@ export interface RigInspectorSection {
   label: string;
 }
 
+export interface RigNumericInspectorControl {
+  fineStep: number;
+  key: string;
+  kind: "number";
+  label: string;
+  largeStep: number;
+  max: number;
+  min: number;
+  precision: number;
+  scale?: number;
+  section: RigInspectorSectionId;
+  sliderStep: number;
+  step: number;
+  unit: string;
+  unitLabel: string;
+}
+
+export interface RigChoiceInspectorOption {
+  label: string;
+  value: string;
+}
+
+export interface RigChoiceInspectorControl {
+  key: string;
+  kind: "choice";
+  label: string;
+  options: readonly RigChoiceInspectorOption[];
+  section: RigInspectorSectionId;
+}
+
+export type RigInspectorControl = RigNumericInspectorControl | RigChoiceInspectorControl;
+
 export interface RigMediaRequirements {
   acceptedTypes: string[];
   maxFileBytes: number;
@@ -53,6 +102,7 @@ export interface RigMediaRequirements {
   minItems: number;
   preferredDimensions: string;
   requiredForExport: number;
+  requiredForPng: number;
 }
 
 export interface RigCapabilities {
@@ -120,6 +170,7 @@ export interface RigDefinition<Settings extends BaseRigSettings> {
   generateDemoMedia: () => RigDemoMedia[];
   id: string;
   inspectorSections: RigInspectorSection[];
+  inspectorControls: readonly RigInspectorControl[];
   isSettings: (value: unknown) => value is Settings;
   longDescription: string;
   mediaRequirements: RigMediaRequirements;
@@ -135,3 +186,5 @@ export interface RigDefinition<Settings extends BaseRigSettings> {
 }
 
 export type OrbitCarouselRigDefinition = RigDefinition<OrbitRigSettings>;
+export type FilmStripRigDefinition = RigDefinition<FilmStripRigSettings>;
+export type RegisteredRigDefinition = RigDefinition<any>;

@@ -1,4 +1,4 @@
-import type { FrameRatio, FrameSize, OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { AnyRigSettings, FrameRatio, FrameSize, RegisteredRigDefinition } from "../rigs/types";
 
 export const WEBM_MIME_TYPES = [
   "video/webm;codecs=vp9",
@@ -41,8 +41,8 @@ export interface ExportOptions {
 }
 
 export interface ExportRenderInput {
-  rig: OrbitCarouselRigDefinition;
-  settings: OrbitRigSettings;
+  rig: RegisteredRigDefinition;
+  settings: AnyRigSettings;
   slotImages: Array<HTMLImageElement | null>;
 }
 
@@ -156,7 +156,7 @@ export function getExportFrameSize(ratio: FrameRatio, quality: ExportQuality): F
   return sizes[quality][ratio];
 }
 
-export function createExportCanvas(settings: OrbitRigSettings, quality: ExportQuality) {
+export function createExportCanvas(settings: AnyRigSettings, quality: ExportQuality) {
   const frame = getExportFrameSize(settings.frameRatio, quality);
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -191,7 +191,10 @@ export function createDefaultExportFileName(
   ].join("");
   const ratio = input.settings.frameRatio.replace(":", "x");
 
-  return `motionkit-${input.rig.exportMetadata.fileNamePrefix}-${ratio}-${dateStamp}-${timeStamp}.${extension}`;
+  const prefix = input.rig.exportMetadata.fileNamePrefix.startsWith("motionkit-")
+    ? input.rig.exportMetadata.fileNamePrefix
+    : `motionkit-${input.rig.exportMetadata.fileNamePrefix}`;
+  return `${prefix}-${ratio}-${dateStamp}-${timeStamp}.${extension}`;
 }
 
 export function normalizeExportFileName(fileName: string, extension: ExportFormat) {
@@ -206,11 +209,14 @@ export function normalizeExportFileName(fileName: string, extension: ExportForma
   return `${baseName || "motionkit-export"}.${extension}`;
 }
 
-export function validateExportMedia(input: ExportRenderInput) {
+export function validateExportMedia(input: ExportRenderInput, format: ExportFormat) {
+  const required = format === "png"
+    ? input.rig.mediaRequirements.requiredForPng
+    : input.rig.mediaRequirements.requiredForExport;
   if (input.slotImages.length !== input.rig.slotCount) {
     throw new ExportProcessError(
       "invalid-media",
-      `${input.rig.name} requires ${input.rig.mediaRequirements.requiredForExport} valid images before export.`,
+      `${input.rig.name} requires ${required} valid image${required === 1 ? "" : "s"} before ${format.toUpperCase()} export.`,
     );
   }
 
@@ -218,7 +224,7 @@ export function validateExportMedia(input: ExportRenderInput) {
     (image) => image && image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
   ).length;
 
-  if (validImageCount < input.rig.mediaRequirements.requiredForExport) {
+  if (validImageCount < required) {
     throw new ExportProcessError(
       "invalid-media",
       "One or more media slots are empty, still loading, or contain an image that could not be decoded.",

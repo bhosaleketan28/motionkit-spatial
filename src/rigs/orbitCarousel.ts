@@ -42,6 +42,15 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
     { defaultOpen: true, id: "background", label: "Background" },
     { defaultOpen: false, id: "export", label: "Export summary" },
   ],
+  inspectorControls: [
+    { fineStep: 0.05, key: "durationSeconds", kind: "number", label: "Loop duration", largeStep: 1, max: 20, min: 4, precision: 1, section: "motion", sliderStep: 0.1, step: 0.1, unit: "s", unitLabel: "seconds" },
+    { fineStep: 0.1, key: "spread", kind: "number", label: "Spread", largeStep: 10, max: 100, min: 38, precision: 1, scale: 100, section: "motion", sliderStep: 1, step: 1, unit: "%", unitLabel: "percent" },
+    { fineStep: 0.1, key: "depthFade", kind: "number", label: "Depth fade", largeStep: 10, max: 85, min: 5, precision: 1, scale: 100, section: "motion", sliderStep: 1, step: 1, unit: "%", unitLabel: "percent" },
+    { key: "direction", kind: "choice", label: "Direction", options: [{ label: "Clockwise", value: "clockwise" }, { label: "Counter", value: "counter-clockwise" }], section: "motion" },
+    { fineStep: 0.1, key: "cardSize", kind: "number", label: "Card size", largeStep: 5, max: 44, min: 22, precision: 1, scale: 100, section: "appearance", sliderStep: 1, step: 1, unit: "%", unitLabel: "percent" },
+    { fineStep: 0.5, key: "cornerRadius", kind: "number", label: "Corner radius", largeStep: 5, max: 32, min: 0, precision: 1, section: "appearance", sliderStep: 1, step: 1, unit: "px", unitLabel: "pixels" },
+    { key: "cardShape", kind: "choice", label: "Card shape", options: [{ label: "Rectangle", value: "rectangle" }, { label: "Square", value: "square" }, { label: "Circle", value: "circle" }, { label: "Star", value: "star" }], section: "appearance" },
+  ],
   isSettings: isOrbitRigSettings,
   longDescription:
     "Four media cards orbit a calm center point with procedural depth, scale, opacity, and perspective cues.",
@@ -52,6 +61,7 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
     minItems: 1,
     preferredDimensions: "Portrait images around 900 × 1160 work best.",
     requiredForExport: 4,
+    requiredForPng: 4,
   },
   name: "Orbit Carousel",
   presetCompatibility: {

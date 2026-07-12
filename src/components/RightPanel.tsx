@@ -1,13 +1,13 @@
 import { RigControls } from "./RigControls";
-import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "../rigs/types";
+import type { AnyRigSettings, RegisteredRigDefinition } from "../rigs/types";
 
 interface RightPanelProps {
   isDrawer: boolean;
   isVisible: boolean;
   onRequestClose: () => void;
-  rig: OrbitCarouselRigDefinition;
-  settings: OrbitRigSettings;
-  setSettings: (settings: OrbitRigSettings) => void;
+  rig: RegisteredRigDefinition;
+  settings: AnyRigSettings;
+  setSettings: (settings: AnyRigSettings) => void;
 }
 
 export function RightPanel({

@@ -89,7 +89,7 @@ function drawSelectedCardOutline(
   context.restore();
 }
 
-function drawBackground(
+export function drawBackground(
   context: CanvasRenderingContext2D,
   width: number,
   height: number,
@@ -112,7 +112,7 @@ function drawBackground(
   context.fillRect(0, 0, width, height);
 }
 
-function drawFrameGuide(context: CanvasRenderingContext2D, frame: FrameSize) {
+export function drawFrameGuide(context: CanvasRenderingContext2D, frame: FrameSize) {
   context.save();
   context.strokeStyle = "rgba(30, 34, 38, 0.13)";
   context.lineWidth = 3;
@@ -230,7 +230,7 @@ interface CardDrawOptions {
   xScale: number;
 }
 
-function drawImageCover(
+export function drawImageCover(
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
   x: number,
@@ -380,7 +380,7 @@ function drawCardBody(
   context.globalAlpha /= 0.58;
 }
 
-function roundedRect(
+export function roundedRect(
   context: CanvasRenderingContext2D,
   x: number,
   y: number,

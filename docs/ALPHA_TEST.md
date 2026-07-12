@@ -6,11 +6,11 @@ MotionKit Spatial
 
 ## Alpha Purpose
 
-This alpha is a small local prototype test for the Orbit Carousel rig. The goal is to learn whether users understand the workflow, find the motion useful, and trust the WebM export enough to use or share it.
+This alpha tests the complete Orbit Carousel and Film Strip workflows. The goal is to learn whether users understand rig selection, find both motion systems useful, and trust local WebM and PNG export.
 
 ## What To Do
 
-Use MotionKit Spatial to turn one to four static images or screenshots into a short animated spatial showcase, then complete the set and export the result as a WebM or PNG snapshot.
+Use MotionKit Spatial to turn local images into an Orbit Carousel or Film Strip showcase, compare their controls and presets, then export WebM and PNG output.
 
 ## Recommended Setup
 
@@ -23,15 +23,14 @@ Use MotionKit Spatial to turn one to four static images or screenshots into a sh
 ## Test Flow
 
 1. Open the app locally.
-2. Add 1–4 images or screenshots, then complete any empty slots before export.
-3. Try 1:1, 16:9, and 9:16.
-4. Try Transparent, Solid, and Gradient background modes.
-5. Adjust spread, depth fade, card size, corner radius, loop duration, and direction.
-6. Review all three ratios in the export sheet and confirm dimensions remain readable.
-7. Export WebM.
-8. Select PNG and confirm that video-only settings disappear before acknowledging the still-frame export.
-9. Open the exported WebM in Chrome.
-10. Share feedback.
+2. Add 1–4 images or screenshots to Orbit Carousel.
+3. Open Create and switch to Film Strip. Confirm the existing media remains and two empty frames are added.
+4. Load the six-frame Northline Editorial demo and try all four Film Strip presets.
+5. Change Film Strip width, height, gap, perspective, tilt, center scale, edge opacity, radius, direction, duration, and background.
+6. Switch back to Orbit Carousel. Confirm before removing populated frames 5–6, then verify Orbit settings and preset state restore.
+7. Try both rigs at 1:1, 16:9, and 9:16 with Transparent, Solid, and Gradient backgrounds.
+8. Verify Film Strip WebM requires two valid images while PNG permits one.
+9. Export WebM and PNG, inspect the files, then share feedback.
 
 ## Keyboard Shortcuts
 
@@ -53,7 +52,7 @@ Workspace tabs and mutually exclusive inspector/export controls support arrow-ke
 
 ## Session Restoration
 
-Rig settings, ratio, background, panel collapse state, fit mode, and zoom are stored locally when available. Uploaded images are deliberately not persisted. After reload, the editor restores safe settings with four empty media slots and asks the tester to re-add local images.
+Each rig’s settings, ratio, background, active preset, panel collapse state, fit mode, and zoom are stored locally when available. Uploaded images are deliberately not persisted. After reload, the active rig and both rig states restore with empty media slots.
 
 ## Feedback Questions
 

@@ -12,9 +12,10 @@ The app should run entirely on the user's machine.
 
 MotionKit Spatial lets users create animated spatial design showcases by uploading images into reusable motion rigs.
 
-The first MVP should focus on one working rig only:
+The current supported rig set is:
 
 - Orbit Carousel
+- Film Strip
 
 ## Core Product Primitive
 
@@ -36,6 +37,7 @@ Build one local app with:
 - React + Vite + TypeScript
 - Canvas 2D renderer
 - one working Orbit Carousel rig
+- one working Film Strip rig registered through the shared contract
 - 4 media slots
 - image upload into slots
 - live animated preview

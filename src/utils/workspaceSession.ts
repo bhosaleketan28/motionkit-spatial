@@ -1,18 +1,22 @@
-import { DEFAULT_RIG_ID, getRigById, hasRig } from "../rigs/registry";
+import { DEFAULT_RIG_ID, getRigById, hasRig, rigRegistry } from "../rigs/registry";
 import { getPresetById } from "../rigs/presetRegistry";
-import type { OrbitRigSettings } from "../rigs/types";
+import type { AnyRigSettings, RegisteredRigDefinition } from "../rigs/types";
 
 export const WORKSPACE_SESSION_KEY = "motionkit-spatial.workspace.v1";
 
-export interface WorkspaceSession {
+export interface PersistedRigState {
   activePresetId: string | null;
+  settings: AnyRigSettings;
+}
+
+export interface WorkspaceSession {
   activeRigId: string;
   hasEditorSession: true;
   isFitMode: boolean;
   isLeftRailCollapsed: boolean;
   isRightRailCollapsed: boolean;
-  settings: OrbitRigSettings;
-  version: 3;
+  rigStates: Record<string, PersistedRigState>;
+  version: 4;
   zoomPercent: number;
 }
 
@@ -24,71 +28,55 @@ export interface WorkspaceSessionReadResult {
 export function readWorkspaceSession(): WorkspaceSessionReadResult {
   try {
     const raw = window.localStorage.getItem(WORKSPACE_SESSION_KEY);
-    if (!raw) {
-      return { issue: null, session: null };
-    }
-
+    if (!raw) return { issue: null, session: null };
     const result = parseWorkspaceSession(JSON.parse(raw));
-    if (!result.session) {
-      window.localStorage.removeItem(WORKSPACE_SESSION_KEY);
-    }
+    if (!result.session) window.localStorage.removeItem(WORKSPACE_SESSION_KEY);
     return result;
   } catch {
-    try {
-      window.localStorage.removeItem(WORKSPACE_SESSION_KEY);
-    } catch {
-      // Storage may be blocked entirely; defaults remain safe in memory.
-    }
-    return {
-      issue: "Workspace settings could not be read. MotionKit is using safe defaults.",
-      session: null,
-    };
+    try { window.localStorage.removeItem(WORKSPACE_SESSION_KEY); } catch { /* Storage may be blocked. */ }
+    return { issue: "Workspace settings could not be read. MotionKit is using safe defaults.", session: null };
   }
 }
 
 export function parseWorkspaceSession(value: unknown): WorkspaceSessionReadResult {
   if (!isSessionShell(value)) {
-    return {
-      issue: "Saved workspace settings were invalid and have been reset safely.",
-      session: null,
-    };
+    return { issue: "Saved workspace settings were invalid and have been reset safely.", session: null };
   }
 
-  const requestedRigId = value.version >= 2 && typeof value.activeRigId === "string"
-    ? value.activeRigId
-    : DEFAULT_RIG_ID;
+  const requestedRigId = value.version >= 2 && typeof value.activeRigId === "string" ? value.activeRigId : DEFAULT_RIG_ID;
   const rigWasFound = hasRig(requestedRigId);
-  const rig = getRigById(requestedRigId);
-  const settingsAreValid = rigWasFound && rig.isSettings(value.settings);
-  const settings = rigWasFound && rig.isSettings(value.settings)
-    ? value.settings
-    : cloneSettings(rig.defaultSettings);
-  const requestedPresetId = value.version === 3 && typeof value.activePresetId === "string"
-    ? value.activePresetId
-    : null;
-  const activePreset = rigWasFound ? getPresetById(rig, requestedPresetId) : null;
-  const issue = !rigWasFound
-    ? "The saved motion rig is unavailable. Orbit Carousel was restored safely."
-    : !settingsAreValid
-      ? "Some saved rig settings were invalid and have been reset safely."
-      : requestedPresetId && !activePreset
-        ? "The saved preset is unavailable. Your compatible rig settings were preserved."
-      : null;
+  const activeRig = getRigById(requestedRigId);
+  let issue: string | null = rigWasFound ? null : "The saved motion rig is unavailable. Orbit Carousel was restored safely.";
+  const rigStates: Record<string, PersistedRigState> = {};
+
+  rigRegistry.forEach((rig) => {
+    const rawState = value.version === 4 && isRecord(value.rigStates)
+      ? value.rigStates[rig.id]
+      : rig.id === activeRig.id
+        ? { activePresetId: value.version === 3 ? value.activePresetId : null, settings: value.settings }
+        : null;
+    const parsed = parseRigState(rig, rawState);
+    rigStates[rig.id] = parsed.state;
+    if (!issue && parsed.issue) issue = parsed.issue;
+  });
 
   return {
     issue,
     session: {
-      activePresetId: activePreset?.id ?? null,
-      activeRigId: rig.id,
+      activeRigId: activeRig.id,
       hasEditorSession: true,
       isFitMode: value.isFitMode,
       isLeftRailCollapsed: value.isLeftRailCollapsed,
       isRightRailCollapsed: value.isRightRailCollapsed,
-      settings,
-      version: 3,
+      rigStates,
+      version: 4,
       zoomPercent: value.zoomPercent,
     },
   };
+}
+
+export function createDefaultRigState(rig: RegisteredRigDefinition): PersistedRigState {
+  return { activePresetId: null, settings: cloneSettings(rig.defaultSettings) };
 }
 
 export function writeWorkspaceSession(session: WorkspaceSession) {
@@ -100,37 +88,47 @@ export function writeWorkspaceSession(session: WorkspaceSession) {
   }
 }
 
+function parseRigState(rig: RegisteredRigDefinition, value: unknown) {
+  if (!isRecord(value) || !rig.isSettings(value.settings)) {
+    return {
+      issue: value ? `Some saved ${rig.name} settings were invalid and have been reset safely.` : null,
+      state: createDefaultRigState(rig),
+    };
+  }
+  const requestedPresetId = typeof value.activePresetId === "string" ? value.activePresetId : null;
+  const preset = getPresetById(rig, requestedPresetId);
+  return {
+    issue: requestedPresetId && !preset ? `The saved ${rig.name} preset is unavailable. Compatible settings were preserved.` : null,
+    state: {
+      activePresetId: preset?.id ?? null,
+      settings: cloneSettings(value.settings),
+    },
+  };
+}
+
 function isSessionShell(value: unknown): value is Record<string, unknown> & {
+  activePresetId?: unknown;
   hasEditorSession: true;
   isFitMode: boolean;
   isLeftRailCollapsed: boolean;
   isRightRailCollapsed: boolean;
-  settings: unknown;
-  version: 1 | 2 | 3;
+  rigStates?: unknown;
+  settings?: unknown;
+  version: 1 | 2 | 3 | 4;
   zoomPercent: number;
 } {
-  if (
-    !isRecord(value) ||
-    (value.version !== 1 && value.version !== 2 && value.version !== 3) ||
-    value.hasEditorSession !== true
-  ) {
-    return false;
-  }
-
+  if (!isRecord(value) || ![1, 2, 3, 4].includes(value.version as number) || value.hasEditorSession !== true) return false;
   return (
     typeof value.isFitMode === "boolean" &&
     typeof value.isLeftRailCollapsed === "boolean" &&
     typeof value.isRightRailCollapsed === "boolean" &&
     isFiniteNumberInRange(value.zoomPercent, 50, 200) &&
-    "settings" in value
+    (value.version === 4 ? "rigStates" in value : "settings" in value)
   );
 }
 
-function cloneSettings(settings: OrbitRigSettings): OrbitRigSettings {
-  return {
-    ...settings,
-    background: { ...settings.background },
-  };
+function cloneSettings(settings: AnyRigSettings): AnyRigSettings {
+  return { ...settings, background: { ...settings.background } };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
