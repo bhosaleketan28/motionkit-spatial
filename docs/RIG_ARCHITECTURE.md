@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The Motion Rig is the product-level extension boundary. Phase 11 validates it with Orbit Carousel and Film Strip, which have different settings, slot counts, renderers, media requirements, presets, and export thresholds.
+The Motion Rig is the product-level extension boundary. Phase 12 validates it with Orbit Carousel and Film Strip, which have different settings, slot counts, renderers, media requirements, presets, export thresholds, families, and isolated gallery previews.
 
 ## Definition Contract
 
 `RigDefinition<Settings>` is declared in `src/rigs/types.ts`. A definition contains:
 
-- stable `id`, `name`, category, descriptions, and version;
+- stable `id`, `name`, category, descriptions, family, discovery tags, production maturity, gallery description, and version;
 - `slotCount` and one `slotLabel` per position;
 - supported ratios, default ratio, and fully validated default settings;
 - accepted media types, size limit, item range, preferred dimensions, and export requirement;
@@ -19,6 +19,7 @@ The Motion Rig is the product-level extension boundary. Phase 11 validates it wi
 - preset schema compatibility metadata;
 - a collection of compatible, rig-owned preset definitions;
 - a rig-owned demo media generator;
+- a rig-owned gallery preview recipe with isolated settings, generated media, ratio, duration, static progress, and the actual renderer;
 - an `isSettings` validator used by session restoration.
 
 ## Registry
@@ -28,7 +29,15 @@ The Motion Rig is the product-level extension boundary. Phase 11 validates it wi
 - registers Orbit Carousel and Film Strip;
 - resolves rigs by id;
 - falls back to Orbit Carousel for missing or invalid ids;
-- validates unique ids, slot-label counts, media limits, default ratios, settings, duration metadata, transparency capabilities, and every preset contract during startup.
+- validates unique ids, family and maturity values, tags, gallery copy, preview settings/media/ratio/duration, slot-label counts, media limits, default ratios, settings, duration metadata, transparency capabilities, and every preset contract during startup.
+
+Roadmap entries live in `src/rigs/roadmap.ts`, are limited to four, and are never registered. They carry only discovery metadata and a static concept-preview variant, cannot be selected, and do not participate in sessions, media, inspector, export, or fallback resolution.
+
+## Gallery Preview Runtime
+
+`src/preview/rigPreviewRuntime.ts` builds preview settings from validated rig defaults plus the rig-owned override, generates preview media once per rig/version/media-count key, decodes it once, and caches the resulting promise. Preview media is independent of workspace uploads and requires no object URLs.
+
+`RigGallery` owns one scheduler for all open production cards. It throttles animation to approximately 22 FPS, paints only Intersection Observer-visible cards, pauses when the document is hidden, stops when the gallery unmounts, and performs no per-frame React state updates. Reduced-motion users receive the rig-defined static frame and no scheduler loop.
 
 ## Preset Contract
 
@@ -62,9 +71,10 @@ Film Strip derives a repeating horizontal track from progress 0–1. Each frame 
 3. Add a rig-owned demo generator with exactly `slotCount` results.
 4. Define any presets beside the rig, with unique ids, explicit owned properties, and matching schema/version metadata.
 5. Create a complete `RigDefinition` with media, inspector, export, capability, preset, and version metadata.
-6. Add any intentionally specialized inspector implementation behind the definition’s section and capability contract.
-7. Register the definition in the central registry.
-8. Verify preset application and modification, partial media, full media, reorder, selection, undo, all supported ratios, transport behavior, preview, WebM, PNG, session migration, focus behavior, and responsive layouts.
+6. Assign one stable motion family and useful discovery tags, then provide a concise gallery description and isolated preview recipe using the real renderer.
+7. Add any intentionally specialized inspector implementation behind the definition’s section and capability contract.
+8. Register the definition in the central registry.
+9. Verify preset application and modification, partial media, full media, reorder, selection, undo, all supported ratios, transport behavior, gallery preview, WebM, PNG, session migration, focus behavior, reduced motion, and responsive layouts.
 
 Do not register placeholder or incomplete rigs. Registration makes a rig a supported product capability.
 

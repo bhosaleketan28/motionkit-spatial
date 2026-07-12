@@ -1,5 +1,6 @@
 import type { FilmStripRigSettings, RigRenderInput } from "../rigs/types";
 import { drawBackground, drawFrameGuide, drawImageCover, roundedRect } from "./canvasRenderer";
+import { positiveModulo } from "./motionGeometry";
 
 interface FilmCardLayout {
   alpha: number;
@@ -63,7 +64,7 @@ function getFilmCardLayouts(
 
   return Array.from({ length: slotCount }, (_, index) => {
     const base = (index - (slotCount - 1) / 2) * step + offset;
-    const wrapped = modulo(base + trackLength / 2, trackLength) - trackLength / 2;
+    const wrapped = positiveModulo(base + trackLength / 2, trackLength) - trackLength / 2;
     const centerProximity = 1 - Math.min(1, Math.abs(wrapped) / (width * (portrait ? 0.72 : 0.62)));
     const scale = 1 + centerProximity * settings.centerScale + centerProximity * settings.perspective * 0.08;
     const alpha = settings.edgeOpacity + (1 - settings.edgeOpacity) * Math.pow(centerProximity, 0.72);
@@ -182,8 +183,4 @@ function drawFilmSelection(
   );
   context.stroke();
   context.restore();
-}
-
-function modulo(value: number, divisor: number) {
-  return ((value % divisor) + divisor) % divisor;
 }

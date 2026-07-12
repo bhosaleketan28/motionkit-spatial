@@ -1,5 +1,19 @@
 export type FrameRatio = "1:1" | "16:9" | "9:16";
 
+export const RIG_FAMILIES = [
+  "orbit",
+  "stream",
+  "grid",
+  "focus",
+  "stack",
+  "cluster",
+  "path",
+  "depth",
+] as const;
+
+export type RigFamily = (typeof RIG_FAMILIES)[number];
+export type RigMaturity = "production";
+
 export type OrbitDirection = "clockwise" | "counter-clockwise";
 
 export type BackgroundMode = "transparent" | "solid" | "gradient";
@@ -146,6 +160,22 @@ export interface RigDemoMedia {
   src: string;
 }
 
+export interface RigGalleryMetadata {
+  description: string;
+}
+
+export interface RigPreviewDefinition<Settings extends BaseRigSettings> {
+  accent?: string;
+  backgroundOverride?: Partial<BackgroundSettings>;
+  durationSeconds: number;
+  generateMedia: () => RigDemoMedia[];
+  mediaCount: number;
+  ratio: FrameRatio;
+  render: RigRenderer<Settings>;
+  settingsOverride: Partial<Settings>;
+  staticProgress: number;
+}
+
 export interface RigRenderInput<Settings extends BaseRigSettings> {
   context: CanvasRenderingContext2D;
   frame: FrameSize;
@@ -167,6 +197,8 @@ export interface RigDefinition<Settings extends BaseRigSettings> {
   defaultRatio: FrameRatio;
   defaultSettings: Settings;
   exportMetadata: RigExportMetadata;
+  family: RigFamily;
+  gallery: RigGalleryMetadata;
   generateDemoMedia: () => RigDemoMedia[];
   id: string;
   inspectorSections: RigInspectorSection[];
@@ -174,14 +206,17 @@ export interface RigDefinition<Settings extends BaseRigSettings> {
   isSettings: (value: unknown) => value is Settings;
   longDescription: string;
   mediaRequirements: RigMediaRequirements;
+  maturity: RigMaturity;
   name: string;
   presetCompatibility: RigPresetCompatibility;
   presets: readonly RigPreset<Settings>[];
+  preview: RigPreviewDefinition<Settings>;
   render: RigRenderer<Settings>;
   shortDescription: string;
   slotCount: number;
   slotLabels: string[];
   supportedRatios: FrameRatio[];
+  tags: readonly string[];
   version: number;
 }
 

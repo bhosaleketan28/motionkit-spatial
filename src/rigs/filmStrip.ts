@@ -37,6 +37,10 @@ export const filmStripRig: FilmStripRigDefinition = {
     fileNamePrefix: "motionkit-film-strip",
     supportsTransparentBackground: true,
   },
+  family: "stream",
+  gallery: {
+    description: "A cinematic horizontal stream with editorial pacing.",
+  },
   generateDemoMedia: generateFilmStripDemoMedia,
   id: "film-strip",
   inspectorControls: [
@@ -69,14 +73,26 @@ export const filmStripRig: FilmStripRigDefinition = {
     requiredForExport: 2,
     requiredForPng: 1,
   },
+  maturity: "production",
   name: "Film Strip",
   presetCompatibility: { schemaId: "film-strip-settings", version: 1 },
   presets: filmStripPresets,
+  preview: {
+    accent: "#9bc9ba",
+    durationSeconds: 8,
+    generateMedia: generateFilmStripDemoMedia,
+    mediaCount: 6,
+    ratio: "16:9",
+    render: renderFilmStrip,
+    settingsOverride: { frameRatio: "16:9" },
+    staticProgress: 0.34,
+  },
   render: renderFilmStrip,
   shortDescription: "A cinematic horizontal stream of media frames.",
   slotCount: 6,
   slotLabels: ["Frame 1", "Frame 2", "Frame 3", "Frame 4", "Frame 5", "Frame 6"],
   supportedRatios: ["16:9", "9:16", "1:1"],
+  tags: ["editorial", "cinematic", "looping", "horizontal"],
   version: 1,
 };
 

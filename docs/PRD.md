@@ -21,10 +21,17 @@ A motion rig is a versioned product definition, not only a renderer. Each rig ow
 - inspector sections and supported capabilities;
 - its Canvas renderer and demo media generator;
 - export naming, duration, and transparency metadata;
-- preset compatibility metadata.
+- preset compatibility metadata;
 - a versioned collection of rig-aware presets with explicit property ownership.
+- motion family, discovery tags, maturity, gallery description, and an isolated renderer-preview recipe.
 
-Available rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 11 adds Film Strip as the second complete rig and introduces compact rig switching with per-rig state.
+Available production rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Orbit Carousel and Film Strip are the two complete production rigs. The visual library groups them by motion family and shows a maximum of four non-selectable roadmap concepts from a separate data source; roadmap visibility never implies registry support.
+
+## Motion Families And Discovery
+
+The stable family vocabulary is Orbit, Stream, Grid, Focus, Stack, Cluster, Path, and Depth. A family describes the dominant motion structure, while tags describe secondary qualities such as editorial, looping, perspective, hero, or multi-card. The rig library filters by families that currently contain a production or roadmap entry and always presents production rigs before roadmap concepts.
+
+Production cards use a rig-owned preview contract that runs the real Canvas renderer with isolated default-derived settings and cached generated media. Preview scheduling is shared, visibility-aware, capped near 22 FPS, suspended while the page or library is hidden, and static when reduced motion is requested.
 
 ## Preset Workflow
 
@@ -60,9 +67,9 @@ Designers, creators, product marketers, and visual teams who want to quickly sho
 
 Help me turn a few static images into a polished animated spatial showcase that I can export and share.
 
-## Supported Rigs
+## Supported Production Rigs
 
-Build one working motion rig:
+Maintain two complete working motion rigs:
 
 ### Orbit Carousel
 
@@ -107,7 +114,7 @@ A cinematic editorial stream with six media slots, horizontal looping motion, ad
 
 ### Left Panel
 
-The compact rig selector, active rig presets, and active media sequence. Only complete registered rigs are shown.
+A compact current-rig summary, access to the visual rig library, active rig presets, and the active media sequence. Only complete registered rigs can be selected.
 
 ### Center Stage
 

@@ -38,7 +38,7 @@ Build one local app with:
 - Canvas 2D renderer
 - one working Orbit Carousel rig
 - one working Film Strip rig registered through the shared contract
-- 4 media slots
+- rig-defined media slots: 4 for Orbit Carousel and 6 for Film Strip
 - image upload into slots
 - live animated preview
 - play / pause
@@ -85,11 +85,15 @@ Do not build:
 - Use Canvas 2D first, not Three.js.
 - Run lint/build after implementation if scripts exist.
 - Treat `RigDefinition<Settings>` as the UI-facing source of truth for rig metadata and behavior.
+- Require every production rig to declare one stable motion family, useful discovery tags, production maturity, gallery copy, and an isolated real-renderer preview recipe.
 - Register rigs only in `src/rigs/registry.ts`; never add scattered id-based lookup tables.
+- Keep incomplete roadmap concepts outside the production registry, visibly unavailable, and limited to four gallery entries.
 - Do not hardcode slot counts, slot labels, supported ratios, export requirements, or rig names in shared UI.
 - Keep rig-specific renderers, settings validation, and demo generation beside the rig definition.
 - A future rig must provide a complete media, inspector, renderer, export, session, capability, and version contract before it is registered.
 - Invalid or unavailable rig ids must resolve through the registry fallback rather than crashing or exposing stale settings.
+- Keep gallery previews independent from workspace media and settings; use cached generated media and one visibility-aware scheduler without per-frame React state.
+- Prefer shared pure geometry and Canvas card helpers for reusable math and drawing, while leaving genuinely rig-specific composition inside its renderer.
 
 ## First Milestone
 

@@ -1,4 +1,5 @@
 import type { FrameSize, OrbitRigSettings, RigRenderInput } from "../rigs/types";
+import { drawCoverImage } from "./canvasCard";
 import { getOrbitCardLayouts } from "./geometry";
 import { createCardPath } from "./shapePaths";
 
@@ -238,32 +239,7 @@ export function drawImageCover(
   width: number,
   height: number,
 ) {
-  const imageRatio = image.naturalWidth / image.naturalHeight;
-  const targetRatio = width / height;
-  let sourceX = 0;
-  let sourceY = 0;
-  let sourceWidth = image.naturalWidth;
-  let sourceHeight = image.naturalHeight;
-
-  if (imageRatio > targetRatio) {
-    sourceWidth = image.naturalHeight * targetRatio;
-    sourceX = (image.naturalWidth - sourceWidth) / 2;
-  } else {
-    sourceHeight = image.naturalWidth / targetRatio;
-    sourceY = (image.naturalHeight - sourceHeight) / 2;
-  }
-
-  context.drawImage(
-    image,
-    sourceX,
-    sourceY,
-    sourceWidth,
-    sourceHeight,
-    x,
-    y,
-    width,
-    height,
-  );
+  drawCoverImage(context, image, x, y, width, height);
 }
 
 function drawCardHeader(

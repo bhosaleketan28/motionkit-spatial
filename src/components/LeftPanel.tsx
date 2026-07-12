@@ -9,7 +9,6 @@ interface LeftPanelProps {
   activePresetId: string | null;
   activePresetState: PresetApplicationState | null;
   addFiles: (files: File[]) => AddFilesResult;
-  availableRigs: readonly RegisteredRigDefinition[];
   clearAllSlots: () => void;
   isDrawer: boolean;
   isVisible: boolean;
@@ -17,10 +16,10 @@ interface LeftPanelProps {
   mediaNotice: string | null;
   moveSlot: (fromIndex: number, toIndex: number) => void;
   onApplyPreset: (presetId: string) => void;
+  onBrowseRigs: (trigger: HTMLElement) => void;
   onLoadDemo: () => void;
   onRequestClose: () => void;
   onReturnToDefaults: () => void;
-  onSelectRig: (rigId: string) => void;
   presets: readonly RigPreset<any>[];
   removeSlot: (index: number) => void;
   replaceSlot: (index: number, file: File) => boolean;
@@ -37,7 +36,6 @@ export function LeftPanel({
   activePresetId,
   activePresetState,
   addFiles,
-  availableRigs,
   clearAllSlots,
   isDrawer,
   isVisible,
@@ -45,10 +43,10 @@ export function LeftPanel({
   mediaNotice,
   moveSlot,
   onApplyPreset,
+  onBrowseRigs,
   onLoadDemo,
   onRequestClose,
   onReturnToDefaults,
-  onSelectRig,
   presets,
   removeSlot,
   replaceSlot,
@@ -101,6 +99,13 @@ export function LeftPanel({
           {isDrawer ? "Close" : "Hide"}
         </button>
       </div>
+      <div className="rail-rig-summary" aria-label={`Current rig: ${activeRig.name}`}>
+        <span>
+          <small>{formatFamily(activeRig.family)}</small>
+          <strong>{activeRig.name}</strong>
+        </span>
+        <button data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>Browse rigs</button>
+      </div>
       <nav className="workspace-nav" aria-label="Workspace sections" role="tablist">
         {workspaceSections.map((section, sectionIndex) => (
           <button
@@ -140,34 +145,19 @@ export function LeftPanel({
           >
             <p className="eyebrow">Create</p>
             <h2 id="create-heading">Motion rig</h2>
-            <div aria-label="Motion rig" className="rig-list" role="radiogroup">
-              {availableRigs.map((rig, rigIndex) => (
-                <button
-                  aria-checked={rig.id === activeRig.id}
-                  className={rig.id === activeRig.id ? "rig-item rig-item-active" : "rig-item"}
-                  id={`rig-option-${rig.id}`}
-                  key={rig.id}
-                  onClick={() => onSelectRig(rig.id)}
-                  onKeyDown={(event) => {
-                    let nextIndex = rigIndex;
-                    if (event.key === "ArrowDown" || event.key === "ArrowRight") nextIndex = (rigIndex + 1) % availableRigs.length;
-                    else if (event.key === "ArrowUp" || event.key === "ArrowLeft") nextIndex = (rigIndex - 1 + availableRigs.length) % availableRigs.length;
-                    else if (event.key === "Home") nextIndex = 0;
-                    else if (event.key === "End") nextIndex = availableRigs.length - 1;
-                    else return;
-                    event.preventDefault();
-                    const nextRig = availableRigs[nextIndex];
-                    document.getElementById(`rig-option-${nextRig.id}`)?.focus();
-                    onSelectRig(nextRig.id);
-                  }}
-                  role="radio"
-                  tabIndex={rig.id === activeRig.id ? 0 : -1}
-                  type="button"
-                >
-                  <span><strong>{rig.name}</strong><small>{rig.shortDescription}</small></span>
-                  <small>{rig.id === activeRig.id ? "Active" : "Available"}</small>
-                </button>
-              ))}
+            <div className="current-rig-summary">
+              <div>
+                <span>{formatFamily(activeRig.family)} family</span>
+                <strong>{activeRig.name}</strong>
+                <small>{activeRig.shortDescription}</small>
+              </div>
+              <dl>
+                <div><dt>Media</dt><dd>{activeRig.mediaRequirements.minItems}–{activeRig.mediaRequirements.maxItems}</dd></div>
+                <div><dt>Ratios</dt><dd>{activeRig.supportedRatios.length}</dd></div>
+              </dl>
+              <button className="secondary-button" data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>
+                Browse rigs
+              </button>
             </div>
           </section>
         ) : null}
@@ -187,6 +177,13 @@ export function LeftPanel({
                 {slots.filter((slot) => slot.status === "ready" || slot.status === "loading").length}/{activeRig.slotCount}
               </span>
             </div>
+
+            {!slots.some((slot) => slot.status !== "empty") ? (
+              <div className="empty-media-rig">
+                <span><strong>{activeRig.name}</strong><small>{activeRig.mediaRequirements.minItems}–{activeRig.mediaRequirements.maxItems} local images</small></span>
+                <button data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>Browse rigs</button>
+              </div>
+            ) : null}
 
             <div
               className={`media-dropzone media-dropzone-${dropState}${isMediaFull ? " media-dropzone-compact" : ""}`}
@@ -423,4 +420,8 @@ function formatAcceptedTypes(types: string[]) {
 
 function formatMegabytes(bytes: number) {
   return Math.max(1, Math.round(bytes / (1024 * 1024)));
+}
+
+function formatFamily(family: RegisteredRigDefinition["family"]) {
+  return family.charAt(0).toUpperCase() + family.slice(1);
 }

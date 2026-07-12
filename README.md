@@ -4,7 +4,7 @@ MotionKit Spatial is a private local browser prototype for creating animated spa
 
 Users can add local images or load a rig-specific demo, preview deterministic Canvas 2D motion, adjust precision controls, and export a local WebM or PNG.
 
-The Phase 11 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Orbit Carousel and Film Strip run through reusable definitions in one validated registry. Each rig owns its renderer, media contract, inspector schema, presets, demo, ratios, and export requirements. Desktop rails collapse, tablet and mobile controls open in drawers, and the shared transport provides playback, replay, scrubbing, and precise inspection without introducing a timeline.
+The Phase 12 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Orbit Carousel and Film Strip run through reusable definitions in one validated registry and appear in a visual, family-filtered rig library. Each rig owns its renderer, media contract, inspector schema, presets, demo, ratios, export requirements, family metadata, and gallery preview. Desktop rails collapse, tablet and mobile controls open in drawers, and the shared transport provides playback, replay, scrubbing, and precise inspection without introducing a timeline.
 
 ## Run Locally
 
@@ -39,18 +39,21 @@ The app is static and browser-only. Uploaded images are processed locally in the
 
 - React + Vite + TypeScript local app
 - Generic UI-facing rig contract with a validated central registry and safe fallback lookup
+- Eight-family motion taxonomy covering orbit, stream, grid, focus, stack, cluster, path, and depth
+- Responsive visual rig library with actual renderer previews for production rigs and clearly unavailable roadmap concepts
+- One visibility-aware 22 FPS preview scheduler with cached demo media, page-visibility pausing, and static reduced-motion frames
 - Generic versioned preset contract with explicit rig ownership, compatibility, and property ownership
 - Four Orbit Carousel starting points: Cinematic, Clean Studio, Launch Glow, and Minimal Light
 - Canvas 2D Film Strip renderer with six media frames, seamless horizontal wrapping, center emphasis, perspective, tilt, and edge falloff
 - Four Film Strip starting points: Editorial Flow, Cinematic Sweep, Social Stream, and Flat Gallery
-- Compact registry-driven rig selector with safe media preservation and confirmed overflow removal
+- Registry-driven rig library with safe media preservation and confirmed overflow removal
 - Separate settings, ratio, background, and active preset state for each rig
 - Functional Presets workspace with text-based Applied/Modified status, keyboard radio navigation, reapply, and rig-default recovery
 - Preset application that preserves media, playback, frame ratio, direction, card shape, and every other unowned setting
 - Canvas 2D Orbit Carousel renderer
 - Original locally generated Luma Field showcase cards for first-use testing
 - Original locally generated Northline Editorial six-frame Film Strip demo
-- Four local media slots with incremental multi-image add, thumbnail previews, replace, remove, and clear-all
+- Rig-defined local media slots—four for Orbit Carousel and six for Film Strip—with incremental add, thumbnails, replace, remove, and clear-all
 - Compact populated-media state that prioritizes sequence, selection, replacement, and reordering
 - Stable media selection with preview-only stage highlighting that is excluded from exports
 - Drag reordering plus keyboard-operable Move earlier/later controls
@@ -103,6 +106,6 @@ The app is static and browser-only. Uploaded images are processed locally in the
 
 ## Rig Architecture
 
-Orbit Carousel and Film Strip are registered. Each definition owns its metadata, slot contract, ratios, default settings, declarative inspector controls, renderer, demo generator, format-specific media requirements, export metadata, capabilities, compatible presets, validation, and version.
+Orbit Carousel and Film Strip are registered production rigs. Each definition owns its metadata, motion family, searchable tags, gallery description, preview recipe, slot contract, ratios, default settings, declarative inspector controls, renderer, demo generator, format-specific media requirements, export metadata, capabilities, compatible presets, validation, and version. Grid Wall, Focus Deck, Stack Flow, and Wave Path are non-interactive roadmap entries and are deliberately kept outside the production registry.
 
-The registry lives in `src/rigs/registry.ts`. Future rigs should be added as self-contained definitions and registered only after their renderer, settings validator, media contract, demo media, inspector behavior, export metadata, and session compatibility are complete. See `docs/RIG_ARCHITECTURE.md` for the extension checklist.
+The registry lives in `src/rigs/registry.ts`. Future rigs should be added as self-contained definitions and registered only after their renderer, settings validator, media contract, demo media, inspector behavior, gallery preview, export metadata, and session compatibility are complete. See `docs/RIG_ARCHITECTURE.md`, `docs/MOTION_FAMILIES.md`, `docs/ADDING_A_RIG.md`, and `docs/RIG_GALLERY.md`.

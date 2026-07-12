@@ -1,7 +1,8 @@
 import { filmStripRig } from "./filmStrip";
 import { orbitCarouselRig } from "./orbitCarousel";
 import { validateRigPresetCollection } from "./presetSystem";
-import type { RegisteredRigDefinition } from "./types";
+import { RIG_FAMILIES } from "./types";
+import type { AnyRigSettings, RegisteredRigDefinition } from "./types";
 
 export const DEFAULT_RIG_ID = orbitCarouselRig.id;
 
@@ -31,6 +32,22 @@ function validateRigRegistry(rigs: RegisteredRigDefinition[]) {
     if (!rig.id || ids.has(rig.id)) {
       throw new Error(`Rig registry contains an invalid or duplicate id: ${rig.id || "(empty)"}.`);
     }
+    if (!RIG_FAMILIES.includes(rig.family) || rig.maturity !== "production") {
+      throw new Error(`${rig.name} must provide a valid production motion family and maturity.`);
+    }
+    if (!rig.gallery.description.trim()) {
+      throw new Error(`${rig.name} must provide gallery metadata.`);
+    }
+    if (!rig.tags.length) {
+      throw new Error(`${rig.name} must provide at least one gallery tag.`);
+    }
+    const tags = new Set<string>();
+    rig.tags.forEach((tag) => {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(tag) || tags.has(tag)) {
+        throw new Error(`${rig.name} contains an invalid or duplicate tag: ${tag || "(empty)"}.`);
+      }
+      tags.add(tag);
+    });
     if (rig.slotCount < 1 || rig.slotLabels.length !== rig.slotCount) {
       throw new Error(`${rig.name} must provide one label for each media slot.`);
     }
@@ -49,6 +66,31 @@ function validateRigRegistry(rigs: RegisteredRigDefinition[]) {
     }
     if (!rig.isSettings(rig.defaultSettings)) {
       throw new Error(`${rig.name} default settings do not satisfy its settings validator.`);
+    }
+    const previewSettings = {
+      ...rig.defaultSettings,
+      ...rig.preview.settingsOverride,
+      background: {
+        ...rig.defaultSettings.background,
+        ...rig.preview.backgroundOverride,
+        ...(rig.preview.settingsOverride as Partial<AnyRigSettings>).background,
+      },
+      frameRatio: rig.preview.ratio,
+    };
+    if (
+      !Number.isFinite(rig.preview.durationSeconds) ||
+      rig.preview.durationSeconds <= 0 ||
+      !rig.supportedRatios.includes(rig.preview.ratio) ||
+      rig.preview.mediaCount < rig.mediaRequirements.minItems ||
+      rig.preview.mediaCount > rig.slotCount ||
+      rig.preview.staticProgress < 0 ||
+      rig.preview.staticProgress > 1 ||
+      (rig.preview.accent !== undefined && !/^#[0-9a-f]{6}$/i.test(rig.preview.accent)) ||
+      typeof rig.preview.generateMedia !== "function" ||
+      typeof rig.preview.render !== "function" ||
+      !rig.isSettings(previewSettings)
+    ) {
+      throw new Error(`${rig.name} preview metadata is invalid or incompatible.`);
     }
     const controlKeys = new Set<string>();
     rig.inspectorControls.forEach((control) => {

@@ -24,6 +24,7 @@
 - Phase 10: Rig system architecture
 - Phase 10.1: Rig-aware preset system
 - Phase 11: Second rig — Film Strip
+- Phase 12: Visual rig library and motion family framework
 
 ## Phase 8 Highlights
 
@@ -140,3 +141,14 @@
 - Added a compact keyboard-accessible rig selector, safe media growth, confirmed populated-overflow removal, stable selection, and decoded-image preservation.
 - Upgraded workspace sessions to version 4 with separate validated settings and active preset identity for every registered rig.
 - Added format-specific media validation so Film Strip WebM requires two images and PNG permits one while Orbit Carousel requirements remain unchanged.
+
+## Phase 12 Highlights
+
+- Added an eight-family motion taxonomy and validated family, maturity, tags, gallery copy, and preview metadata as part of every production rig definition.
+- Replaced the compact rig selector with a responsive visual library available from first run, the persistent workspace rail, Create, and empty Media states.
+- Added actual animated renderer previews for Orbit Carousel and Film Strip, backed by cached rig-generated media and one shared 22 FPS visibility-aware scheduler.
+- Added page-visibility suspension, gallery-close cleanup, Intersection Observer gating, and static reduced-motion preview frames without per-frame React updates.
+- Added four clearly disabled roadmap concepts—Grid Wall, Focus Deck, Stack Flow, and Wave Path—outside the production registry.
+- Preserved safe rig switching, including compatible media retention and confirmed populated-overflow removal, while keeping the library open when that confirmation is cancelled.
+- Added reusable pure motion geometry and Canvas card helpers as the basis for future production rigs without changing current renderer output.
+- Verified the library at 1440×900, 1280×720, 960×800, 768×1024, and 390×844 with no page-level horizontal overflow.

@@ -34,6 +34,10 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
     fileNamePrefix: "orbit-carousel",
     supportsTransparentBackground: true,
   },
+  family: "orbit",
+  gallery: {
+    description: "A spatial orbit with depth-led scale and perspective.",
+  },
   generateDemoMedia: generateOrbitCarouselDemoMedia,
   id: "orbit-carousel",
   inspectorSections: [
@@ -63,17 +67,29 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
     requiredForExport: 4,
     requiredForPng: 4,
   },
+  maturity: "production",
   name: "Orbit Carousel",
   presetCompatibility: {
     schemaId: "orbit-carousel-settings",
     version: 1,
   },
   presets: orbitCarouselPresets,
+  preview: {
+    accent: "#70e0bf",
+    durationSeconds: 8,
+    generateMedia: generateOrbitCarouselDemoMedia,
+    mediaCount: 4,
+    ratio: "16:9",
+    render: renderOrbitCarousel,
+    settingsOverride: { frameRatio: "16:9" },
+    staticProgress: 0.18,
+  },
   render: renderOrbitCarousel,
   shortDescription: "Four-image spatial loop",
   slotCount: 4,
   slotLabels: ["Slot 1", "Slot 2", "Slot 3", "Slot 4"],
   supportedRatios: ["1:1", "16:9", "9:16"],
+  tags: ["spatial", "looping", "perspective", "multi-card"],
   version: 1,
 };
 

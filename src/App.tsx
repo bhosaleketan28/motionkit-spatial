@@ -5,6 +5,7 @@ import { LeftPanel } from "./components/LeftPanel";
 import { NoticeCenter } from "./components/NoticeCenter";
 import type { AppNotice, NoticeTone } from "./components/NoticeCenter";
 import { RightPanel } from "./components/RightPanel";
+import { RigGallery } from "./components/RigGallery";
 import { RigSwitchDialog } from "./components/RigSwitchDialog";
 import { StartScreen } from "./components/StartScreen";
 import { TopBar } from "./components/TopBar";
@@ -61,6 +62,8 @@ export default function App() {
   );
   const activeRig = getRigById(activeRigId);
   const previousDrawerRef = useRef<WorkspacePanel | null>(null);
+  const rigGalleryTriggerRef = useRef<HTMLElement | null>(null);
+  const rigSwitchTriggerRef = useRef<HTMLElement | null>(null);
   const latestSessionRef = useRef<WorkspaceSession | null>(null);
   const noticeIdRef = useRef(1);
   const sessionNoticeShownRef = useRef(false);
@@ -86,6 +89,7 @@ export default function App() {
   );
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
   const [pendingRigId, setPendingRigId] = useState<string | null>(null);
+  const [isRigGalleryOpen, setIsRigGalleryOpen] = useState(false);
   const [appNotice, setAppNotice] = useState<AppNotice | null>(() =>
     initialSession.issue
       ? { id: 0, message: initialSession.issue, tone: "warning" }
@@ -152,6 +156,24 @@ export default function App() {
     [],
   );
   const dismissNotice = useCallback(() => setAppNotice(null), []);
+  const openRigGallery = useCallback((trigger: HTMLElement) => {
+    rigGalleryTriggerRef.current = trigger;
+    setIsRigGalleryOpen(true);
+  }, []);
+  const closeRigGallery = useCallback(() => {
+    setIsRigGalleryOpen(false);
+    window.requestAnimationFrame(() => {
+      const originalTrigger = rigGalleryTriggerRef.current;
+      if (originalTrigger?.isConnected) {
+        originalTrigger.focus();
+        return;
+      }
+      const fallbackTrigger = Array.from(
+        document.querySelectorAll<HTMLButtonElement>("[data-rig-gallery-trigger]"),
+      ).find((button) => button.getClientRects().length > 0);
+      fallbackTrigger?.focus();
+    });
+  }, []);
 
   const handleStartUpload = (files: FileList) => {
     const selectedFiles = Array.from(files);
@@ -220,6 +242,7 @@ export default function App() {
       ? `${result.preservedCount} media item${result.preservedCount === 1 ? "" : "s"} preserved.`
       : "Media slots are ready.";
     showNotice(`${nextRig.name} selected. ${detail}`, "info");
+    closeRigGallery();
   };
 
   const handleSelectRig = (nextRigId: string) => {
@@ -227,10 +250,18 @@ export default function App() {
     const nextRig = getRigById(nextRigId);
     const hasOverflow = slots.slice(nextRig.slotCount).some((slot) => slot.status !== "empty");
     if (hasOverflow) {
+      rigSwitchTriggerRef.current = document.activeElement as HTMLElement | null;
       setPendingRigId(nextRig.id);
       return;
     }
     completeRigSwitch(nextRig.id);
+  };
+
+  const cancelRigSwitch = () => {
+    setPendingRigId(null);
+    window.requestAnimationFrame(() => {
+      if (rigSwitchTriggerRef.current?.isConnected) rigSwitchTriggerRef.current.focus();
+    });
   };
 
   const togglePlayback = () => setIsPlaying((current) => !current);
@@ -482,15 +513,27 @@ export default function App() {
 
   if (!hasEnteredEditor) {
     return (
-      <StartScreen
-        errorMessage={startUploadError}
-        noticeMessage={appNotice?.message}
-        onLoadDemo={handleLoadDemo}
-        onUploadFiles={handleStartUpload}
-        prefersReducedMotion={prefersReducedMotion}
-        rig={activeRig}
-        settings={normalizedSettings}
-      />
+      <>
+        <StartScreen
+          errorMessage={startUploadError}
+          noticeMessage={appNotice?.message}
+          onBrowseRigs={openRigGallery}
+          onLoadDemo={handleLoadDemo}
+          onUploadFiles={handleStartUpload}
+          prefersReducedMotion={prefersReducedMotion}
+          rig={activeRig}
+          settings={normalizedSettings}
+        />
+        {isRigGalleryOpen ? (
+          <RigGallery
+            activeRig={activeRig}
+            onClose={closeRigGallery}
+            onSelectRig={handleSelectRig}
+            prefersReducedMotion={prefersReducedMotion}
+            rigs={rigRegistry}
+          />
+        ) : null}
+      </>
     );
   }
 
@@ -518,7 +561,6 @@ export default function App() {
           activePresetId={activePreset?.id ?? null}
           activePresetState={activePresetState}
           addFiles={addFiles}
-          availableRigs={rigRegistry}
           clearAllSlots={clearAllSlots}
           isDrawer={isNarrowWorkspace}
           isVisible={
@@ -530,6 +572,7 @@ export default function App() {
           mediaNotice={mediaNotice}
           moveSlot={moveSlot}
           onApplyPreset={handleApplyPreset}
+          onBrowseRigs={openRigGallery}
           onLoadDemo={handleLoadDemo}
           onRequestClose={() =>
             isNarrowWorkspace ? setActiveDrawer(null) : setIsLeftRailCollapsed(true)
@@ -541,7 +584,6 @@ export default function App() {
           slots={slots}
           presets={availablePresets}
           onReturnToDefaults={handleResetSettings}
-          onSelectRig={handleSelectRig}
         />
         <CenterStage
           isFitMode={isFitMode}
@@ -611,11 +653,20 @@ export default function App() {
           slotImages={slotImages}
         />
       ) : null}
+      {isRigGalleryOpen ? (
+        <RigGallery
+          activeRig={activeRig}
+          onClose={closeRigGallery}
+          onSelectRig={handleSelectRig}
+          prefersReducedMotion={prefersReducedMotion}
+          rigs={rigRegistry}
+        />
+      ) : null}
       {pendingRigId ? (
         <RigSwitchDialog
           discardedCount={slots.slice(getRigById(pendingRigId).slotCount).filter((slot) => slot.status !== "empty").length}
           fromRig={activeRig}
-          onCancel={() => setPendingRigId(null)}
+          onCancel={cancelRigSwitch}
           onConfirm={() => completeRigSwitch(pendingRigId)}
           toRig={getRigById(pendingRigId)}
         />

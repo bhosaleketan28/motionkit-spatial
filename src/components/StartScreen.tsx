@@ -4,6 +4,7 @@ import { CenterStage } from "./CenterStage";
 
 interface StartScreenProps {
   errorMessage: string | null;
+  onBrowseRigs: (trigger: HTMLElement) => void;
   onLoadDemo: () => void;
   onUploadFiles: (files: FileList) => void;
   noticeMessage?: string | null;
@@ -14,6 +15,7 @@ interface StartScreenProps {
 
 export function StartScreen({
   errorMessage,
+  onBrowseRigs,
   onLoadDemo,
   onUploadFiles,
   noticeMessage,
@@ -88,6 +90,9 @@ export function StartScreen({
           </button>
           <button className="secondary-button" type="button" onClick={onLoadDemo}>
             Start with demo
+          </button>
+          <button className="start-browse-rigs" data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>
+            Browse rigs
           </button>
         </div>
 
