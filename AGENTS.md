@@ -16,6 +16,10 @@ The current supported rig set is:
 
 - Orbit Carousel
 - Film Strip
+- Grid Wall
+- Focus Deck
+- Stack Flow
+- Wave Path
 
 ## Core Product Primitive
 
@@ -36,9 +40,8 @@ Build one local app with:
 
 - React + Vite + TypeScript
 - Canvas 2D renderer
-- one working Orbit Carousel rig
-- one working Film Strip rig registered through the shared contract
-- rig-defined media slots: 4 for Orbit Carousel and 6 for Film Strip
+- six working production rigs registered through the shared contract
+- rig-defined media slots: 4 for Orbit Carousel, 5 for Focus Deck, and 6 for Film Strip, Grid Wall, Stack Flow, and Wave Path
 - image upload into slots
 - live animated preview
 - play / pause

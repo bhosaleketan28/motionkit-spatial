@@ -16,7 +16,7 @@ export interface WorkspaceSession {
   isLeftRailCollapsed: boolean;
   isRightRailCollapsed: boolean;
   rigStates: Record<string, PersistedRigState>;
-  version: 4;
+  version: 5;
   zoomPercent: number;
 }
 
@@ -50,7 +50,7 @@ export function parseWorkspaceSession(value: unknown): WorkspaceSessionReadResul
   const rigStates: Record<string, PersistedRigState> = {};
 
   rigRegistry.forEach((rig) => {
-    const rawState = value.version === 4 && isRecord(value.rigStates)
+    const rawState = value.version >= 4 && isRecord(value.rigStates)
       ? value.rigStates[rig.id]
       : rig.id === activeRig.id
         ? { activePresetId: value.version === 3 ? value.activePresetId : null, settings: value.settings }
@@ -69,7 +69,7 @@ export function parseWorkspaceSession(value: unknown): WorkspaceSessionReadResul
       isLeftRailCollapsed: value.isLeftRailCollapsed,
       isRightRailCollapsed: value.isRightRailCollapsed,
       rigStates,
-      version: 4,
+      version: 5,
       zoomPercent: value.zoomPercent,
     },
   };
@@ -114,16 +114,16 @@ function isSessionShell(value: unknown): value is Record<string, unknown> & {
   isRightRailCollapsed: boolean;
   rigStates?: unknown;
   settings?: unknown;
-  version: 1 | 2 | 3 | 4;
+  version: 1 | 2 | 3 | 4 | 5;
   zoomPercent: number;
 } {
-  if (!isRecord(value) || ![1, 2, 3, 4].includes(value.version as number) || value.hasEditorSession !== true) return false;
+  if (!isRecord(value) || ![1, 2, 3, 4, 5].includes(value.version as number) || value.hasEditorSession !== true) return false;
   return (
     typeof value.isFitMode === "boolean" &&
     typeof value.isLeftRailCollapsed === "boolean" &&
     typeof value.isRightRailCollapsed === "boolean" &&
     isFiniteNumberInRange(value.zoomPercent, 50, 200) &&
-    (value.version === 4 ? "rigStates" in value : "settings" in value)
+    (Number(value.version) >= 4 ? "rigStates" in value : "settings" in value)
   );
 }
 

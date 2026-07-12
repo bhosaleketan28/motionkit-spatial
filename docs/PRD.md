@@ -25,7 +25,7 @@ A motion rig is a versioned product definition, not only a renderer. Each rig ow
 - a versioned collection of rig-aware presets with explicit property ownership.
 - motion family, discovery tags, maturity, gallery description, and an isolated renderer-preview recipe.
 
-Available production rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Orbit Carousel and Film Strip are the two complete production rigs. The visual library groups them by motion family and shows a maximum of four non-selectable roadmap concepts from a separate data source; roadmap visibility never implies registry support.
+Available production rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 13 includes six complete production rigs: Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path. The gallery has no roadmap cards; Cluster and Depth remain empty hidden families.
 
 ## Motion Families And Discovery
 
@@ -51,6 +51,8 @@ Film Strip includes exactly four presets:
 - Social Stream
 - Flat Gallery
 
+Grid Wall includes Editorial Wall, Product Matrix, Social Mosaic, and Flat Grid. Focus Deck includes Product Hero, Case Study, Campaign Focus, and Clean Presentation. Stack Flow includes Layered Deck, Editorial Stack, Social Cards, and Minimal Pile. Wave Path includes Cinematic Wave, Editorial Ribbon, Social Flow, and Flat Path.
+
 ## Film Strip
 
 Film Strip is a continuous horizontal track of up to six rectangular media frames. Progress deterministically offsets a repeating track; cards wrap seamlessly, preserve cover-cropped image proportions, and gain controlled scale and opacity near the center. Ratio-aware geometry shows more of the track in 16:9, stronger center emphasis in 9:16, and balanced spacing in 1:1.
@@ -58,6 +60,13 @@ Film Strip is a continuous horizontal track of up to six rectangular media frame
 Its inspector owns duration, direction, card width and height, gap, perspective, tilt, center scale, edge opacity, corner radius, and background. WebM requires two valid images; PNG requires one.
 
 Switching rigs preserves media order and decoded image identity when compatible. Growing from four to six slots adds empty frames. Shrinking to four slots requires confirmation before populated overflow is removed. Each rig restores its own validated settings and active preset.
+
+## Essential Motion Families
+
+- Grid Wall uses six fixed authored cells. Ratio selects 3×2 or 2×3 geometry; periodic drift moves the group while continuous cyclic weighting changes focal scale, depth, opacity, and deterministic draw order. WebM requires three items; PNG requires one.
+- Focus Deck uses five cyclic roles: one hero and four support targets. Cards interpolate continuously between role geometry so the incoming hero and outgoing support motion remain synchronized. WebM requires two items; PNG requires one.
+- Stack Flow uses six depth targets and a cyclic queue. The front card moves into the stack through an axis-aware exit arc while the deepest card advances continuously to the front. WebM requires two items; PNG requires one.
+- Wave Path distributes six cards along an open normalized track. Position, wave offset, tilt, tangent angle, center scale, opacity, and depth derive from progress; zero amplitude produces a flat path. WebM requires two items; PNG requires one.
 
 ## Target User
 
@@ -69,7 +78,7 @@ Help me turn a few static images into a polished animated spatial showcase that 
 
 ## Supported Production Rigs
 
-Maintain two complete working motion rigs:
+Maintain six complete working motion rigs:
 
 ### Orbit Carousel
 
@@ -88,6 +97,22 @@ The effect can be created with Canvas 2D using:
 ### Film Strip
 
 A cinematic editorial stream with six media slots, horizontal looping motion, adjustable card framing, gap, perspective, tilt, center scale, edge opacity, radius, direction, and background.
+
+### Grid Wall
+
+A six-tile architectural wall with ratio-aware grid geometry, drift, and focal rhythm.
+
+### Focus Deck
+
+A five-card presentation system with one dominant hero and four subordinate supports.
+
+### Stack Flow
+
+A six-card layered queue with horizontal, vertical, or diagonal stack axes.
+
+### Wave Path
+
+A six-card open curved path with controllable wave, tilt, perspective, and tangent rotation.
 
 ## MVP User Flow
 

@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The Motion Rig is the product-level extension boundary. Phase 12 validates it with Orbit Carousel and Film Strip, which have different settings, slot counts, renderers, media requirements, presets, export thresholds, families, and isolated gallery previews.
+The Motion Rig is the product-level extension boundary. Phase 13 validates it across six production rigs with distinct settings, slot counts, renderers, media requirements, presets, export thresholds, families, and isolated gallery previews.
 
 ## Definition Contract
 
 `RigDefinition<Settings>` is declared in `src/rigs/types.ts`. A definition contains:
 
-- stable `id`, `name`, category, descriptions, family, discovery tags, production maturity, gallery description, and version;
+- stable `id`, `name`, category, descriptions, accessibility description, family, discovery tags, production maturity, gallery description, and version;
 - `slotCount` and one `slotLabel` per position;
 - supported ratios, default ratio, and fully validated default settings;
 - accepted media types, size limit, item range, preferred dimensions, and export requirement;
@@ -26,12 +26,12 @@ The Motion Rig is the product-level extension boundary. Phase 12 validates it wi
 
 `src/rigs/registry.ts` is the only registration point. It:
 
-- registers Orbit Carousel and Film Strip;
+- registers Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path;
 - resolves rigs by id;
 - falls back to Orbit Carousel for missing or invalid ids;
-- validates unique ids, family and maturity values, tags, gallery copy, preview settings/media/ratio/duration, slot-label counts, media limits, default ratios, settings, duration metadata, transparency capabilities, and every preset contract during startup.
+- validates unique ids, family and maturity values, tags, gallery/accessibility copy, preview settings/media/ratio/duration, slot-label counts, media limits, default ratios, settings, duration metadata, transparency capabilities, and exactly four compatible presets per rig during startup.
 
-Roadmap entries live in `src/rigs/roadmap.ts`, are limited to four, and are never registered. They carry only discovery metadata and a static concept-preview variant, cannot be selected, and do not participate in sessions, media, inspector, export, or fallback resolution.
+Roadmap entries live in `src/rigs/roadmap.ts`, are limited to four, and are never registered. Phase 13 leaves this list empty because all previous concepts now satisfy the production contract.
 
 ## Gallery Preview Runtime
 
@@ -56,13 +56,56 @@ The workspace stores the active preset id with the validated settings. “Applie
 
 ## Multi-Rig State And Media
 
-Session version 4 stores `activeRigId` and a `rigStates` record keyed by registered rig id. Each entry contains validated settings—including ratio and background—and the compatible active preset id. Version 1–3 sessions migrate into the active rig entry; other rigs start from their own defaults.
+Session version 5 stores `activeRigId` and a `rigStates` record keyed by registered rig id. Each entry contains validated settings—including ratio and background—and the compatible active preset id. Version 1–4 sessions migrate safely; missing new rigs receive defaults, invalid states reset independently, and unavailable preset ids clear without discarding compatible settings.
 
 Media remains memory-only and is shared only while the app is open. Rig switching retains existing `ImageSlot` objects and decoded images when their positions fit the target rig. Larger rigs append empty slots with new stable ids. Smaller rigs require confirmation when populated overflow exists, then revoke only discarded object URLs.
 
 ## Film Strip Geometry
 
 Film Strip derives a repeating horizontal track from progress 0–1. Each frame has a stable sequence position; modulo wrapping produces a seamless boundary. Ratio-aware card dimensions and spacing avoid uniform scaling across 16:9, 1:1, and 9:16. Distance from center drives scale and opacity, tilt affects the track line, and optional perspective adds controlled center depth. Preview selection is passed separately and never enters export renders.
+
+## Phase 13 Renderer Geometry
+
+- Grid Wall assigns fixed row/column centers by ratio. A periodic drift vector moves the grid, while cyclic distance to a continuous focal phase controls scale, opacity, depth pull, and draw order.
+- Focus Deck defines one hero target and four ratio-specific support targets. Every card carries a continuous queue coordinate and interpolates between adjacent roles using configurable smoothstep blending.
+- Stack Flow defines six authored depth targets along a horizontal, vertical, or diagonal vector. Cards interpolate around the cyclic target list; the front segment adds a deterministic exit arc without circular travel.
+- Wave Path maps normalized card progress to an extended open horizontal track. Wave sine, path tilt, tangent derivative, center proximity, and perspective determine y-position, rotation, scale, opacity, and depth ordering.
+
+All four use shared cover-cropping, rounded clipping, attached card shadows, placeholder, and preview-only selection-outline helpers. Preview, editor, PNG, and WebM dispatch the same rig renderer.
+
+## Phase 13 Rig Contracts
+
+### Grid Wall
+
+- Six slots labelled Tile 1–6; WebM requires three and PNG requires one.
+- Default 16:9; 16:9 uses 3×2, while 9:16 and 1:1 use controlled 2×3 geometry.
+- Settings cover duration, direction, tile width/height, horizontal/vertical gaps, grid and focus scale, focus depth, drift, radius, edge opacity, and background.
+- Atlas System supplies six original demo/preview frames.
+- Presets: Editorial Wall, Product Matrix, Social Mosaic, and Flat Grid.
+
+### Focus Deck
+
+- Five slots labelled Hero and Support 1–4; WebM requires two and PNG requires one.
+- Default 16:9; portrait places a larger hero above a lower support deck, square compacts the surrounding supports, and landscape distributes them asymmetrically left and right.
+- Settings cover duration, direction, hero width/height, support scale/spread, deck depth, hero emphasis, transition softness, side rotation, edge opacity, radius, and background.
+- Forma One supplies five original demo/preview frames.
+- Presets: Product Hero, Case Study, Campaign Focus, and Clean Presentation.
+
+### Stack Flow
+
+- Six slots labelled Card 1–6; WebM requires two and PNG requires one.
+- Default 1:1 with responsive card sizing across all ratios.
+- Settings cover duration, direction, stack axis, card width/height, offset, depth, back scale/opacity, front exit distance, rotation step, transition softness, radius, and background.
+- Mono Editions supplies six original demo/preview frames.
+- Presets: Layered Deck, Editorial Stack, Social Cards, and Minimal Pile.
+
+### Wave Path
+
+- Six slots labelled Frame 1–6; WebM requires two and PNG requires one.
+- Default 16:9; landscape uses a broad wave, portrait strengthens vertical movement while extending the off-canvas track, and square uses balanced open-path geometry.
+- Settings cover duration, direction, card width/height, gap, wave amplitude/frequency, path tilt, perspective, center scale, edge opacity, tangent rotation, radius, and background. Zero amplitude is a valid flat path.
+- Current Studio supplies six original demo/preview frames.
+- Presets: Cinematic Wave, Editorial Ribbon, Social Flow, and Flat Path.
 
 ## Adding A Future Rig
 

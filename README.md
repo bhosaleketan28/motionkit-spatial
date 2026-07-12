@@ -1,10 +1,10 @@
 # MotionKit Spatial
 
-MotionKit Spatial is a private local browser prototype for creating animated spatial motion from screenshots. It currently includes two production-ready motion rigs: Orbit Carousel and Film Strip.
+MotionKit Spatial is a private local browser app for creating animated spatial motion from screenshots. It includes six production-ready motion rigs: Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path.
 
 Users can add local images or load a rig-specific demo, preview deterministic Canvas 2D motion, adjust precision controls, and export a local WebM or PNG.
 
-The Phase 12 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Orbit Carousel and Film Strip run through reusable definitions in one validated registry and appear in a visual, family-filtered rig library. Each rig owns its renderer, media contract, inspector schema, presets, demo, ratios, export requirements, family metadata, and gallery preview. Desktop rails collapse, tablet and mobile controls open in drawers, and the shared transport provides playback, replay, scrubbing, and precise inspection without introducing a timeline.
+The Phase 13 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Six structurally distinct rigs run through reusable definitions in one validated registry and appear in a visual, family-filtered library. Each rig owns its renderer, media contract, inspector schema, four presets, demo, ratios, export requirements, family metadata, accessibility description, and real-renderer gallery preview.
 
 ## Run Locally
 
@@ -40,12 +40,16 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - React + Vite + TypeScript local app
 - Generic UI-facing rig contract with a validated central registry and safe fallback lookup
 - Eight-family motion taxonomy covering orbit, stream, grid, focus, stack, cluster, path, and depth
-- Responsive visual rig library with actual renderer previews for production rigs and clearly unavailable roadmap concepts
+- Responsive visual rig library with six actual production-renderer previews
 - One visibility-aware 22 FPS preview scheduler with cached demo media, page-visibility pausing, and static reduced-motion frames
 - Generic versioned preset contract with explicit rig ownership, compatibility, and property ownership
 - Four Orbit Carousel starting points: Cinematic, Clean Studio, Launch Glow, and Minimal Light
 - Canvas 2D Film Strip renderer with six media frames, seamless horizontal wrapping, center emphasis, perspective, tilt, and edge falloff
 - Four Film Strip starting points: Editorial Flow, Cinematic Sweep, Social Stream, and Flat Gallery
+- Grid Wall with six authored tiles, ratio-aware 3×2 or 2×3 layouts, continuous focal weighting, and four presets
+- Focus Deck with a cyclic hero/support role system, five slots, asymmetric ratio-aware decks, and four presets
+- Stack Flow with six-card layered queue geometry, three stack axes, a smooth front exit, and four presets
+- Wave Path with six frames on an open normalized curve, amplitude/frequency/tangent controls, and four presets
 - Registry-driven rig library with safe media preservation and confirmed overflow removal
 - Separate settings, ratio, background, and active preset state for each rig
 - Functional Presets workspace with text-based Applied/Modified status, keyboard radio navigation, reapply, and rig-default recovery
@@ -53,7 +57,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Canvas 2D Orbit Carousel renderer
 - Original locally generated Luma Field showcase cards for first-use testing
 - Original locally generated Northline Editorial six-frame Film Strip demo
-- Rig-defined local media slots—four for Orbit Carousel and six for Film Strip—with incremental add, thumbnails, replace, remove, and clear-all
+- Rig-defined local media slots—four, five, or six depending on the active rig—with incremental add, thumbnails, replace, remove, and clear-all
 - Compact populated-media state that prioritizes sequence, selection, replacement, and reordering
 - Stable media selection with preview-only stage highlighting that is excluded from exports
 - Drag reordering plus keyboard-operable Move earlier/later controls
@@ -82,7 +86,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Accessible stage description covering rig, loaded media, ratio, playback state, and coarse loop time
 - System reduced-motion support: previews start paused and non-essential transitions are minimized
 - Safe localStorage restoration for per-rig settings, ratios, backgrounds, presets, panel collapse state, fit mode, and zoom
-- Versioned session persistence for active rig plus safe version 1–3 migration and incompatible-state recovery
+- Version 5 session persistence for six independent rig states plus safe version 1–4 migration and per-rig recovery
 - Unified success, warning, error, info, and Undo notices with controlled live-region behavior
 - Actual loop-render progress phases, elapsed and remaining time, safe cancellation, and detailed completion metadata
 - Explicitly confirmed PNG snapshot fallback when WebM is unavailable or fails
@@ -106,6 +110,6 @@ The app is static and browser-only. Uploaded images are processed locally in the
 
 ## Rig Architecture
 
-Orbit Carousel and Film Strip are registered production rigs. Each definition owns its metadata, motion family, searchable tags, gallery description, preview recipe, slot contract, ratios, default settings, declarative inspector controls, renderer, demo generator, format-specific media requirements, export metadata, capabilities, compatible presets, validation, and version. Grid Wall, Focus Deck, Stack Flow, and Wave Path are non-interactive roadmap entries and are deliberately kept outside the production registry.
+Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path are registered production rigs. Each definition owns its metadata, motion family, searchable tags, gallery description, preview recipe, slot contract, ratios, default settings, declarative inspector controls, renderer, original demo generator, format-specific media requirements, export metadata, capabilities, exactly four compatible presets, validation, accessibility description, and version. Cluster and Depth remain empty taxonomy families and are hidden from the gallery.
 
 The registry lives in `src/rigs/registry.ts`. Future rigs should be added as self-contained definitions and registered only after their renderer, settings validator, media contract, demo media, inspector behavior, gallery preview, export metadata, and session compatibility are complete. See `docs/RIG_ARCHITECTURE.md`, `docs/MOTION_FAMILIES.md`, `docs/ADDING_A_RIG.md`, and `docs/RIG_GALLERY.md`.

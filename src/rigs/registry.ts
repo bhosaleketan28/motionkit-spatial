@@ -1,14 +1,22 @@
 import { filmStripRig } from "./filmStrip";
+import { focusDeckRig } from "./focusDeck";
+import { gridWallRig } from "./gridWall";
 import { orbitCarouselRig } from "./orbitCarousel";
+import { stackFlowRig } from "./stackFlow";
 import { validateRigPresetCollection } from "./presetSystem";
 import { RIG_FAMILIES } from "./types";
 import type { AnyRigSettings, RegisteredRigDefinition } from "./types";
+import { wavePathRig } from "./wavePath";
 
 export const DEFAULT_RIG_ID = orbitCarouselRig.id;
 
 export const rigRegistry: readonly RegisteredRigDefinition[] = validateRigRegistry([
   orbitCarouselRig,
   filmStripRig,
+  gridWallRig,
+  focusDeckRig,
+  stackFlowRig,
+  wavePathRig,
 ]);
 
 const rigById = new Map(rigRegistry.map((rig) => [rig.id, rig]));
@@ -38,6 +46,9 @@ function validateRigRegistry(rigs: RegisteredRigDefinition[]) {
     if (!rig.gallery.description.trim()) {
       throw new Error(`${rig.name} must provide gallery metadata.`);
     }
+    if (!rig.accessibilityDescription.trim()) {
+      throw new Error(`${rig.name} must provide an accessibility description.`);
+    }
     if (!rig.tags.length) {
       throw new Error(`${rig.name} must provide at least one gallery tag.`);
     }
@@ -66,6 +77,9 @@ function validateRigRegistry(rigs: RegisteredRigDefinition[]) {
     }
     if (!rig.isSettings(rig.defaultSettings)) {
       throw new Error(`${rig.name} default settings do not satisfy its settings validator.`);
+    }
+    if (rig.presets.length !== 4) {
+      throw new Error(`${rig.name} must provide exactly four production presets.`);
     }
     const previewSettings = {
       ...rig.defaultSettings,

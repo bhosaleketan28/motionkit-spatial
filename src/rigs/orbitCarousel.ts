@@ -4,6 +4,7 @@ import { orbitCarouselPresets } from "./orbitCarouselPresets";
 import type { OrbitCarouselRigDefinition, OrbitRigSettings } from "./types";
 
 export const orbitCarouselRig: OrbitCarouselRigDefinition = {
+  accessibilityDescription: "Four media cards orbit a central point while scale and opacity indicate depth.",
   capabilities: {
     looping: true,
     supportsBackground: true,

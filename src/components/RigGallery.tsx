@@ -91,7 +91,9 @@ export function RigGallery({
           <div>
             <p className="eyebrow">Motion library</p>
             <h2 id="rig-gallery-title">Choose a motion system</h2>
-            <p>Production rigs are ready to use. Roadmap families are shown honestly as unavailable.</p>
+            <p>{roadmapRigEntries.length
+              ? "Production rigs are ready to use. Roadmap families are shown honestly as unavailable."
+              : `${rigs.length} production motion systems, each rendered from its real Canvas geometry.`}</p>
           </div>
           <button aria-label="Close rig library" className="rig-gallery-close" ref={closeRef} type="button" onClick={onClose}>×</button>
         </header>

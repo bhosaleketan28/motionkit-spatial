@@ -228,6 +228,7 @@ export default function App() {
 
   const completeRigSwitch = (nextRigId: string) => {
     const nextRig = getRigById(nextRigId);
+    stageRef.current?.resetProgress();
     const result = switchRigMedia(nextRig);
     setRigStates((current) => current[nextRig.id]
       ? current
@@ -334,7 +335,7 @@ export default function App() {
       isLeftRailCollapsed,
       isRightRailCollapsed,
       rigStates,
-      version: 4,
+      version: 5,
       zoomPercent,
     };
     latestSessionRef.current = session;

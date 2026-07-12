@@ -67,7 +67,75 @@ export interface FilmStripRigSettings extends BaseRigSettings {
   tilt: number;
 }
 
-export type AnyRigSettings = OrbitRigSettings | FilmStripRigSettings;
+export type LinearDirection = "forward" | "reverse";
+
+export interface GridWallRigSettings extends BaseRigSettings {
+  cornerRadius: number;
+  direction: LinearDirection;
+  driftAmount: number;
+  edgeOpacity: number;
+  focusDepth: number;
+  focusScale: number;
+  gridScale: number;
+  horizontalGap: number;
+  tileHeight: number;
+  tileWidth: number;
+  verticalGap: number;
+}
+
+export interface FocusDeckRigSettings extends BaseRigSettings {
+  cornerRadius: number;
+  deckDepth: number;
+  direction: LinearDirection;
+  edgeOpacity: number;
+  heroEmphasis: number;
+  heroHeight: number;
+  heroWidth: number;
+  sideRotation: number;
+  supportScale: number;
+  supportSpread: number;
+  transitionSoftness: number;
+}
+
+export type StackAxis = "horizontal" | "vertical" | "diagonal";
+
+export interface StackFlowRigSettings extends BaseRigSettings {
+  backOpacity: number;
+  backScale: number;
+  cardHeight: number;
+  cardWidth: number;
+  cornerRadius: number;
+  direction: LinearDirection;
+  frontExitDistance: number;
+  rotationStep: number;
+  stackAxis: StackAxis;
+  stackDepth: number;
+  stackOffset: number;
+  transitionSoftness: number;
+}
+
+export interface WavePathRigSettings extends BaseRigSettings {
+  cardHeight: number;
+  cardWidth: number;
+  centerScale: number;
+  cornerRadius: number;
+  direction: FilmStripDirection;
+  edgeOpacity: number;
+  gap: number;
+  pathTilt: number;
+  perspective: number;
+  tangentRotation: number;
+  waveAmplitude: number;
+  waveFrequency: number;
+}
+
+export type AnyRigSettings =
+  | OrbitRigSettings
+  | FilmStripRigSettings
+  | GridWallRigSettings
+  | FocusDeckRigSettings
+  | StackFlowRigSettings
+  | WavePathRigSettings;
 
 export type RigInspectorSectionId = "motion" | "appearance" | "background" | "export";
 
@@ -192,6 +260,7 @@ export type RigRenderer<Settings extends BaseRigSettings> = (
 ) => void;
 
 export interface RigDefinition<Settings extends BaseRigSettings> {
+  accessibilityDescription: string;
   capabilities: RigCapabilities;
   category: string;
   defaultRatio: FrameRatio;
@@ -222,4 +291,8 @@ export interface RigDefinition<Settings extends BaseRigSettings> {
 
 export type OrbitCarouselRigDefinition = RigDefinition<OrbitRigSettings>;
 export type FilmStripRigDefinition = RigDefinition<FilmStripRigSettings>;
+export type GridWallRigDefinition = RigDefinition<GridWallRigSettings>;
+export type FocusDeckRigDefinition = RigDefinition<FocusDeckRigSettings>;
+export type StackFlowRigDefinition = RigDefinition<StackFlowRigSettings>;
+export type WavePathRigDefinition = RigDefinition<WavePathRigSettings>;
 export type RegisteredRigDefinition = RigDefinition<any>;

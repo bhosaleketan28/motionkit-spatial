@@ -36,6 +36,7 @@ interface CenterStageProps {
 }
 
 export interface CenterStageHandle {
+  resetProgress: () => void;
   stepBySeconds: (seconds: number) => void;
 }
 
@@ -95,13 +96,14 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       lastDescriptionSecondRef.current = wholeSecond;
       stageDescriptionRef.current.textContent = [
         `${rig.name} rig.`,
+        rig.accessibilityDescription,
         `${loadedMediaCount} of ${rig.slotCount} media items loaded.`,
         `${settings.frameRatio} frame ratio.`,
         isPlaying ? "Playback is running." : "Playback is paused.",
         `Current time ${formatAccessibleTime(currentSeconds)} of ${formatAccessibleTime(settings.durationSeconds)}.`,
       ].join(" ");
     },
-    [isPlaying, loadedMediaCount, rig.name, rig.slotCount, settings.durationSeconds, settings.frameRatio, variant],
+    [isPlaying, loadedMediaCount, rig.accessibilityDescription, rig.name, rig.slotCount, settings.durationSeconds, settings.frameRatio, variant],
   );
 
   const draw = useCallback(() => {
@@ -137,7 +139,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
     updateProgress(progressRef.current + seconds / settings.durationSeconds);
   }, [onPlaybackChange, settings.durationSeconds, updateProgress]);
 
-  useImperativeHandle(ref, () => ({ stepBySeconds }), [stepBySeconds]);
+  useImperativeHandle(ref, () => ({ resetProgress: () => updateProgress(0), stepBySeconds }), [stepBySeconds, updateProgress]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

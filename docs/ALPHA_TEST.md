@@ -6,11 +6,11 @@ MotionKit Spatial
 
 ## Alpha Purpose
 
-This alpha tests the complete Orbit Carousel and Film Strip workflows plus the visual rig library. The goal is to learn whether users understand motion families and production versus roadmap status, find both motion systems useful, and trust local WebM and PNG export.
+This alpha tests six complete motion families and the visual rig library. The goal is to learn whether each system feels structurally useful and distinct, whether switching remains safe, and whether users trust local WebM and PNG export.
 
 ## What To Do
 
-Use MotionKit Spatial to turn local images into an Orbit Carousel or Film Strip showcase, compare their controls and presets, then export WebM and PNG output.
+Use MotionKit Spatial to compare Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path, then export representative WebM and PNG output.
 
 ## Recommended Setup
 
@@ -23,15 +23,17 @@ Use MotionKit Spatial to turn local images into an Orbit Carousel or Film Strip 
 ## Test Flow
 
 1. Open the app locally.
-2. Open Browse rigs from first run or the workspace. Filter by Orbit, Stream, and a roadmap-only family. Confirm production previews move, roadmap cards are unavailable, and Escape returns focus.
+2. Open Browse rigs from first run or the workspace. Confirm six animated production previews, six populated family filters, no duplicate roadmap cards, and reliable Escape focus return.
 3. Add 1–4 images or screenshots to Orbit Carousel.
 4. Open Browse rigs and switch to Film Strip. Confirm the existing media remains and two empty frames are added.
 5. Load the six-frame Northline Editorial demo and try all four Film Strip presets.
 6. Change Film Strip width, height, gap, perspective, tilt, center scale, edge opacity, radius, direction, duration, and background.
-7. Switch back to Orbit Carousel. Cancel the populated-overflow confirmation once and confirm the library remains open, then complete the switch and verify Orbit settings restore.
-8. Try both rigs at 1:1, 16:9, and 9:16 with Transparent, Solid, and Gradient backgrounds.
-9. Verify Film Strip WebM requires two valid images while PNG permits one.
-10. Export WebM and PNG, inspect the files, then share feedback.
+7. Load Grid Wall’s Atlas System demo. Test all ratios, Reverse, focus movement, gaps, and its four presets.
+8. Switch to Focus Deck. Cancel the six-to-five overflow confirmation once, then complete it. Test hero transitions, support hierarchy, all ratios, and four presets.
+9. Test Stack Flow’s Horizontal, Vertical, and Diagonal axes, front transition, all ratios, and four presets.
+10. Test Wave Path at zero and high amplitude, both directions, tangent rotation, all ratios, and four presets.
+11. Try Transparent, Solid, and Gradient backgrounds on each new rig. Verify Grid Wall WebM requires three items; Focus Deck, Stack Flow, and Wave Path require two; PNG permits one.
+12. Export WebM and PNG, inspect the files, reload, and confirm the active rig/preset/settings restore while media returns empty.
 
 ## Keyboard Shortcuts
 
@@ -54,7 +56,7 @@ Workspace tabs and mutually exclusive inspector/export controls support arrow-ke
 
 ## Session Restoration
 
-Each rig’s settings, ratio, background, active preset, panel collapse state, fit mode, and zoom are stored locally when available. Uploaded images are deliberately not persisted. After reload, the active rig and both rig states restore with empty media slots.
+Each rig’s settings, ratio, background, and active preset are stored independently. Panel collapse state, fit mode, and zoom are global. Uploaded images are deliberately not persisted. After reload, all six rig states remain available with empty media slots.
 
 ## Feedback Questions
 

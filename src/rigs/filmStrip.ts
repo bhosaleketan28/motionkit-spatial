@@ -4,6 +4,7 @@ import { filmStripPresets } from "./filmStripPresets";
 import type { FilmStripRigDefinition, FilmStripRigSettings } from "./types";
 
 export const filmStripRig: FilmStripRigDefinition = {
+  accessibilityDescription: "Media frames move continuously through a horizontal editorial strip with center emphasis.",
   capabilities: {
     looping: true,
     supportsBackground: true,

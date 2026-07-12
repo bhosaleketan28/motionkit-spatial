@@ -25,6 +25,7 @@
 - Phase 10.1: Rig-aware preset system
 - Phase 11: Second rig — Film Strip
 - Phase 12: Visual rig library and motion family framework
+- Phase 13: Essential motion families
 
 ## Phase 8 Highlights
 
@@ -152,3 +153,14 @@
 - Preserved safe rig switching, including compatible media retention and confirmed populated-overflow removal, while keeping the library open when that confirmation is cancelled.
 - Added reusable pure motion geometry and Canvas card helpers as the basis for future production rigs without changing current renderer output.
 - Verified the library at 1440×900, 1280×720, 960×800, 768×1024, and 390×844 with no page-level horizontal overflow.
+
+## Phase 13 Highlights
+
+- Promoted Grid Wall, Focus Deck, Stack Flow, and Wave Path from roadmap concepts to complete registered production rigs, bringing the gallery to six real-renderer systems.
+- Added dedicated deterministic Canvas renderers: ratio-aware focal grid weighting, cyclic hero/support role interpolation, axis-aware layered stack sequencing, and open-wave path sampling with tangent rotation.
+- Added Atlas System, Forma One, Mono Editions, and Current Studio as original locally generated demo sets with six, five, six, and six frames respectively.
+- Added dedicated validated settings, precision inspector schemas, accessibility descriptions, media/export thresholds, preview recipes, and exactly four presets per new rig for 24 presets total.
+- Removed all duplicate roadmap cards while retaining the eight-family taxonomy and hiding empty Cluster and Depth filters.
+- Upgraded workspace persistence to version 5 with version 1–4 migration and independent defaults/recovery for all six rig states.
+- Reset transport progress on successful rig switches while preserving duration synchronization, compatible media identity, overflow confirmation, and per-rig preset state.
+- Verified Wave Path PNG and WebM output through the production export flow and rechecked the gallery/workspace across desktop, tablet, and mobile layouts.
