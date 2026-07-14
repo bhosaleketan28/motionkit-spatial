@@ -304,6 +304,7 @@ function PrecisionControl({ defaultValue, fineStep, label, largeStep, max, min, 
   const parsed = Number(draft);
   const invalid = draft.trim() === "" || !Number.isFinite(parsed);
   const changed = Math.abs(value - defaultValue) > 0.0001;
+  const rangeProgress = max === min ? 0 : ((clamp(value, min, max) - min) / (max - min)) * 100;
   useEffect(() => { if (!focused) setDraft(formatNumber(value, precision)); }, [focused, precision, value]);
   const commit = (nextValue: number) => {
     if (!Number.isFinite(nextValue)) return;
@@ -315,7 +316,7 @@ function PrecisionControl({ defaultValue, fineStep, label, largeStep, max, min, 
     <div className={`precision-control ${changed ? "control-changed" : ""} ${invalid ? "control-invalid" : ""}`}>
       <ControlHeading changed={changed} label={label} onReset={() => commit(defaultValue)} />
       <div className="precision-control-row">
-        <input aria-label={`${label} slider`} max={max} min={min} name={`${toControlName(label)}-slider`} step={sliderStep} type="range" value={value} onChange={(event) => commit(Number(event.currentTarget.value))} />
+        <input aria-label={`${label} slider`} max={max} min={min} name={`${toControlName(label)}-slider`} step={sliderStep} style={{ "--range-progress": `${rangeProgress}%` } as React.CSSProperties} type="range" value={value} onChange={(event) => commit(Number(event.currentTarget.value))} />
         <label className="numeric-input"><span className="sr-only">{label}</span><input aria-describedby={invalid ? errorId : undefined} aria-invalid={invalid} aria-label={`${label} precise value in ${unitLabel}`} autoComplete="off" inputMode="decimal" max={max} min={min} name={`${toControlName(label)}-value`} step={step} type="number" value={draft} onBlur={() => { setFocused(false); if (invalid) setDraft(formatNumber(value, precision)); else commit(parsed); }} onChange={(event) => { const nextDraft = event.currentTarget.value; setDraft(nextDraft); const nextValue = Number(nextDraft); if (nextDraft.trim() !== "" && Number.isFinite(nextValue)) onChange(roundTo(clamp(nextValue, min, max), precision)); }} onFocus={() => setFocused(true)} onKeyDown={(event) => { if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return; event.preventDefault(); const increment = event.shiftKey ? largeStep : event.altKey ? fineStep : step; commit(value + increment * (event.key === "ArrowUp" ? 1 : -1)); }} /><span aria-hidden="true">{unit}</span></label>
       </div>
       <span className="sr-only" id={errorId} aria-live="polite">{invalid ? `${label} needs a valid number.` : ""}</span>

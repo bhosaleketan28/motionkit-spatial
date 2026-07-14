@@ -79,7 +79,7 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
   },
   presets: orbitCarouselPresets,
   preview: {
-    accent: "#7a3dff",
+    accent: "#38d9ff",
     durationSeconds: 8,
     generateMedia: generateOrbitCarouselDemoMedia,
     mediaCount: 4,

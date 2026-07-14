@@ -13,16 +13,18 @@ Stable order:
 5. Wave Path
 6. Stack Flow
 
-Featured is limited to two motion systems and signals recommended starting points only. Every card must show its family, readiness, short outcome-led description, media requirement, and a visible Use motion or Active action. Secondary tags and ratio metadata stay out of the primary card presentation. State and focus cannot rely on violet color alone.
+Featured is limited to two motion systems and signals recommended starting points only. Every card must show its family, readiness, short outcome-led description, media requirement, and a visible Use motion or Active action. Secondary tags and ratio metadata stay out of the primary card presentation. State and focus cannot rely on spectrum color alone.
 
 ## Visual Identity Baseline
 
 - Application background `#080808`, primary surface `#121212`, elevated surface `#181818`, and border `#2A2A2A`.
-- MotionKit Violet `#7A3DFF` is reserved for primary actions, current selection, keyboard focus, progress, and active motion state.
-- Small violet text uses the accessible text derivative documented in `VISUAL_IDENTITY.md`; state always retains a label, icon, border, or native checked/pressed semantic.
+- The Motion Spectrum runs from `#8B5CFF` through `#5B8CFF` to `#38D9FF` and is reserved for primary creation, current selection, progress, and active motion state.
+- Keyboard focus uses solid Focus Cyan `#38D9FF`; small accent text uses Accessible Spectrum Text `#A9B8FF`.
+- Spectrum state always retains a label, icon, border, or native checked/pressed semantic.
 - First run, workspace, gallery, inspector, dialogs, and export should read as one neutral instrument rather than separate dashboard cards.
-- No purple gradients, decorative violet glow, panel shadows, card shadows, or text shadows are allowed in application chrome.
-- Canvas renderers retain only their authored media-card shadows. Preview selection uses a clean violet outline and remains excluded from export.
+- Gradient is forbidden on page, panel, card, preview, and content backgrounds; it is limited to creation and motion state.
+- No decorative spectrum glow, panel shadows, card shadows, or text shadows are allowed in application chrome.
+- Canvas renderers retain only their authored media-card shadows. Preview selection uses a clean spectrum outline and remains excluded from export.
 
 ## Preview Quality Criteria
 
@@ -93,13 +95,13 @@ Applied and Modified must be announced in text. Reapplying a preset must preserv
 | 768×1024 | Full-height stage, internal controls, no document stack | Pass |
 | 390×844 | Mobile toolbar, full-width stage, persistent scrubber, bottom drawers | Pass |
 
-The Phase 14.1 tested document width matched the viewport at every size. Desktop retained both rails at 1440×900 and 1280×720; 960×800, 768×1024, and 390×844 retained the stage-first drawer architecture. Mobile first run, gallery, workspace, and export remained within the viewport. Gallery and dialog checks produced no new console errors.
+The Phase 14.2 tested document width matched the viewport at every size. Desktop retained both rails at 1440×900 and 1280×720; 960×800, 768×1024, and 390×844 retained the stage-first drawer architecture. Mobile first run, workspace, and bottom-sheet focus remained within the viewport. Gallery, preset, transport, export, and dialog checks produced no console warnings or errors.
 
 Direct 200% browser zoom emulation was not available in the automated browser, so 200% zoom remains a manual alpha check.
 
 ## Export Confidence
 
-Focus Deck was re-exercised through the Phase 14.1 WebM creation flow. Progress used restrained violet phase indication, and completion reported a 1920×1080, 60 FPS, 9-second, 3.6 MB local WebM. Existing PNG context, cancellation, and fallback architecture remain unchanged from the Phase 14 confidence baseline.
+The Phase 14.2 identity pass preserved the previously verified Focus Deck WebM creation flow and its 1920×1080, 60 FPS, 9-second, 3.6 MB local output. Review and PNG context were rechecked: WebM-specific FPS remains hidden for PNG, the current creation action is the only spectrum CTA in the sheet, and progress/completion now use restrained spectrum indication. Encoding, cancellation, capability, and fallback architecture remain unchanged.
 
 ## Regression Guardrails
 

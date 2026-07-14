@@ -4,7 +4,7 @@ MotionKit Spatial is a private local browser app for creating cinematic spatial 
 
 Users can add local images or load a rig-specific demo, preview deterministic Canvas 2D motion, adjust precision controls, and export a local WebM or PNG.
 
-The Phase 14.1 editor opens with a focused first-run screen, offers three credible showcase paths, then moves into a fixed, stage-first creative workspace. Its visual system uses restrained monochrome surfaces with MotionKit Violet reserved for creation, selection, focus, progress, and active motion states. Six structurally distinct systems run through reusable rig definitions in one validated registry and appear in a visual, family-filtered library.
+The Phase 14.2 editor opens with a focused first-run screen, offers three credible showcase paths, then moves into a fixed, stage-first creative workspace. Its visual system stays 95% monochrome and uses an original violet-to-cyan Motion Spectrum only for creation actions, motion progress, and selected creation states. Six structurally distinct systems run through reusable rig definitions in one validated registry and appear in a visual, family-filtered library.
 
 ## Run Locally
 
@@ -38,8 +38,8 @@ The app is static and browser-only. Uploaded images are processed locally in the
 ## Current Features
 
 - React + Vite + TypeScript local app
-- Premium monochrome-and-violet creative-tool identity with accessible state contrast and no decorative glow system
-- Consistent violet primary actions, focus rings, selections, sliders, toggles, progress, presets, and export states
+- Premium monochrome-first creative-tool identity with a restrained Motion Spectrum and no decorative glow system
+- Spectrum creation actions, active motion indicators, selected states, slider/progress fills, and solid cyan focus rings with accessible contrast
 - Task-oriented first run with Add your images, Try a showcase, and Browse motion systems paths
 - Three guided showcase scenarios: Product Showcase, Editorial Story, and Brand Campaign
 - Concise in-app alpha guide with workflow guidance, browser limitations, and a no-account feedback path

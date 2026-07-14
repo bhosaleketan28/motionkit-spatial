@@ -102,16 +102,30 @@ export function drawRoundedSelectionOutline(
   width: number,
   height: number,
   radius: number,
-  color = "#7a3dff",
+  color?: string,
 ) {
   const inset = Math.max(4, width * 0.012);
   context.save();
   context.translate(center.x, center.y);
-  context.strokeStyle = color;
+  context.strokeStyle = color ?? createMotionSpectrumGradient(context, -width / 2, -height / 2, width, height);
   context.lineWidth = Math.max(3, width * 0.008);
   roundedRectPath(context, -width / 2 - inset, -height / 2 - inset, width + inset * 2, height + inset * 2, radius + inset);
   context.stroke();
   context.restore();
+}
+
+export function createMotionSpectrumGradient(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const gradient = context.createLinearGradient(x, y, x + width, y + height);
+  gradient.addColorStop(0, "#8b5cff");
+  gradient.addColorStop(0.45, "#5b8cff");
+  gradient.addColorStop(1, "#38d9ff");
+  return gradient;
 }
 
 export interface SpatialMediaCardLayout {
@@ -211,7 +225,7 @@ function drawSpatialSelection(
   context.globalAlpha = Math.max(0.55, clampAlpha(card.alpha));
   context.translate(card.x, card.y);
   context.rotate(card.rotation);
-  context.strokeStyle = "#7a3dff";
+  context.strokeStyle = createMotionSpectrumGradient(context, -width / 2, -height / 2, width, height);
   context.lineWidth = Math.max(3, width * 0.009);
   roundedRectPath(context, -width / 2 - inset, -height / 2 - inset, width + inset * 2, height + inset * 2, cornerRadius * card.scale + inset);
   context.stroke();

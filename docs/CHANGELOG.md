@@ -27,6 +27,9 @@
 - Phase 12: Visual rig library and motion family framework
 - Phase 13: Essential motion families
 - Phase 13.1: Six-rig presentation polish
+- Phase 14: Alpha launch preparation
+- Phase 14.1: MotionKit visual identity refinement
+- Phase 14.2: Motion Spectrum identity refinement
 
 ## Phase 8 Highlights
 
@@ -204,3 +207,14 @@
 - Removed decorative gradients and non-essential shadows from cards, panels, transport, notices, and controls while retaining restrained dialog elevation.
 - Reframed export review, progress, and completion as creation and local output moments without changing formats, encoding, or fallback behavior.
 - Verified the five target viewports, mobile first run/gallery/export, six-system access, preset states, keyboard focus, WebM completion, and a clean Chromium console.
+
+## Phase 14.2 Highlights
+
+- Replaced the flat-violet application identity with an original Motion Spectrum from `#8B5CFF` through `#5B8CFF` to `#38D9FF` while retaining the 95% monochrome workspace.
+- Added contrast-safe spectrum CTA surfaces, solid cyan focus rings, accessible spectrum text, neutral disabled states, and the existing pressed interaction.
+- Limited gradient use to primary creation actions, active motion indicators, progress, selected creation borders, and preview-only selected-card outlines.
+- Kept gallery actions neutral while giving Featured and Active states restrained spectrum markers, borders, persistent labels, and existing ARIA state.
+- Added value-aware spectrum fills and white thumbs to inspector ranges, plus spectrum transport and export progress without introducing competing animation clocks.
+- Updated the shared Canvas selection helper so every production renderer receives the same no-glow spectrum outline while exports and renderer-owned card shadows stay unchanged.
+- Reframed export progress and completion with spectrum indicators and kept warning, error, PNG, codec, and capability messaging semantically distinct.
+- Reverified all six motion systems, presets, transport keyboard flow, export and PNG review, mobile drawer focus, first run, the five target viewports, and a clean Chromium console.

@@ -1,5 +1,5 @@
 import type { FrameSize, OrbitRigSettings, RigRenderInput } from "../rigs/types";
-import { drawCoverImage } from "./canvasCard";
+import { createMotionSpectrumGradient, drawCoverImage } from "./canvasCard";
 import { getOrbitCardLayouts } from "./geometry";
 import { createCardPath } from "./shapePaths";
 
@@ -73,7 +73,7 @@ function drawSelectedCardOutline(
   context.translate(centerX, centerY);
   context.rotate(options.rotation);
   context.scale(options.xScale, 1);
-  context.strokeStyle = "#7a3dff";
+  context.strokeStyle = createMotionSpectrumGradient(context, -width / 2, -height / 2, width, height);
   context.lineWidth = Math.max(4, width * 0.012);
   createCardPath(
     context,

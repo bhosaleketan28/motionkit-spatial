@@ -12,13 +12,15 @@ Users add images into media slots, choose a motion system, apply a curated start
 
 ## Visual Identity
 
-MotionKit Spatial should feel like a premium motion design instrument rather than a developer dashboard or productivity application. The application chrome uses a 95% neutral, 5% accent balance built from near-black surfaces and MotionKit Violet.
+MotionKit Spatial should feel like a premium motion design instrument rather than a developer dashboard or productivity application. The application chrome uses a 95% neutral, 5% accent balance built from near-black surfaces and an original Motion Spectrum that communicates image-to-motion transformation.
 
 - Background, panels, elevated surfaces, and borders form a quiet monochrome hierarchy.
-- Violet identifies primary creation actions, active and selected states, keyboard focus, motion progress, and the current motion system.
+- The violet-to-cyan spectrum is limited to the one primary creation action, motion progress, and selected creation states in a local context.
+- Solid Focus Cyan identifies keyboard focus; Accessible Spectrum Text supports small state labels on dark surfaces.
 - Headings and strong labels use 600 weight; body and supporting copy use 400 weight.
 - Small readable text uses accessible secondary or tertiary neutrals; the darkest muted token is reserved for disabled or non-essential decoration.
 - Buttons, panels, and cards do not use decorative shadows or glow. Only renderer-owned card shadows and restrained blocking-dialog elevation are allowed.
+- Gradients are forbidden on page, panel, card, and content backgrounds. They are not ambient decoration.
 - Product UI color never rewrites uploaded media, authored demo artwork, preset output palettes, background settings, or renderer geometry.
 
 The full token and component contract is documented in `docs/VISUAL_IDENTITY.md`.
@@ -232,4 +234,4 @@ For six-rig alpha presentation readiness, a first-time viewer must also be able 
 
 For controlled external alpha readiness, a new tester should understand the product within ten seconds and create one useful motion output in under five minutes. Recovery paths must prevent empty media and export capability states from becoming dead ends, and the in-app guide must make local-media lifetime and browser-dependent WebM support explicit.
 
-For visual-identity readiness, mint must not remain in application chrome or interaction states. Violet state changes must retain text, icons, borders, checked state, pressed state, or announcements so meaning never depends on color alone. The stage and user-authored output remain visually dominant over the interface.
+For visual-identity readiness, mint and flat violet must not remain as application-chrome identities. Spectrum state changes must retain text, icons, borders, checked state, pressed state, or announcements so meaning never depends on color alone. Raw bright spectrum colors must never sit behind white normal-size text without the documented contrast treatment. The stage and user-authored output remain visually dominant over the interface.

@@ -368,7 +368,7 @@ function RigPreviewCanvas({
     <div
       className={`rig-preview-viewport${prefersReducedMotion ? " preview-reduced" : ""}`}
       ref={viewportRef}
-      style={{ "--rig-preview-accent": rig.preview.accent ?? "#7a3dff" } as React.CSSProperties}
+      style={{ "--rig-preview-accent": rig.preview.accent ?? "#38d9ff" } as React.CSSProperties}
     >
       <canvas
         aria-label={`${rig.name} ${prefersReducedMotion ? "static" : "animated"} renderer preview. ${rig.accessibilityDescription}`}

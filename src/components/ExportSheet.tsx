@@ -772,8 +772,8 @@ function ExportComplete({
         <div><dt>File size</dt><dd>{formatFileSize(artifact.blob.size)}</dd></div>
       </dl>
       <div className="export-complete-actions">
-        <button className="secondary-button" type="button" onClick={onExportAgain}>Export again</button>
-        <button className="primary-button" type="button" onClick={onClose}>Close</button>
+        <button className="primary-button" type="button" onClick={onExportAgain}>Export again</button>
+        <button className="secondary-button" type="button" onClick={onClose}>Close</button>
       </div>
     </div>
   );

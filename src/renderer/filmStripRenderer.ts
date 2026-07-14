@@ -1,4 +1,5 @@
 import type { FilmStripRigSettings, RigRenderInput } from "../rigs/types";
+import { createMotionSpectrumGradient } from "./canvasCard";
 import { drawBackground, drawFrameGuide, drawImageCover, roundedRect } from "./canvasRenderer";
 import { positiveModulo } from "./motionGeometry";
 
@@ -169,7 +170,7 @@ function drawFilmSelection(
   context.globalAlpha = Math.max(0.56, card.alpha);
   context.translate(card.x, card.y);
   context.rotate(card.rotation);
-  context.strokeStyle = "#7a3dff";
+  context.strokeStyle = createMotionSpectrumGradient(context, -width / 2, -height / 2, width, height);
   context.lineWidth = Math.max(4, width * 0.009);
   roundedRect(
     context,

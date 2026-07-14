@@ -2,9 +2,9 @@
 
 ## Direction
 
-MotionKit Spatial is a premium motion design instrument. The interface should feel cinematic, precise, and quiet enough for the moving composition to remain the hero.
+MotionKit Spatial is a premium creative motion instrument. The moving composition remains the hero; application chrome stays precise, quiet, and predominantly monochrome.
 
-The working balance is 95% neutral and 5% accent. Violet communicates action and state; it is not ambient decoration.
+The working balance is 95% neutral and 5% Motion Spectrum. The spectrum represents image → motion → transformation. It is a functional signal, not ambient decoration, and is original to MotionKit Spatial rather than a reproduction of another product or logo.
 
 ## Color Tokens
 
@@ -20,31 +20,47 @@ The working balance is 95% neutral and 5% accent. Violet communicates action and
 | Secondary text | `#A1A1A6` | Body and control labels |
 | Readable tertiary text | `#85858B` | Metadata and supporting copy |
 | Muted / disabled | `#6E6E73` | Disabled labels and non-essential decoration only |
-| MotionKit Violet | `#7A3DFF` | Primary fills, selected borders, progress, focus |
-| Violet hover | `#8B5CFF` | Hovered primary actions |
-| Violet pressed | `#6325E8` | Pressed primary actions |
-| Violet soft | `rgba(122, 61, 255, 0.12)` | Selected surface tint |
-| Violet focus | `rgba(122, 61, 255, 0.35)` | Reserved focus support tint |
-| Accessible violet text | `#A98BFF` | Small accent labels on dark surfaces |
+| Spectrum start | `#8B5CFF` | First gradient stop only |
+| Spectrum mid | `#5B8CFF` | 45% gradient stop only |
+| Spectrum end / Focus Cyan | `#38D9FF` | Final gradient stop and solid keyboard focus |
+| Accessible Spectrum Text | `#A9B8FF` | Small accent labels on dark surfaces |
+| Pressed | `#6325E8` | Pressed primary creation actions |
 
-White text on MotionKit Violet has a 5.33:1 contrast ratio. MotionKit Violet has more than 3:1 contrast against the core dark surfaces for non-text focus and selection indicators. `#6E6E73` does not meet normal-text AA against the primary surface, so it must not be used for readable body or metadata copy.
+Canonical gradient:
 
-## Accent Rules
+```css
+linear-gradient(135deg, #8B5CFF 0%, #5B8CFF 45%, #38D9FF 100%)
+```
 
-Use violet for:
+The start color is never used as a standalone purple identity. Focus Cyan and Accessible Spectrum Text are the only normal solid accent colors in application chrome.
 
-- the one primary creation action in a local context;
-- selected tabs, media, presets, segmented options, and the active motion system;
-- keyboard focus rings;
-- range controls, toggles, transport progress, and export progress;
-- compact status icons when adjacent text identifies the state.
+## Contrast Contract
 
-Do not use violet for:
+- Accessible Spectrum Text has 9.80:1 contrast on `#121212` and 9.29:1 on `#181818`.
+- Focus Cyan has 11.96:1 contrast on `#080808` and 10.60:1 on `#181818` for highly visible non-text focus indication.
+- The raw bright spectrum does not provide reliable white-text contrast at every stop. Primary CTA surfaces therefore place a uniform dark contrast layer over the canonical spectrum: 45% for default and 42% for hover.
+- White text has at least 5.13:1 contrast across the default CTA and 4.70:1 across hover. White on the pressed token has 7.09:1.
+- `#6E6E73` has only 3.69:1 contrast against `#121212`; reserve it for disabled or non-essential decoration, never readable body copy.
 
-- large decorative fields or ambient page washes;
-- purple gradients, glow, bloom, haze, or spotlight effects;
-- every border, label, or icon in a panel;
-- user media, chosen backgrounds, or preset output palettes.
+## Spectrum Usage
+
+Use the gradient only for:
+
+- the one primary creation action at a decision point;
+- active motion tracks and progress;
+- selected creation borders and small active indicators;
+- restrained Featured and current-motion-system markers;
+- preview-only selected-card outlines in the Canvas renderer.
+
+Do not use the gradient:
+
+- as a page, panel, card, preview, or content background;
+- behind headings or body copy;
+- as a decorative wash, banner, divider system, or brand wallpaper;
+- for every button, border, label, or icon;
+- as glow, bloom, haze, spotlight, animated gradient, or neon treatment.
+
+User media, authored demo artwork, selected background colors, and preset output palettes are content rather than application chrome. They keep their authored colors and are not recolored to match the identity.
 
 ## Typography
 
@@ -63,34 +79,43 @@ Do not use violet for:
 3. `#181818` elevated controls, cards, and grouped content.
 4. `#222222` temporary neutral hover surface.
 
-Prefer a surface change and spacing before adding a border. Use `#2A2A2A` for structural separation and `#3A3A3A` only when a control boundary must remain explicit.
+Prefer spacing and a neutral surface change before adding a border. Use `#2A2A2A` for structural separation and `#3A3A3A` only when a control boundary must remain explicit.
 
 ## Buttons
 
-- Primary actions use a pill shape, MotionKit Violet fill, and white 600-weight text.
-- Hover uses `#8B5CFF`; pressed uses `#6325E8`.
-- Disabled primary actions use a neutral grey surface and muted label, not low-opacity violet.
+- Primary creation actions retain the existing pill shape and use the contrast-safe spectrum surface with white 600-weight text.
+- Hover reveals a slightly brighter contrast-safe spectrum. Pressed uses `#6325E8` and the existing one-pixel press movement.
+- Focus uses a 2px solid cyan outline with offset; it never uses glow.
+- Disabled primary actions use a neutral grey surface and muted label, not a low-opacity spectrum.
 - Secondary actions remain neutral and outlined only when a boundary is necessary.
-- Do not place multiple violet primary actions next to each other unless they are mutually exclusive selections.
-- Labels remain explicit: Add your images, Use motion, Create WebM, and Close.
+- Only one action carries the spectrum at each local decision point. Gallery Use motion actions stay neutral because several appear together; selection becomes the spectrum moment.
 
 ## Component States
 
-- Active and selected: violet border or indicator plus a soft tint and a persistent text or icon label.
-- Focus: 2px violet outline with offset; never remove interactive focus without a replacement.
+- Active and selected cards: 1px spectrum border, neutral blue-black surface, and persistent Active, Applied, or Selected text plus semantic state.
+- Tabs: accessible spectrum text plus a 2px spectrum indicator and `aria-selected`.
+- Range controls: neutral track, value-aware spectrum active portion, white thumb, and cyan keyboard focus.
+- Toggles: neutral when off, spectrum track when on, white thumb, label, and native checked state.
+- Focus: solid cyan outline; never gradient-only and never removed without replacement.
 - Modified: retain the Modified label; color is supplementary.
-- Applied: retain the Applied label and selected radio semantics.
 - Disabled: neutral surface and muted text with native disabled semantics.
-- Success: use a check icon and completion copy. Violet may identify the product state, but it must not imitate generic green success styling.
-- Error and warning: preserve their distinct red and amber text/icon treatments.
+- Success: use a check icon and completion copy with a restrained spectrum indicator. Do not imitate generic green success styling.
+- Error and warning: preserve distinct red and amber text/icon treatments.
 
 ## Gallery
 
-- Real motion preview remains the largest element on every card.
+- Real motion previews remain the largest element on every card.
 - Show family, name, concise outcome, readiness, media requirement, and action.
-- Featured uses a small violet badge and subtle border only.
-- Active uses a violet border, soft tint, Active label, and `aria-current`.
-- Do not add marketplace pricing, extra badges, decorative preview dots, or technical tag density.
+- Featured uses a small spectrum dot and low-intensity spectrum border.
+- Active uses a spectrum border, neutral tint, Active label, disabled current action, and `aria-current`.
+- Use motion actions remain neutral so six cards do not create competing gradient buttons.
+- Do not add marketplace pricing, extra badges, decorative preview gradients, or technical tag density.
+
+## Export Presentation
+
+Export is the creation moment. The top-bar Export command and the sheet’s current creation action carry the CTA spectrum. The neutral sheet keeps capability, format, resolution, FPS, ratio, duration, background, filename, cancellation, PNG acknowledgement, and fallback behavior unchanged.
+
+Running export uses a neutral container with spectrum progress and phase tracks. Completion uses a restrained contrast-safe spectrum mark, explicit local-save copy, and detailed output metadata. Warning, error, PNG, and browser capability states retain their own non-green semantics.
 
 ## Shadows And Depth
 
@@ -104,27 +129,23 @@ Not allowed:
 - button shadows;
 - panel, transport, notice, or library-card shadows;
 - text shadows;
-- violet glow around selections, progress, sliders, or completion marks;
+- spectrum glow around selections, progress, sliders, or completion marks;
 - canvas spotlight, haze, bloom, or automatic center illumination.
-
-## Export Presentation
-
-Export is framed as creating a final output. The top-bar command remains Export for recognition, while the sheet uses Final output, Create WebM/Create PNG, creating-progress language, and a locally saved completion moment. Format explanations, capability checks, cancellation, encoding, PNG acknowledgement, and fallback behavior remain unchanged.
 
 ## Do / Don’t
 
 Do:
 
 - let the stage and authored content carry visual richness;
-- use one violet primary action per decision point;
+- use one spectrum primary action per decision point;
 - pair color with labels, icons, borders, checked state, or announcements;
 - keep neutral space around dense controls;
 - use internal scrolling rather than expanding the editor document.
 
 Don’t:
 
-- add a purple gradient to make a neutral surface feel “premium”;
-- tint every card, panel, or heading violet;
+- add a spectrum gradient to make a neutral surface feel “premium”;
+- tint every card, panel, or heading;
 - use glow as focus, selection, success, or depth;
 - replace readable secondary text with the disabled muted token;
 - recolor user media or renderer output to match the application UI.
