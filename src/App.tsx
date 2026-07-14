@@ -1,5 +1,7 @@
+import { AlphaGuideDialog } from "./components/AlphaGuideDialog";
 import { CenterStage } from "./components/CenterStage";
 import type { CenterStageHandle } from "./components/CenterStage";
+import { DemoPicker } from "./components/DemoPicker";
 import { ExportSheet } from "./components/ExportSheet";
 import { LeftPanel } from "./components/LeftPanel";
 import { NoticeCenter } from "./components/NoticeCenter";
@@ -9,6 +11,8 @@ import { RigGallery } from "./components/RigGallery";
 import { RigSwitchDialog } from "./components/RigSwitchDialog";
 import { StartScreen } from "./components/StartScreen";
 import { TopBar } from "./components/TopBar";
+import { demoScenarios } from "./demo/demoScenarios";
+import type { DemoScenario } from "./demo/demoScenarios";
 import type { ExportFormat, ExportStatus } from "./export/exportSettings";
 import { useImageSlots } from "./hooks/useImageSlots";
 import type { ImageSlot } from "./hooks/useImageSlots";
@@ -89,6 +93,9 @@ export default function App() {
   );
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
   const [pendingRigId, setPendingRigId] = useState<string | null>(null);
+  const [pendingDemoScenario, setPendingDemoScenario] = useState<DemoScenario | null>(null);
+  const [isDemoPickerOpen, setIsDemoPickerOpen] = useState(false);
+  const [isAlphaGuideOpen, setIsAlphaGuideOpen] = useState(false);
   const [isRigGalleryOpen, setIsRigGalleryOpen] = useState(false);
   const [appNotice, setAppNotice] = useState<AppNotice | null>(() =>
     initialSession.issue
@@ -122,7 +129,7 @@ export default function App() {
     ? getPresetApplicationState(activePreset, normalizedSettings)
     : null;
   const isBlockingOverlayOpen =
-    isRigGalleryOpen || isExportSheetOpen || Boolean(pendingRigId);
+    isRigGalleryOpen || isExportSheetOpen || isAlphaGuideOpen || Boolean(pendingRigId);
   const {
     addFiles,
     clearAllSlots,
@@ -198,12 +205,39 @@ export default function App() {
     setHasEnteredEditor(true);
   };
 
+  const handleSelectDemoScenario = (scenario: DemoScenario) => {
+    const nextRig = getRigById(scenario.rigId);
+    const preset = getPresetById(nextRig, scenario.presetId);
+    const presetResult = preset
+      ? applyRigPreset(nextRig, preset, createDefaultSettings(nextRig))
+      : null;
+    const nextSettings = presetResult?.ok
+      ? presetResult.settings
+      : createDefaultSettings(nextRig);
+
+    stageRef.current?.resetProgress();
+    switchRigMedia(nextRig);
+    setRigStates((current) => ({
+      ...current,
+      [nextRig.id]: {
+        activePresetId: presetResult?.ok ? scenario.presetId : null,
+        settings: nextSettings,
+      },
+    }));
+    setActiveRigId(nextRig.id);
+    setExportStatus("ready");
+    setIsFitMode(true);
+    setZoomPercent(100);
+    setIsDemoPickerOpen(false);
+    setPendingDemoScenario(scenario);
+  };
+
   const handleResetSettings = () => {
     const previousSettings = normalizedSettings;
     const previousPresetId = activePresetId;
     setSettings(createDefaultSettings(activeRig));
     setActivePresetId(null);
-    showNotice("Rig settings reset to defaults.", "undo", {
+    showNotice("Motion settings reset to defaults.", "undo", {
       actionLabel: "Undo",
       onAction: () => {
         setSettings(previousSettings);
@@ -215,7 +249,7 @@ export default function App() {
   const handleApplyPreset = (presetId: string) => {
     const preset = getPresetById(activeRig, presetId);
     if (!preset) {
-      showNotice("That preset is unavailable for the active rig. No settings were changed.", "warning");
+      showNotice("That preset is unavailable for this motion system. No settings were changed.", "warning");
       return;
     }
     const result = applyRigPreset(activeRig, preset, normalizedSettings);
@@ -307,6 +341,21 @@ export default function App() {
       setIsPlaying(false);
     }
   }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!pendingDemoScenario || activeRig.id !== pendingDemoScenario.rigId) {
+      return;
+    }
+    loadDemoSlots();
+    setStartUploadError(null);
+    setHasEnteredEditor(true);
+    setIsPlaying(!prefersReducedMotion);
+    showNotice(
+      `${pendingDemoScenario.name} opened with ${pendingDemoScenario.rigName} and ${pendingDemoScenario.presetName}.`,
+      "success",
+    );
+    setPendingDemoScenario(null);
+  }, [activeRig.id, loadDemoSlots, pendingDemoScenario, prefersReducedMotion, showNotice]);
 
   useEffect(() => {
     if (!initialSession.session || sessionNoticeShownRef.current) {
@@ -519,10 +568,10 @@ export default function App() {
       <>
         <StartScreen
           errorMessage={startUploadError}
-          isInert={isRigGalleryOpen}
+          isInert={isRigGalleryOpen || isDemoPickerOpen}
           noticeMessage={appNotice?.message}
           onBrowseRigs={openRigGallery}
-          onLoadDemo={handleLoadDemo}
+          onOpenDemo={() => setIsDemoPickerOpen(true)}
           onUploadFiles={handleStartUpload}
           prefersReducedMotion={prefersReducedMotion}
           rig={activeRig}
@@ -539,12 +588,20 @@ export default function App() {
             rigs={rigRegistry}
           />
         ) : null}
+        {isDemoPickerOpen ? (
+          <DemoPicker
+            onClose={() => setIsDemoPickerOpen(false)}
+            onSelect={handleSelectDemoScenario}
+            scenarios={demoScenarios}
+          />
+        ) : null}
       </>
     );
   }
 
   return (
     <main className="app-shell">
+      <a className="skip-link" href="#workspace-stage">Skip to stage</a>
       <div aria-hidden={isBlockingOverlayOpen} className="top-bar-layer" inert={isBlockingOverlayOpen}>
         <TopBar
           exportStatus={exportStatus}
@@ -552,6 +609,7 @@ export default function App() {
             setExportStatus("ready");
             setIsExportSheetOpen(true);
           }}
+          onOpenHelp={() => setIsAlphaGuideOpen(true)}
           onReset={handleResetSettings}
           rigName={activeRig.name}
         />
@@ -653,6 +711,15 @@ export default function App() {
       {isExportSheetOpen ? (
         <ExportSheet
           mediaIssues={exportMediaIssues}
+          onAddMedia={() => {
+            setIsExportSheetOpen(false);
+            setIsStageOnly(false);
+            if (isNarrowWorkspace) {
+              setActiveDrawer("media");
+            } else {
+              setIsLeftRailCollapsed(false);
+            }
+          }}
           onClose={() => setIsExportSheetOpen(false)}
           onFrameRatioChange={(frameRatio) =>
             setSettings({ ...normalizedSettings, frameRatio })
@@ -682,6 +749,7 @@ export default function App() {
           toRig={getRigById(pendingRigId)}
         />
       ) : null}
+      {isAlphaGuideOpen ? <AlphaGuideDialog onClose={() => setIsAlphaGuideOpen(false)} /> : null}
       <NoticeCenter
         notice={
           undoAction
@@ -697,11 +765,11 @@ export default function App() {
 
 function getExportMediaIssue(rig: RegisteredRigDefinition, slots: ImageSlot[], format: ExportFormat) {
   if (slots.some((slot) => slot.status === "loading")) {
-    return "Wait for every image to finish loading before export.";
+    return "Your images are still loading. Wait a moment, then try export again.";
   }
 
   if (slots.some((slot) => slot.status === "error")) {
-    return "Replace media that could not be decoded before export.";
+    return "One image could not be opened. Replace it in Media, then try export again.";
   }
 
   const validItemCount = slots.filter((slot) => slot.status === "ready" && slot.image).length;
@@ -710,7 +778,7 @@ function getExportMediaIssue(rig: RegisteredRigDefinition, slots: ImageSlot[], f
     : rig.mediaRequirements.requiredForExport;
   if (validItemCount < required) {
     const formatLabel = format === "webm" ? "WebM" : "PNG";
-    return `${rig.name} needs at least ${required} valid image${required === 1 ? "" : "s"} for ${formatLabel} export.`;
+    return `${rig.name} needs at least ${required} image${required === 1 ? "" : "s"} for ${formatLabel} export. Add images in Media, then try again.`;
   }
 
   return null;

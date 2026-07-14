@@ -64,6 +64,12 @@ export function LeftPanel({
   const isMediaFull = slots.every(
     (slot) => slot.status === "ready" || slot.status === "loading",
   );
+  const readyMediaCount = slots.filter((slot) => slot.status === "ready").length;
+  const isMediaEmpty = slots.every((slot) => slot.status === "empty");
+  const webmMediaRemaining = Math.max(
+    0,
+    activeRig.mediaRequirements.requiredForExport - readyMediaCount,
+  );
 
   const receiveFiles = (files: File[]) => {
     if (!files.length) {
@@ -99,13 +105,13 @@ export function LeftPanel({
           {isDrawer ? "Close" : "Hide"}
         </button>
       </div>
-      <div className="rail-rig-summary" aria-label={`Current rig: ${activeRig.name}`}>
+      <div className="rail-rig-summary" aria-label={`Current motion system: ${activeRig.name}`}>
         <span>
-          <small className="rail-rig-family">{formatFamily(activeRig.family)}</small>
+          <small className="rail-rig-family">{formatFamily(activeRig.family)} motion system</small>
           <strong>{activeRig.name}</strong>
           <small className="rail-rig-description">{activeRig.shortDescription}</small>
         </span>
-        <button data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>Browse rigs</button>
+        <button data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>Browse systems</button>
       </div>
       <nav className="workspace-nav" aria-label="Workspace sections" role="tablist">
         {workspaceSections.map((section, sectionIndex) => (
@@ -145,19 +151,15 @@ export function LeftPanel({
             role="tabpanel"
           >
             <p className="eyebrow">Create</p>
-            <h2 id="create-heading">Motion rig</h2>
+            <h2 id="create-heading">Motion system</h2>
             <div className="current-rig-summary">
               <div>
-                <span>{formatFamily(activeRig.family)} family</span>
+                <span>{formatFamily(activeRig.family)} motion system</span>
                 <strong>{activeRig.name}</strong>
                 <small>{activeRig.shortDescription}</small>
               </div>
-              <dl>
-                <div><dt>Media</dt><dd>{activeRig.mediaRequirements.minItems}–{activeRig.mediaRequirements.maxItems}</dd></div>
-                <div><dt>Ratios</dt><dd>{activeRig.supportedRatios.length}</dd></div>
-              </dl>
               <button className="secondary-button" data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>
-                Browse rigs
+                Browse motion systems
               </button>
             </div>
           </section>
@@ -178,13 +180,6 @@ export function LeftPanel({
                 {slots.filter((slot) => slot.status === "ready" || slot.status === "loading").length}/{activeRig.slotCount}
               </span>
             </div>
-
-            {!slots.some((slot) => slot.status !== "empty") ? (
-              <div className="empty-media-rig">
-                <span><strong>{activeRig.name}</strong><small>{activeRig.mediaRequirements.minItems}–{activeRig.mediaRequirements.maxItems} local images</small></span>
-                <button data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>Browse rigs</button>
-              </div>
-            ) : null}
 
             <div
               className={`media-dropzone media-dropzone-${dropState}${isMediaFull ? " media-dropzone-compact" : ""}`}
@@ -230,16 +225,28 @@ export function LeftPanel({
                   ? "That file type isn’t supported"
                   : isMediaFull
                     ? "Add or replace media"
-                    : "Drop images here"}
+                    : isMediaEmpty
+                      ? "Add images to start creating motion"
+                      : "Add more images"}
               </strong>
               <span>
                 {isMediaFull
                   ? `Drop or choose an image for selected ${activeRig.slotLabels[selectedIndex]}`
-                  : `${formatAcceptedTypes(activeRig.mediaRequirements.acceptedTypes)} · up to ${formatMegabytes(activeRig.mediaRequirements.maxFileBytes)} MB each`}
+                  : isMediaEmpty
+                    ? `${activeRig.name} works with ${activeRig.mediaRequirements.minItems}–${activeRig.mediaRequirements.maxItems} visuals. Drop them here or choose files.`
+                    : `${formatAcceptedTypes(activeRig.mediaRequirements.acceptedTypes)} · up to ${formatMegabytes(activeRig.mediaRequirements.maxFileBytes)} MB each`}
               </span>
-              <button type="button" onClick={() => inputRef.current?.click()}>
-                {isMediaFull ? "Choose image" : "Add images"}
-              </button>
+              <div className="media-dropzone-actions">
+                <button type="button" onClick={() => inputRef.current?.click()}>
+                  {isMediaFull ? "Choose image" : "Add images"}
+                </button>
+                {isMediaEmpty ? (
+                  <>
+                    <button type="button" onClick={onLoadDemo}>Load motion demo</button>
+                    <button data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>Browse systems</button>
+                  </>
+                ) : null}
+              </div>
             </div>
 
             <p className="media-guidance">
@@ -247,6 +254,12 @@ export function LeftPanel({
                 ? "Files stay local to this browser session and are not uploaded."
                 : `${activeRig.mediaRequirements.preferredDimensions} Files stay in this browser session and are not uploaded.`}
             </p>
+
+            {!isMediaEmpty && webmMediaRemaining > 0 ? (
+              <p className="media-readiness" role="status">
+                Add {webmMediaRemaining} more image{webmMediaRemaining === 1 ? "" : "s"} to export {activeRig.name} as WebM.
+              </p>
+            ) : null}
 
             {pendingReplacement ? (
               <div className="replacement-prompt" role="status" aria-live="polite">
@@ -302,7 +315,7 @@ export function LeftPanel({
             </div>
 
             <div className="media-utility-row">
-              <button type="button" onClick={onLoadDemo}>Load demo</button>
+              {!isMediaEmpty ? <button type="button" onClick={onLoadDemo}>Load motion demo</button> : null}
               <button
                 disabled={slots.every((slot) => slot.status === "empty")}
                 type="button"
@@ -396,7 +409,7 @@ export function LeftPanel({
                 </button>
               ) : null}
               <button className="quiet-button" type="button" onClick={onReturnToDefaults}>
-                Return to rig defaults
+                Return to motion defaults
               </button>
             </div>
           </section>

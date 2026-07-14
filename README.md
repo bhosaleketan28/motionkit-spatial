@@ -1,10 +1,10 @@
 # MotionKit Spatial
 
-MotionKit Spatial is a private local browser app for creating animated spatial motion from screenshots. It includes six production-ready motion rigs: Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow.
+MotionKit Spatial is a private local browser app for creating cinematic spatial motion from your visuals. It includes six production-ready motion systems: Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow.
 
 Users can add local images or load a rig-specific demo, preview deterministic Canvas 2D motion, adjust precision controls, and export a local WebM or PNG.
 
-The Phase 13 editor opens with a focused first-run screen, then moves into a fixed, stage-first creative workspace. Six structurally distinct rigs run through reusable definitions in one validated registry and appear in a visual, family-filtered library. Each rig owns its renderer, media contract, inspector schema, four presets, demo, ratios, export requirements, family metadata, accessibility description, and real-renderer gallery preview.
+The Phase 14.1 editor opens with a focused first-run screen, offers three credible showcase paths, then moves into a fixed, stage-first creative workspace. Its visual system uses restrained monochrome surfaces with MotionKit Violet reserved for creation, selection, focus, progress, and active motion states. Six structurally distinct systems run through reusable rig definitions in one validated registry and appear in a visual, family-filtered library.
 
 ## Run Locally
 
@@ -38,6 +38,11 @@ The app is static and browser-only. Uploaded images are processed locally in the
 ## Current Features
 
 - React + Vite + TypeScript local app
+- Premium monochrome-and-violet creative-tool identity with accessible state contrast and no decorative glow system
+- Consistent violet primary actions, focus rings, selections, sliders, toggles, progress, presets, and export states
+- Task-oriented first run with Add your images, Try a showcase, and Browse motion systems paths
+- Three guided showcase scenarios: Product Showcase, Editorial Story, and Brand Campaign
+- Concise in-app alpha guide with workflow guidance, browser limitations, and a no-account feedback path
 - Generic UI-facing rig contract with a validated central registry and safe fallback lookup
 - Eight-family motion taxonomy covering orbit, stream, grid, focus, stack, cluster, path, and depth
 - Responsive visual rig library with six actual production-renderer previews
@@ -57,7 +62,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Functional Presets workspace with text-based Applied/Modified status, keyboard radio navigation, reapply, and rig-default recovery
 - Preset application that preserves media, playback, frame ratio, direction, card shape, and every other unowned setting
 - Canvas 2D Orbit Carousel renderer
-- Original locally generated Luma Field showcase cards for first-use testing
+- Original locally generated Luma Field campaign presentation cards for first-use testing
 - Original locally generated Northline Editorial six-frame Film Strip demo
 - Rig-defined local media slots—four, five, or six depending on the active rig—with incremental add, thumbnails, replace, remove, and clear-all
 - Compact populated-media state that prioritizes sequence, selection, replacement, and reordering
@@ -67,7 +72,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Confirmed Reset Rig workflow with a global Undo action
 - Specific validation for unsupported, duplicate, oversized, and undecodable images
 - Premium dark editor shell with grouped controls
-- First-run 1–4 image entry flow with a secondary generated demo option
+- First-run 1–4 image entry flow with real renderer-owned preview media and three generated showcase options
 - Compact editor top bar with canonical export and secondary reset actions
 - Collapsible desktop media and inspector rails with responsive drawers and bottom sheets
 - Stage-only focus mode with zoom and fit-to-window controls
@@ -93,6 +98,8 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Actual loop-render progress phases, elapsed and remaining time, safe cancellation, and detailed completion metadata
 - Explicitly confirmed PNG snapshot fallback when WebM is unavailable or fails
 - In-app alpha notes covering recommended browsers, WebM differences, local-media lifetime, and unverified Safari/Firefox paths
+- Direct empty-media and export-readiness recovery actions that return users to Media without a dead end
+- Keyboard skip link, visible focus treatment, modal focus containment, and trigger focus return
 - Preview-only frame guide so exports render as clean compositions
 
 ## Current Limitations
@@ -119,3 +126,11 @@ The registry lives in `src/rigs/registry.ts`. Future rigs should be added as sel
 ## Presentation QA
 
 Phase 13.1 establishes a repeatable six-rig presentation baseline for alpha and investor walkthroughs: concise family-led naming, two Featured rigs, real-renderer previews with consistent 16:9 framing, task-oriented first run, persistent current-rig context, structured inspector sections, detailed completion metadata, and responsive keyboard-accessible gallery behavior. See `docs/PRESENTATION_QA.md` for the review matrix and demo script.
+
+## Alpha Launch
+
+Phase 14 prepares the product for a controlled external alpha. The primary tester goal is to create one useful motion output in under five minutes, starting from local images or one of three guided showcase scenarios. See `docs/ALPHA_LAUNCH.md` for the launch brief and `docs/ALPHA_TEST.md` for the focused tester script.
+
+## Visual Identity
+
+Phase 14.1 establishes the production UI identity: 95% neutral surfaces, 5% MotionKit Violet, Avenir-led typography where available, reduced border noise, and elevation reserved for blocking dialogs. Authored media, preset output palettes, and renderer card shadows remain independent from the application chrome. See `docs/VISUAL_IDENTITY.md` for the complete token and component rules.

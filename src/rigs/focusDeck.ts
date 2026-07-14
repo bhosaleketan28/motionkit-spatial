@@ -54,7 +54,7 @@ export const focusDeckRig: FocusDeckRigDefinition = {
   presets: focusDeckPresets,
   preview: { accent: "#db9474", durationSeconds: 9, generateMedia: generateFocusDeckDemoMedia, mediaCount: 5, ratio: "16:9", render: renderFocusDeck, settingsOverride: { frameRatio: "16:9", heroHeight: 0.6, heroWidth: 0.4, supportScale: 0.44, supportSpread: 0.46 }, staticProgress: 0.36 },
   render: renderFocusDeck,
-  shortDescription: "A dominant hero with a supporting presentation deck.",
+  shortDescription: "Hero-led product stories and structured presentations.",
   slotCount: 5,
   slotLabels: ["Hero", "Support 1", "Support 2", "Support 3", "Support 4"],
   supportedRatios: ["16:9", "9:16", "1:1"],

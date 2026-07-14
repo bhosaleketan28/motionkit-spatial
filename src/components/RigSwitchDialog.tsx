@@ -49,7 +49,7 @@ export function RigSwitchDialog({
 
   return (
     <div className="rig-switch-layer">
-      <button aria-label="Cancel rig switch" className="rig-switch-scrim" type="button" onClick={onCancel} />
+      <button aria-label="Cancel motion system switch" className="rig-switch-scrim" type="button" onClick={onCancel} />
       <section
         aria-labelledby="rig-switch-title"
         aria-modal="true"
@@ -57,14 +57,14 @@ export function RigSwitchDialog({
         ref={dialogRef}
         role="dialog"
       >
-        <p className="eyebrow">Switch motion rig</p>
+        <p className="eyebrow">Switch motion system</p>
         <h2 id="rig-switch-title">Move from {fromRig.name} to {toRig.name}?</h2>
         <p>
           {discardedCount} media item{discardedCount === 1 ? " is" : "s are"} outside {toRig.name}’s {toRig.slotCount}-slot limit.
           Continuing removes only that overflow; the first {toRig.slotCount} items remain in order.
         </p>
         <div>
-          <button className="secondary-button" ref={cancelRef} type="button" onClick={onCancel}>Keep current rig</button>
+          <button className="secondary-button" ref={cancelRef} type="button" onClick={onCancel}>Keep current motion</button>
           <button className="primary-button" type="button" onClick={onConfirm}>Remove overflow and switch</button>
         </div>
       </section>

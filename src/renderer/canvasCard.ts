@@ -102,14 +102,12 @@ export function drawRoundedSelectionOutline(
   width: number,
   height: number,
   radius: number,
-  color = "#8ff5cf",
+  color = "#7a3dff",
 ) {
   const inset = Math.max(4, width * 0.012);
   context.save();
   context.translate(center.x, center.y);
   context.strokeStyle = color;
-  context.shadowColor = color;
-  context.shadowBlur = Math.max(10, width * 0.03);
   context.lineWidth = Math.max(3, width * 0.008);
   roundedRectPath(context, -width / 2 - inset, -height / 2 - inset, width + inset * 2, height + inset * 2, radius + inset);
   context.stroke();
@@ -213,9 +211,7 @@ function drawSpatialSelection(
   context.globalAlpha = Math.max(0.55, clampAlpha(card.alpha));
   context.translate(card.x, card.y);
   context.rotate(card.rotation);
-  context.shadowColor = "rgba(126, 240, 199, 0.82)";
-  context.shadowBlur = Math.max(12, width * 0.03);
-  context.strokeStyle = "#8ff5cf";
+  context.strokeStyle = "#7a3dff";
   context.lineWidth = Math.max(3, width * 0.009);
   roundedRectPath(context, -width / 2 - inset, -height / 2 - inset, width + inset * 2, height + inset * 2, cornerRadius * card.scale + inset);
   context.stroke();

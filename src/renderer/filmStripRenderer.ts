@@ -169,9 +169,7 @@ function drawFilmSelection(
   context.globalAlpha = Math.max(0.56, card.alpha);
   context.translate(card.x, card.y);
   context.rotate(card.rotation);
-  context.shadowColor = "rgba(126, 240, 199, 0.82)";
-  context.shadowBlur = Math.max(12, width * 0.03);
-  context.strokeStyle = "#8ff5cf";
+  context.strokeStyle = "#7a3dff";
   context.lineWidth = Math.max(4, width * 0.009);
   roundedRect(
     context,

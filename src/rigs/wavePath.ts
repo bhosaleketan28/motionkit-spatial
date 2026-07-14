@@ -55,7 +55,7 @@ export const wavePathRig: WavePathRigDefinition = {
   presets: wavePathPresets,
   preview: { accent: "#70d2bc", durationSeconds: 10, generateMedia: generateWavePathDemoMedia, mediaCount: 6, ratio: "16:9", render: renderWavePath, settingsOverride: { cardHeight: 0.5, cardWidth: 0.24, centerScale: 0.12, frameRatio: "16:9", gap: 0.07, perspective: 0.44, waveAmplitude: 0.26 }, staticProgress: 0.21 },
   render: renderWavePath,
-  shortDescription: "Media flowing along an open authored wave.",
+  shortDescription: "Expressive campaigns with fluid, directional movement.",
   slotCount: 6,
   slotLabels: ["Frame 1", "Frame 2", "Frame 3", "Frame 4", "Frame 5", "Frame 6"],
   supportedRatios: ["16:9", "9:16", "1:1"],

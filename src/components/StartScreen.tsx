@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getRigPreviewMedia } from "../preview/rigPreviewRuntime";
 import type { AnyRigSettings, RegisteredRigDefinition } from "../rigs/types";
 import { CenterStage } from "./CenterStage";
 
@@ -6,7 +7,7 @@ interface StartScreenProps {
   errorMessage: string | null;
   isInert: boolean;
   onBrowseRigs: (trigger: HTMLElement) => void;
-  onLoadDemo: () => void;
+  onOpenDemo: () => void;
   onUploadFiles: (files: FileList) => void;
   noticeMessage?: string | null;
   prefersReducedMotion: boolean;
@@ -19,7 +20,7 @@ export function StartScreen({
   errorMessage,
   isInert,
   onBrowseRigs,
-  onLoadDemo,
+  onOpenDemo,
   onUploadFiles,
   noticeMessage,
   prefersReducedMotion,
@@ -29,13 +30,30 @@ export function StartScreen({
 }: StartScreenProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(!prefersReducedMotion);
+  const [previewImages, setPreviewImages] = useState<Array<HTMLImageElement | null>>(
+    () => Array.from({ length: rig.slotCount }, () => null),
+  );
   const previewSettings: AnyRigSettings = { ...settings, frameRatio: "16:9" };
+  const presetCount = rigs.reduce((total, availableRig) => total + availableRig.presets.length, 0);
 
   useEffect(() => {
     if (prefersReducedMotion) {
       setIsPreviewPlaying(false);
     }
   }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setPreviewImages(Array.from({ length: rig.slotCount }, () => null));
+    void getRigPreviewMedia(rig).then((images) => {
+      if (!cancelled) {
+        setPreviewImages(Array.from({ length: rig.slotCount }, (_, index) => images[index] ?? null));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [rig]);
 
   return (
     <main aria-hidden={isInert} className="start-screen" inert={isInert}>
@@ -46,7 +64,7 @@ export function StartScreen({
           onTogglePlay={() => undefined}
           rig={rig}
           settings={previewSettings}
-          slotImages={Array.from({ length: rig.slotCount }, () => null)}
+          slotImages={previewImages}
           variant="onboarding"
         />
       </div>
@@ -68,10 +86,10 @@ export function StartScreen({
       </div>
 
       <section className="start-content" aria-labelledby="start-heading">
-        <p className="eyebrow">{rig.name}</p>
-        <h1 id="start-heading">Turn screenshots into spatial motion.</h1>
+        <p className="eyebrow">For product, editorial & brand designers</p>
+        <h1 id="start-heading">Create cinematic spatial motion from your visuals.</h1>
         <p>
-          Add images, choose a motion system, customise the movement, then export.
+          Build a polished looping showcase, shape the movement, and export it locally.
         </p>
 
         <div className="start-actions">
@@ -91,37 +109,23 @@ export function StartScreen({
           <button className="primary-button" type="button" onClick={() => inputRef.current?.click()}>
             Add your images
           </button>
-          <button className="secondary-button" type="button" onClick={onLoadDemo}>
-            Start with demo
+          <button className="secondary-button" type="button" onClick={onOpenDemo}>
+            Try a showcase
           </button>
           <button className="start-browse-rigs" data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>
-            Browse rigs
+            Browse motion systems
           </button>
         </div>
 
         {errorMessage ? <p className="start-error" role="alert">{errorMessage}</p> : null}
         {noticeMessage ? <p className="start-notice" role="status">{noticeMessage}</p> : null}
 
-        <div className="start-rig-breadth" aria-label={`${rigs.length} production motion rigs`}>
-          <strong>{rigs.length} production motion rigs</strong>
-          <ul>
-            {rigs.map((availableRig) => (
-              <li key={availableRig.id}>{formatFamily(availableRig.family)}</li>
-            ))}
-          </ul>
-        </div>
-
-        <ul className="start-metadata" aria-label={`${rig.name} details`}>
-          <li>{rig.name}</li>
-          <li>{rig.mediaRequirements.minItems}–{rig.mediaRequirements.maxItems} local images</li>
-          <li>Looping WebM</li>
-          <li>{rig.supportedRatios.join(" · ")}</li>
+        <ul className="start-confidence" aria-label="Product capabilities">
+          <li><strong>{rigs.length}</strong><span>motion systems</span></li>
+          <li><strong>{presetCount}</strong><span>curated presets</span></li>
+          <li><strong>Local</strong><span>WebM export</span></li>
         </ul>
       </section>
     </main>
   );
-}
-
-function formatFamily(family: RegisteredRigDefinition["family"]) {
-  return family.charAt(0).toUpperCase() + family.slice(1);
 }

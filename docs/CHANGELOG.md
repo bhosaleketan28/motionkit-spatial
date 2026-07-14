@@ -178,3 +178,29 @@
 - Expanded export review and completion metadata with media readiness, rig, dimensions, background, duration, FPS relevance, and file size.
 - Made first-run, gallery, workspace, and top-bar layers inert while blocking dialogs are open; verified Escape close and trigger focus recovery for rig switching and mobile drawers.
 - Reverified first run, media compaction, presets, rig switching, keyboard stepping, Focus/Wave export, cancellation/retry, responsive layouts, and console health in the local Chromium browser.
+
+## Phase 14 Highlights
+
+- Reframed first run around the external-facing promise “Create cinematic spatial motion from your visuals.” with a clear Add, Showcase, or Browse decision.
+- Added three original guided showcase paths for Product Showcase, Editorial Story, and Brand Campaign using existing rigs, presets, and demo generators.
+- Replaced metadata-heavy confidence messaging with concise proof points for six motion systems, 24 curated presets, and local WebM export.
+- Added an accessible in-app alpha guide covering the workflow, best results, browser support, local-media lifetime, current limitations, and feedback prompts.
+- Added a recipient-independent feedback path with copyable questions and a prepared local email draft without introducing accounts, analytics, or backend storage.
+- Added direct recovery actions to empty Media states and export preflight failures so users can add images, load a demo, or browse systems without encountering dead ends.
+- Reworked the Luma Field first-use artwork into a cohesive campaign presentation set and removed fake-dashboard visual cues from shared demo artwork.
+- Externalized prominent user-facing “rig” terminology to “motion system” while retaining the rig contract as the internal architecture primitive.
+- Added a keyboard skip link, repaired media-card focus visibility, and retained dialog/drawer focus containment plus trigger focus restoration.
+- Reverified first run, guided scenarios, empty/export recovery, gallery and drawer focus, contrast, responsive layouts, and console health in Chromium at all five target viewports.
+
+## Phase 14.1 Highlights
+
+- Replaced the mint application-chrome identity with a restrained monochrome foundation and MotionKit Violet interaction system.
+- Added shared violet hover, pressed, soft, focus, and accessible text derivatives while preserving white-on-violet AA contrast for primary actions.
+- Migrated primary buttons, active tabs, selected media, presets, sliders, toggles, radio states, transport, progress, gallery selection, and export states to the shared identity.
+- Replaced glowing Canvas selection feedback with a clean violet outline while preserving renderer-owned card shadows and exported artwork.
+- Simplified the motion library by removing secondary tags and ratio metadata, reducing card border noise, and keeping motion previews dominant.
+- Reframed current-system summaries around motion family and creative use rather than slot and ratio statistics.
+- Normalized typography around 600-weight headings and labels, 400-weight body text, title-case metadata, and larger gallery/status copy.
+- Removed decorative gradients and non-essential shadows from cards, panels, transport, notices, and controls while retaining restrained dialog elevation.
+- Reframed export review, progress, and completion as creation and local output moments without changing formats, encoding, or fallback behavior.
+- Verified the five target viewports, mobile first run/gallery/export, six-system access, preset states, keyboard focus, WebM completion, and a clean Chromium console.

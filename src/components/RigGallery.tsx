@@ -81,7 +81,7 @@ export function RigGallery({
 
   return (
     <div aria-hidden={isInert} className="rig-gallery-layer" inert={isInert}>
-      <button aria-label="Close rig library" className="rig-gallery-scrim" type="button" onClick={onClose} />
+      <button aria-label="Close motion library" className="rig-gallery-scrim" type="button" onClick={onClose} />
       <section
         aria-labelledby="rig-gallery-title"
         aria-modal="true"
@@ -94,13 +94,13 @@ export function RigGallery({
             <p className="eyebrow">Motion library</p>
             <h2 id="rig-gallery-title">Choose a motion system</h2>
             <p>{roadmapRigEntries.length
-              ? "Production rigs are ready to use. Roadmap families are shown honestly as unavailable."
+              ? "Production motion systems are ready to use. Roadmap families are shown honestly as unavailable."
               : `${rigs.length} production motion systems, each rendered from its real Canvas geometry.`}</p>
           </div>
-          <button aria-label="Close rig library" className="rig-gallery-close" ref={closeRef} type="button" onClick={onClose}>×</button>
+          <button aria-label="Close motion library" className="rig-gallery-close" ref={closeRef} type="button" onClick={onClose}>×</button>
         </header>
 
-        <nav aria-label="Filter rigs by motion family" className="rig-family-filter" role="tablist">
+        <nav aria-label="Filter motion systems by family" className="rig-family-filter" role="tablist">
           {(["all", ...availableFamilies] as FamilyFilter[]).map((option, index, options) => (
             <button
               aria-selected={family === option}
@@ -133,7 +133,7 @@ export function RigGallery({
           {production.length ? (
             <section aria-labelledby="production-rigs-heading" className="rig-gallery-section">
               <div className="rig-gallery-section-heading">
-                <h3 id="production-rigs-heading">Production rigs</h3>
+                <h3 id="production-rigs-heading">Motion systems</h3>
                 <span>{production.length} available</span>
               </div>
               <div className="rig-card-grid">
@@ -199,14 +199,10 @@ function ProductionRigCard({
         </div>
         <p>{rig.gallery.description}</p>
         <div className="rig-card-meta">
-          <span className="rig-production-status"><span aria-hidden="true">✓</span> Production rig</span>
+          <span className="rig-production-status"><span aria-hidden="true">✓</span> Ready to use</span>
           <span>{formatMediaRequirement(rig)}</span>
-          <span>{rig.supportedRatios.join(" · ")}</span>
         </div>
         <div className="rig-card-footer">
-          <div className="rig-tag-list" aria-label={`${rig.name} tags`}>
-            {rig.tags.slice(0, 3).map((tag) => <span key={tag}>{formatTag(tag)}</span>)}
-          </div>
           <button
             aria-label={active ? `${rig.name} is active` : `Use ${rig.name}`}
             className={active ? "rig-card-action active" : "rig-card-action"}
@@ -214,7 +210,7 @@ function ProductionRigCard({
             type="button"
             onClick={onSelect}
           >
-            {active ? "✓ Active" : "Use rig"}
+            {active ? "✓ Active" : "Use motion"}
           </button>
         </div>
       </div>
@@ -372,7 +368,7 @@ function RigPreviewCanvas({
     <div
       className={`rig-preview-viewport${prefersReducedMotion ? " preview-reduced" : ""}`}
       ref={viewportRef}
-      style={{ "--rig-preview-accent": rig.preview.accent ?? "#70e0bf" } as React.CSSProperties}
+      style={{ "--rig-preview-accent": rig.preview.accent ?? "#7a3dff" } as React.CSSProperties}
     >
       <canvas
         aria-label={`${rig.name} ${prefersReducedMotion ? "static" : "animated"} renderer preview. ${rig.accessibilityDescription}`}

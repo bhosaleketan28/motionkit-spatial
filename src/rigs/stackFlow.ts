@@ -56,7 +56,7 @@ export const stackFlowRig: StackFlowRigDefinition = {
   presets: stackFlowPresets,
   preview: { accent: "#77d2b4", durationSeconds: 8, generateMedia: generateStackFlowDemoMedia, mediaCount: 6, ratio: "16:9", render: renderStackFlow, settingsOverride: { backScale: 0.78, cardHeight: 0.58, cardWidth: 0.34, frameRatio: "16:9", frontExitDistance: 0.12, stackOffset: 0.04 }, staticProgress: 0.43 },
   render: renderStackFlow,
-  shortDescription: "A tactile layered deck with a moving front card.",
+  shortDescription: "Layered sequences with tactile depth and deliberate pacing.",
   slotCount: 6,
   slotLabels: ["Card 1", "Card 2", "Card 3", "Card 4", "Card 5", "Card 6"],
   supportedRatios: ["16:9", "9:16", "1:1"],

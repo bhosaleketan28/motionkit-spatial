@@ -2,13 +2,38 @@
 
 ## Product Summary
 
-MotionKit Spatial is a private local web app for creating animated spatial design showcases.
+MotionKit Spatial is a private local web app for creating cinematic spatial motion from a user's own visuals.
 
 It is inspired by the category of spatial motion tools, but it must be built from scratch and must not copy Animos code, logo, assets, branding, UI, or proprietary implementation.
 
 ## Core Idea
 
-Users upload images into media slots, choose a motion rig, adjust simple spatial parameters, preview the animation, and export a WebM.
+Users add images into media slots, choose a motion system, apply a curated starting point, adjust spatial parameters, inspect the animation, and export a local WebM or PNG still.
+
+## Visual Identity
+
+MotionKit Spatial should feel like a premium motion design instrument rather than a developer dashboard or productivity application. The application chrome uses a 95% neutral, 5% accent balance built from near-black surfaces and MotionKit Violet.
+
+- Background, panels, elevated surfaces, and borders form a quiet monochrome hierarchy.
+- Violet identifies primary creation actions, active and selected states, keyboard focus, motion progress, and the current motion system.
+- Headings and strong labels use 600 weight; body and supporting copy use 400 weight.
+- Small readable text uses accessible secondary or tertiary neutrals; the darkest muted token is reserved for disabled or non-essential decoration.
+- Buttons, panels, and cards do not use decorative shadows or glow. Only renderer-owned card shadows and restrained blocking-dialog elevation are allowed.
+- Product UI color never rewrites uploaded media, authored demo artwork, preset output palettes, background settings, or renderer geometry.
+
+The full token and component contract is documented in `docs/VISUAL_IDENTITY.md`.
+
+## Alpha Launch Experience
+
+The first-run experience must explain the product within ten seconds and offer three clear paths: Add your images, Try a showcase, and Browse motion systems. The showcase launcher includes three original, locally generated scenarios:
+
+- Product Showcase — Focus Deck with Product Hero;
+- Editorial Story — Film Strip with Editorial Flow;
+- Brand Campaign — Grid Wall with Editorial Wall.
+
+Each scenario loads a complete working example through the existing registry, preset, media, and renderer contracts. The alpha guide explains the four-step workflow, best-result guidance, current browser and persistence limitations, and a local feedback path without accounts or analytics.
+
+External product copy should use “motion system” where possible. “Rig” remains the internal architecture term.
 
 ## Motion Rig Contract
 
@@ -120,13 +145,13 @@ A six-card open curved path with controllable wave, tilt, perspective, and tange
 
 ## MVP User Flow
 
-1. User opens local app.
-2. User sees Orbit Carousel preview with placeholder cards.
-3. User uploads images into 4 media slots.
-4. Uploaded images appear on orbiting cards.
-5. User adjusts controls.
-6. User plays/pauses animation.
-7. User exports WebM locally.
+1. User opens the local app and understands the value proposition.
+2. User adds local images, tries a guided showcase, or browses motion systems.
+3. User chooses a motion system and curated preset.
+4. User modifies movement, layout, appearance, or output settings.
+5. User plays, pauses, replays, or scrubs through one loop.
+6. User exports WebM locally or explicitly chooses a PNG still.
+7. If media or capability requirements are not met, the product provides a direct recovery action.
 
 ## Required Controls
 
@@ -201,6 +226,10 @@ Do not build:
 
 ## Success Criteria
 
-The MVP is successful if a user can upload 4 images, see them orbit in a polished 3D-like carousel, adjust simple controls, and export a usable WebM from their browser.
+The MVP is successful if a user can add images, choose a suitable motion system, produce a polished animation, and export a usable WebM from their browser.
 
 For six-rig alpha presentation readiness, a first-time viewer must also be able to identify the structural difference between all six systems from the library, understand which two are recommended starting points, retain context after entering the editor, and complete a representative export without encountering placeholder navigation, hidden state, page overflow, or ambiguous completion metadata.
+
+For controlled external alpha readiness, a new tester should understand the product within ten seconds and create one useful motion output in under five minutes. Recovery paths must prevent empty media and export capability states from becoming dead ends, and the in-app guide must make local-media lifetime and browser-dependent WebM support explicit.
+
+For visual-identity readiness, mint must not remain in application chrome or interaction states. Violet state changes must retain text, icons, borders, checked state, pressed state, or announcements so meaning never depends on color alone. The stage and user-authored output remain visually dominant over the interface.

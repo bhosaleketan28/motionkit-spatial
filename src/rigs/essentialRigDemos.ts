@@ -23,9 +23,9 @@ const atlasSystem: DemoTheme = {
   paper: "#dfe2d8",
   frames: [
     { accent: "#75d8b8", kicker: "ATLAS / 01", label: "Campaign cover", title: "Systems in motion", variant: "cover" },
-    { accent: "#d9aa76", kicker: "MODULE / 02", label: "Interface detail", title: "Built in layers", variant: "interface" },
+    { accent: "#d9aa76", kicker: "MATERIAL / 02", label: "Material system", title: "Built in layers", variant: "interface" },
     { accent: "#91a9cf", kicker: "OBJECT / 03", label: "Product image", title: "One clear object", variant: "product" },
-    { accent: "#d2c06f", kicker: "SIGNAL / 04", label: "Metrics panel", title: "+42% recall", variant: "metrics" },
+    { accent: "#d2c06f", kicker: "SIGNAL / 04", label: "Campaign proof", title: "+42% recall", variant: "metrics" },
     { accent: "#bd9fca", kicker: "NOTE / 05", label: "Editorial quote", title: "Structure creates freedom.", variant: "quote" },
     { accent: "#72c7c4", kicker: "ATLAS / 06", label: "Closing identity", title: "Map the next move", variant: "closing" },
   ],
@@ -39,7 +39,7 @@ const formaOne: DemoTheme = {
   frames: [
     { accent: "#e18e6d", kicker: "FORMA / HERO", label: "Hero product", title: "A quieter device", variant: "product" },
     { accent: "#79b89f", kicker: "FEATURE / 02", label: "Feature detail", title: "Precision, simplified", variant: "interface" },
-    { accent: "#879dcc", kicker: "PROOF / 03", label: "Metrics", title: "18 hrs / charge", variant: "metrics" },
+    { accent: "#879dcc", kicker: "PROOF / 03", label: "Product endurance", title: "18 hrs / charge", variant: "metrics" },
     { accent: "#d5b96f", kicker: "VOICE / 04", label: "Customer quote", title: "Useful from the first touch.", variant: "quote" },
     { accent: "#9f8db8", kicker: "FORMA / END", label: "Closing frame", title: "Designed to disappear", variant: "closing" },
   ],
@@ -68,7 +68,7 @@ const currentStudio: DemoTheme = {
   frames: [
     { accent: "#68cfba", kicker: "CURRENT / 01", label: "Studio cover", title: "Follow the signal", variant: "cover" },
     { accent: "#de9675", kicker: "FIELD / 02", label: "Campaign image", title: "Colour in transit", variant: "product" },
-    { accent: "#829fd0", kicker: "FLOW / 03", label: "Interface study", title: "A fluid system", variant: "interface" },
+    { accent: "#829fd0", kicker: "FLOW / 03", label: "Motion system", title: "A fluid system", variant: "interface" },
     { accent: "#d7c06f", kicker: "PULSE / 04", label: "Performance signal", title: "2.4× movement", variant: "metrics" },
     { accent: "#a891bb", kicker: "VOICE / 05", label: "Studio note", title: "Motion reveals structure.", variant: "quote" },
     { accent: "#75bfa2", kicker: "CURRENT / 06", label: "Closing identity", title: "Stay in motion", variant: "closing" },
@@ -158,17 +158,23 @@ function drawArtwork(
     context.arc(x + width * 0.58, y + height * 0.5, 38, 0, Math.PI * 2);
     context.fill();
   } else if (variant === "interface") {
-    context.fillStyle = "rgba(245,244,238,0.9)";
-    roundedRect(context, x + 74, y + 54, width - 148, height - 108, 22);
+    context.fillStyle = "rgba(245,244,238,0.82)";
+    roundedRect(context, x + 76, y + 56, width * 0.36, height - 112, 28);
     context.fill();
     context.fillStyle = dark;
-    roundedRect(context, x + 112, y + 96, width * 0.28, height - 192, 14);
+    roundedRect(context, x + width * 0.2, y + 104, width * 0.2, height - 208, 90);
     context.fill();
-    for (let row = 0; row < 4; row += 1) {
-      context.fillStyle = row === 0 ? accent : "rgba(23,28,28,0.18)";
-      roundedRect(context, x + width * 0.47, y + 108 + row * 66, width * (0.34 - row * 0.025), 24, 12);
-      context.fill();
+    context.strokeStyle = "rgba(245,244,238,0.72)";
+    context.lineWidth = 4;
+    for (let ring = 0; ring < 3; ring += 1) {
+      context.beginPath();
+      context.ellipse(x + width * 0.69, y + height * 0.5, 92 + ring * 54, 58 + ring * 34, -0.34, 0, Math.PI * 2);
+      context.stroke();
     }
+    context.fillStyle = dark;
+    context.beginPath();
+    context.arc(x + width * 0.69, y + height * 0.5, 36, 0, Math.PI * 2);
+    context.fill();
   } else if (variant === "product") {
     context.fillStyle = dark;
     roundedRect(context, x + width * 0.36, y + 42, width * 0.28, height - 84, 110);

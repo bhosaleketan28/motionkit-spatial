@@ -26,6 +26,7 @@ import type { AnyRigSettings, BackgroundMode, FrameRatio, RegisteredRigDefinitio
 
 interface ExportSheetProps {
   mediaIssues: Record<ExportFormat, string | null>;
+  onAddMedia: () => void;
   onClose: () => void;
   onFrameRatioChange: (ratio: FrameRatio) => void;
   onStatusChange: (status: ExportStatus) => void;
@@ -54,6 +55,7 @@ const INITIAL_PROGRESS: ExportProgress = {
 
 export function ExportSheet({
   mediaIssues,
+  onAddMedia,
   onClose,
   onFrameRatioChange,
   onStatusChange,
@@ -291,8 +293,8 @@ export function ExportSheet({
       >
         <header className="export-sheet-header">
           <div>
-            <p className="eyebrow">Local export</p>
-            <h2 id="export-dialog-title">Export {rig.name}</h2>
+            <p className="eyebrow">Final output</p>
+            <h2 id="export-dialog-title">Create {rig.name} output</h2>
           </div>
           <div className="export-header-actions">
             <span className={`export-phase-badge phase-${view}`}>{formatViewLabel(view)}</span>
@@ -370,15 +372,21 @@ export function ExportSheet({
         {view === "review" ? (
           <footer className="export-sheet-footer">
             <button className="secondary-button" type="button" onClick={closeSheet}>Cancel</button>
-            <button
-              className="primary-button export-primary-action"
-              data-export-view-focus
-              disabled={Boolean(mediaIssue) || (format === "png" && !pngConsent)}
-              type="button"
-              onClick={startExport}
-            >
-              {format === "webm" ? "Export WebM" : "Export PNG"}
-            </button>
+            {mediaIssue ? (
+              <button className="primary-button export-primary-action" data-export-view-focus type="button" onClick={onAddMedia}>
+                Add images
+              </button>
+            ) : (
+              <button
+                className="primary-button export-primary-action"
+                data-export-view-focus
+                disabled={format === "png" && !pngConsent}
+                type="button"
+                onClick={startExport}
+              >
+                {format === "webm" ? "Create WebM" : "Create PNG"}
+              </button>
+            )}
           </footer>
         ) : null}
 
@@ -748,13 +756,13 @@ function ExportComplete({
   return (
     <div className="export-complete">
       <span className="export-success-mark" aria-hidden="true">✓</span>
-      <p className="eyebrow">Downloaded locally</p>
+      <p className="eyebrow">Saved locally</p>
       <h3 data-export-view-focus tabIndex={-1}>
-        {artifact.format === "webm" ? "WebM export complete" : "PNG snapshot complete"}
+        {artifact.format === "webm" ? "Your WebM is ready" : "Your PNG still is ready"}
       </h3>
       <dl className="export-result-details">
         <div><dt>Filename</dt><dd>{artifact.fileName}</dd></div>
-        <div><dt>Rig</dt><dd>{rigName}</dd></div>
+        <div><dt>Motion system</dt><dd>{rigName}</dd></div>
         <div><dt>Format</dt><dd>{artifact.format.toUpperCase()}</dd></div>
         <div><dt>Dimensions</dt><dd>{artifact.frame.width} × {artifact.frame.height}</dd></div>
         <div><dt>Duration</dt><dd>{artifact.format === "png" ? "Still frame" : `${artifact.durationSeconds.toFixed(1)} seconds`}</dd></div>
@@ -794,12 +802,12 @@ function formatPhase(phase: ExportPhase) {
 }
 
 function formatRunningTitle(phase: ExportPhase) {
-  if (phase === "preparing") return "Preparing the export canvas";
-  if (phase === "rendering") return "Rendering one complete loop";
-  if (phase === "encoding") return "Encoding the media file";
-  if (phase === "finalizing") return "Finalizing file details";
-  if (phase === "downloading") return "Starting the local download";
-  return "Export complete";
+  if (phase === "preparing") return "Preparing your output";
+  if (phase === "rendering") return "Creating one complete loop";
+  if (phase === "encoding") return "Building the WebM file";
+  if (phase === "finalizing") return "Finishing output details";
+  if (phase === "downloading") return "Saving to your device";
+  return "Output ready";
 }
 
 function formatElapsed(milliseconds: number) {

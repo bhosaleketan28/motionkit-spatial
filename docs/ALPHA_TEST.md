@@ -1,91 +1,84 @@
 # MotionKit Spatial Alpha Test
 
-## Product Name
+## Tester Goal
 
-MotionKit Spatial
+Create one useful motion output in under five minutes.
 
-## Alpha Purpose
-
-This alpha tests six complete motion families and the visual rig library. The goal is to learn whether each system feels structurally useful and distinct, whether switching remains safe, and whether users trust local WebM and PNG export.
-
-## What To Do
-
-Use MotionKit Spatial to compare Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow, then export representative WebM and PNG output.
+MotionKit Spatial turns local images into cinematic spatial motion. It provides six motion systems, 24 curated presets, live motion inspection, and local WebM or PNG export.
 
 ## Recommended Setup
 
-- Use a current Chromium browser such as Chrome or Edge for the most reliable WebM recording path.
-- WebM codec and canvas recording support varies by browser and is checked when the export sheet opens.
+- Use a current Chrome or Chromium-based browser for the most reliable WebM recording path.
+- WebM codec and canvas-recording support varies by browser and is checked when export review opens.
 - PNG exports one still frame and is not a replacement for a looping video.
-- Uploaded media stays on the local device for the current browser session and must be re-added after reload.
+- Uploaded media stays on the local device for the current browser session and must be added again after reload.
 - Safari and Firefox upload, focus, color, and export behavior still require manual verification.
 
-## Test Flow
+## Five-Minute Test Flow
 
-1. Open the app locally.
-2. Open Browse rigs from first run or the workspace. Confirm the Orbit, Grid, Focus, Film, Wave, Stack order; exactly two Featured cards; six animated production previews; six populated family filters; no duplicate roadmap cards; and reliable Escape focus return.
-3. Add 1–4 images or screenshots to Orbit Carousel.
-4. Open Browse rigs and switch to Film Strip. Confirm the existing media remains and two empty frames are added.
-5. Load the six-frame Northline Editorial demo and try all four Film Strip presets.
-6. Change Film Strip width, height, gap, perspective, tilt, center scale, edge opacity, radius, direction, duration, and background.
-7. Load Grid Wall’s Atlas System demo. Test all ratios, Reverse, focus movement, gaps, and its four presets.
-8. Switch to Focus Deck. Cancel the six-to-five overflow confirmation once, then complete it. Test hero transitions, support hierarchy, all ratios, and four presets.
-9. Test Stack Flow’s Horizontal, Vertical, and Diagonal axes, front transition, all ratios, and four presets.
-10. Test Wave Path at zero and high amplitude, both directions, tangent rotation, all ratios, and four presets.
-11. Try Transparent, Solid, and Gradient backgrounds on each new rig. Verify Grid Wall WebM requires three items; Focus Deck, Stack Flow, and Wave Path require two; PNG permits one.
-12. Export WebM and PNG, inspect the files, reload, and confirm the active rig/preset/settings restore while media returns empty.
+1. Choose **Try a showcase** and start Product Showcase, Editorial Story, or Brand Campaign.
+2. Open **Browse systems** and compare the six motion systems.
+3. Try at least one curated preset for the active system.
+4. Modify at least two motion, layout, or appearance controls.
+5. Play, pause, and scrub through one complete loop.
+6. Open Export, review the output settings, and export a WebM.
+7. If useful, compare the motion output with a PNG still.
 
-## Presentation Checks
+## What To Notice
 
-- First run communicates the four-step job—add images, choose a motion system, customise movement, export—and identifies six production rigs without overwhelming the primary Add images action.
-- Every gallery card remains useful without hover and exposes a visible Production label plus an explicit Use rig or Active action.
-- At 200% browser zoom, card copy, filters, focus rings, and internal scrolling remain operable without page-level horizontal overflow.
-- The workspace rail always identifies the active rig, family, and one-line purpose before users edit media, presets, or controls.
-- All 24 presets produce a meaningful visual change, retain their rig ownership, show Applied/Modified state in text, and preserve media plus unowned settings.
-- Export completion reports filename, rig, format, dimensions, duration relevance, FPS relevance, background, loaded media, and file size.
-- Cancellation leaves no partial download and provides a clear path back to review or retry.
+- Can you explain what the product does within ten seconds?
+- Do the six systems feel visually distinct before you open them?
+- Is the stage the clear center of the workspace?
+- Can you understand and adjust motion without a timeline?
+- Do media, preset, and inspector changes feel predictable?
+- Does export explain exactly what will be created?
+- When something is unavailable, is the recovery action obvious?
+
+## Optional Deeper Checks
+
+- Add your own images and confirm they remain local to the browser.
+- Reorder, replace, remove, undo, and clear media.
+- Try 1:1, 16:9, and 9:16 output ratios.
+- Try Transparent, Solid, and Gradient backgrounds.
+- Switch systems and confirm compatible media order is preserved.
+- Use desktop rail collapse, tablet/mobile drawers, focus mode, zoom, and fit.
+- Cancel a WebM export, retry it, and inspect the completion details.
+- Reload and confirm settings restore while local media correctly returns empty.
 
 ## Keyboard Shortcuts
 
 - Space — Play or pause
 - Left / Right Arrow — Step one frame while the stage or transport is focused
-- Shift + Left / Right Arrow — Larger step
+- Shift + Left / Right Arrow — Step by 0.25 seconds
 - 0 — Fit the stage
 - Shift + F — Focus mode
 - Escape — Close an open drawer or dialog when closing is allowed
 
-Workspace tabs and mutually exclusive inspector/export controls support arrow-key navigation. Media reordering also provides Move earlier and Move later buttons as a keyboard alternative to dragging.
+Workspace tabs and mutually exclusive controls support arrow-key navigation. Media reordering also provides Move earlier and Move later buttons as a keyboard alternative to dragging.
 
 ## Accessibility And Motion
 
-- The stage exposes the current rig, media count, ratio, playback state, and coarse loop time to assistive technology without announcing every frame.
 - Dialogs and narrow-screen drawers contain focus while open and return focus to their trigger when closed.
-- When the operating system requests reduced motion, preview autoplay is disabled and non-essential transitions are minimized. Playback remains available through the visible Play control.
-- Rig library previews become static when reduced motion is requested, and the library traps focus while open.
-- Remove, Clear All, and Reset Rig provide confirmation or Undo recovery.
-
-## Session Restoration
-
-Each rig’s settings, ratio, background, and active preset are stored independently. Panel collapse state, fit mode, and zoom are global. Uploaded images are deliberately not persisted. After reload, all six rig states remain available with empty media slots.
+- The stage exposes the current motion system, media count, ratio, playback state, and coarse loop time without announcing every frame.
+- With reduced motion enabled, preview autoplay stops and non-essential transitions are minimized. Playback remains available through the visible Play control.
+- Remove, Clear all, and Reset motion settings provide confirmation or Undo recovery.
 
 ## Feedback Questions
 
-- Did you understand what to do?
-- Did the motion feel useful or just like a demo?
-- Did the export look publishable?
-- What confused you?
-- What one thing would make this more useful?
-- Where would you use this output?
+- Did you understand what MotionKit Spatial does quickly?
+- Which motion system did you try first, and why?
+- Was the exported output useful for a real project?
+- What felt difficult or uncertain?
+- What would make you use this regularly?
+
+The same questions are available from **Alpha guide & feedback** in the workspace utility menu. They can be copied or opened in a local email draft; no account or analytics is required.
 
 ## Known Limitations
 
 - WebM is the only video format; PNG is available for still frames.
-- MP4 not available yet.
-- No project saving.
+- MP4 is not available.
 - Uploaded media does not persist across reloads.
-- No timeline.
-- No advanced export settings.
+- There is no project saving, cloud storage, timeline, layers, keyframes, collaboration, backend, or account system.
 - Transparent WebM playback may vary by browser.
-- WebM recording is capability-detected. Browsers without a supported canvas recording path use the explicitly confirmed PNG snapshot flow.
-- The automated alpha pass currently covers the Chromium-based in-app browser. Safari and Firefox should be treated as unverified until their upload, color, focus, and export paths are manually exercised.
-- Local prototype only.
+- Browsers without a supported canvas WebM recording path use an explicitly confirmed PNG snapshot flow.
+- The automated alpha pass covers the Chromium-based in-app browser. Safari and Firefox remain unverified until their upload, focus, color, and export paths are manually exercised.

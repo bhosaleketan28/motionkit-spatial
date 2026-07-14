@@ -89,7 +89,7 @@ export const filmStripRig: FilmStripRigDefinition = {
     staticProgress: 0.34,
   },
   render: renderFilmStrip,
-  shortDescription: "A cinematic horizontal stream of media frames.",
+  shortDescription: "Editorial sequences and continuous visual storytelling.",
   slotCount: 6,
   slotLabels: ["Frame 1", "Frame 2", "Frame 3", "Frame 4", "Frame 5", "Frame 6"],
   supportedRatios: ["16:9", "9:16", "1:1"],

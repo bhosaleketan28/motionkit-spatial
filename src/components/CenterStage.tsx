@@ -95,7 +95,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       }
       lastDescriptionSecondRef.current = wholeSecond;
       stageDescriptionRef.current.textContent = [
-        `${rig.name} rig.`,
+        `${rig.name} motion system.`,
         rig.accessibilityDescription,
         `${loadedMediaCount} of ${rig.slotCount} media items loaded.`,
         `${settings.frameRatio} frame ratio.`,
@@ -282,6 +282,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       aria-describedby={variant === "editor" ? "stage-accessible-description" : undefined}
       className={variant === "onboarding" ? "center-stage onboarding-stage" : "center-stage"}
       aria-label="Canvas preview"
+      id={variant === "editor" ? "workspace-stage" : undefined}
       tabIndex={variant === "editor" ? 0 : undefined}
     >
       {variant === "editor" ? (

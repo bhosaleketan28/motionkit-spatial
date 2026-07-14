@@ -67,7 +67,7 @@ export const gridWallRig: GridWallRigDefinition = {
   presets: gridWallPresets,
   preview: { accent: "#78d6b8", durationSeconds: 9, generateMedia: generateGridWallDemoMedia, mediaCount: 6, ratio: "16:9", render: renderGridWall, settingsOverride: { focusDepth: 0.56, focusScale: 0.2, frameRatio: "16:9", gridScale: 0.88 }, staticProgress: 0.28 },
   render: renderGridWall,
-  shortDescription: "A modular wall with moving focal rhythm.",
+  shortDescription: "Brand systems, portfolios, and modular visual narratives.",
   slotCount: 6,
   slotLabels: ["Tile 1", "Tile 2", "Tile 3", "Tile 4", "Tile 5", "Tile 6"],
   supportedRatios: ["16:9", "9:16", "1:1"],

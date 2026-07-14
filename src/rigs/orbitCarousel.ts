@@ -79,7 +79,7 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
   },
   presets: orbitCarouselPresets,
   preview: {
-    accent: "#70e0bf",
+    accent: "#7a3dff",
     durationSeconds: 8,
     generateMedia: generateOrbitCarouselDemoMedia,
     mediaCount: 4,
@@ -89,7 +89,7 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
     staticProgress: 0.12,
   },
   render: renderOrbitCarousel,
-  shortDescription: "Four-image spatial loop",
+  shortDescription: "Spatial showcases with a cinematic sense of depth.",
   slotCount: 4,
   slotLabels: ["Slot 1", "Slot 2", "Slot 3", "Slot 4"],
   supportedRatios: ["1:1", "16:9", "9:16"],

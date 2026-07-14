@@ -13,7 +13,16 @@ Stable order:
 5. Wave Path
 6. Stack Flow
 
-Featured is limited to two rigs and signals recommended starting points only. Every card must also show its family, Production status, short outcome-led description, media/ratio metadata, and a visible Use rig or Active action. State and focus cannot rely on mint color alone.
+Featured is limited to two motion systems and signals recommended starting points only. Every card must show its family, readiness, short outcome-led description, media requirement, and a visible Use motion or Active action. Secondary tags and ratio metadata stay out of the primary card presentation. State and focus cannot rely on violet color alone.
+
+## Visual Identity Baseline
+
+- Application background `#080808`, primary surface `#121212`, elevated surface `#181818`, and border `#2A2A2A`.
+- MotionKit Violet `#7A3DFF` is reserved for primary actions, current selection, keyboard focus, progress, and active motion state.
+- Small violet text uses the accessible text derivative documented in `VISUAL_IDENTITY.md`; state always retains a label, icon, border, or native checked/pressed semantic.
+- First run, workspace, gallery, inspector, dialogs, and export should read as one neutral instrument rather than separate dashboard cards.
+- No purple gradients, decorative violet glow, panel shadows, card shadows, or text shadows are allowed in application chrome.
+- Canvas renderers retain only their authored media-card shadows. Preview selection uses a clean violet outline and remains excluded from export.
 
 ## Preview Quality Criteria
 
@@ -84,13 +93,13 @@ Applied and Modified must be announced in text. Reapplying a preset must preserv
 | 768×1024 | Full-height stage, internal controls, no document stack | Pass |
 | 390×844 | Mobile toolbar, full-width stage, persistent scrubber, bottom drawers | Pass |
 
-The tested document width matched the viewport at every size. Media drawer Escape recovery restored focus to Show media panel. Gallery open/close cycles did not leave stale preview schedulers or new console errors.
+The Phase 14.1 tested document width matched the viewport at every size. Desktop retained both rails at 1440×900 and 1280×720; 960×800, 768×1024, and 390×844 retained the stage-first drawer architecture. Mobile first run, gallery, workspace, and export remained within the viewport. Gallery and dialog checks produced no new console errors.
 
 Direct 200% browser zoom emulation was not available in the automated browser, so 200% zoom remains a manual alpha check.
 
 ## Export Confidence
 
-Focus Deck and Wave Path were exercised through WebM and PNG. Wave Path also covered active cancellation and retry. PNG hid video-only controls, required explicit still-frame acknowledgement, and completed with Still frame and Not applicable FPS metadata. WebM completion reported duration and FPS. Both formats reported rig, dimensions, background, loaded media, filename, and file size.
+Focus Deck was re-exercised through the Phase 14.1 WebM creation flow. Progress used restrained violet phase indication, and completion reported a 1920×1080, 60 FPS, 9-second, 3.6 MB local WebM. Existing PNG context, cancellation, and fallback architecture remain unchanged from the Phase 14 confidence baseline.
 
 ## Regression Guardrails
 

@@ -4,6 +4,7 @@ import type { ExportStatus } from "../export/exportSettings";
 interface TopBarProps {
   exportStatus: ExportStatus;
   onExport: () => void;
+  onOpenHelp: () => void;
   onReset: () => void;
   rigName: string;
 }
@@ -11,6 +12,7 @@ interface TopBarProps {
 export function TopBar({
   exportStatus,
   onExport,
+  onOpenHelp,
   onReset,
   rigName,
 }: TopBarProps) {
@@ -56,8 +58,8 @@ export function TopBar({
           <div className="utility-menu-popover">
             <span>Workspace</span>
             {isResetConfirmationOpen ? (
-              <div className="reset-confirmation" role="group" aria-label="Confirm reset rig settings">
-                <p>Reset every rig setting to its default?</p>
+              <div className="reset-confirmation" role="group" aria-label="Confirm reset motion settings">
+                <p>Reset every motion setting to its default?</p>
                 <div>
                   <button
                     ref={resetCancelRef}
@@ -84,7 +86,7 @@ export function TopBar({
               </div>
             ) : (
               <button ref={resetTriggerRef} type="button" onClick={() => setIsResetConfirmationOpen(true)}>
-                Reset rig settings…
+                Reset motion settings…
               </button>
             )}
             <details className="shortcut-help">
@@ -98,17 +100,16 @@ export function TopBar({
                 <div><dt>Close</dt><dd>Escape</dd></div>
               </dl>
             </details>
-            <details className="alpha-help">
-              <summary>Alpha notes</summary>
-              <div>
-                <p>For the most reliable WebM export, use a current Chromium browser.</p>
-                <ul>
-                  <li>WebM support varies by browser.</li>
-                  <li>Local media must be re-added after reload.</li>
-                  <li>Safari and Firefox still need manual verification.</li>
-                </ul>
-              </div>
-            </details>
+            <button
+              className="utility-help-action"
+              type="button"
+              onClick={() => {
+                if (utilitiesRef.current) utilitiesRef.current.open = false;
+                onOpenHelp();
+              }}
+            >
+              Alpha guide & feedback
+            </button>
           </div>
         </details>
         <button
@@ -117,7 +118,7 @@ export function TopBar({
           type="button"
           onClick={onExport}
         >
-          {isExporting ? "Exporting…" : "Export"}
+          {isExporting ? "Creating…" : "Export"}
         </button>
       </div>
     </header>
@@ -125,7 +126,7 @@ export function TopBar({
 }
 
 function getCompactStatus(status: ExportStatus) {
-  if (status === "exporting") return "Rendering loop";
+  if (status === "exporting") return "Creating output";
   if (status === "done") return "WebM downloaded";
   if (status === "fallback") return "Snapshot downloaded";
   if (status === "cancelled") return "Export cancelled";

@@ -46,7 +46,7 @@ export function parseWorkspaceSession(value: unknown): WorkspaceSessionReadResul
   const requestedRigId = value.version >= 2 && typeof value.activeRigId === "string" ? value.activeRigId : DEFAULT_RIG_ID;
   const rigWasFound = hasRig(requestedRigId);
   const activeRig = getRigById(requestedRigId);
-  let issue: string | null = rigWasFound ? null : "The saved motion rig is unavailable. Orbit Carousel was restored safely.";
+  let issue: string | null = rigWasFound ? null : "The saved motion system is unavailable. Orbit Carousel was restored safely.";
   const rigStates: Record<string, PersistedRigState> = {};
 
   rigRegistry.forEach((rig) => {
