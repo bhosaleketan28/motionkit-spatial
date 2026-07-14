@@ -82,6 +82,7 @@ export function ExportSheet({
   const [error, setError] = useState<ExportProcessError | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const frame = getExportFrameSize(settings.frameRatio, quality);
+  const mediaCount = slotImages.filter(Boolean).length;
   const isRunning = view === "running";
   const mediaIssue = mediaIssues[format];
 
@@ -315,6 +316,7 @@ export function ExportSheet({
               format={format}
               fps={fps}
               frame={frame}
+              mediaCount={mediaCount}
               mediaIssue={mediaIssue}
               onFrameRatioChange={changeFrameRatio}
               pngConsent={pngConsent}
@@ -338,7 +340,14 @@ export function ExportSheet({
           ) : null}
 
           {view === "complete" && artifact ? (
-            <ExportComplete artifact={artifact} onClose={closeSheet} onExportAgain={returnToReview} />
+            <ExportComplete
+              artifact={artifact}
+              backgroundMode={settings.background.mode}
+              mediaCount={mediaCount}
+              onClose={closeSheet}
+              onExportAgain={returnToReview}
+              rigName={rig.name}
+            />
           ) : null}
 
           {view === "cancelled" ? (
@@ -406,6 +415,7 @@ interface ExportReviewProps {
   format: ExportFormat;
   fps: ExportFps;
   frame: { width: number; height: number };
+  mediaCount: number;
   mediaIssue: string | null;
   onFileNameChange: (fileName: string) => void;
   onFrameRatioChange: (ratio: FrameRatio) => void;
@@ -425,6 +435,7 @@ function ExportReview({
   format,
   fps,
   frame,
+  mediaCount,
   mediaIssue,
   onFileNameChange,
   onFrameRatioChange,
@@ -605,13 +616,21 @@ function ExportReview({
         </div>
         ) : null}
 
+        <div className="export-output-row export-readonly-row">
+          <span>Media</span>
+          <output>{mediaCount}/{rig.slotCount} loaded</output>
+        </div>
+
         <label className="export-filename-field export-output-row">
           <span>Filename</span>
           <span className="export-filename-input-wrap">
             <input
               aria-label="Export filename"
+              autoComplete="off"
               data-export-view-focus
               maxLength={140}
+              name="export-filename"
+              spellCheck={false}
               type="text"
               value={fileName}
               onBlur={() => onFileNameChange(normalizeExportFileName(fileName, format))}
@@ -713,12 +732,18 @@ function ExportRunning({
 
 function ExportComplete({
   artifact,
+  backgroundMode,
+  mediaCount,
   onClose,
   onExportAgain,
+  rigName,
 }: {
   artifact: ExportArtifact;
+  backgroundMode: BackgroundMode;
+  mediaCount: number;
   onClose: () => void;
   onExportAgain: () => void;
+  rigName: string;
 }) {
   return (
     <div className="export-complete">
@@ -729,10 +754,13 @@ function ExportComplete({
       </h3>
       <dl className="export-result-details">
         <div><dt>Filename</dt><dd>{artifact.fileName}</dd></div>
+        <div><dt>Rig</dt><dd>{rigName}</dd></div>
         <div><dt>Format</dt><dd>{artifact.format.toUpperCase()}</dd></div>
         <div><dt>Dimensions</dt><dd>{artifact.frame.width} × {artifact.frame.height}</dd></div>
-        <div><dt>Duration</dt><dd>{artifact.durationSeconds.toFixed(1)} seconds</dd></div>
+        <div><dt>Duration</dt><dd>{artifact.format === "png" ? "Still frame" : `${artifact.durationSeconds.toFixed(1)} seconds`}</dd></div>
         <div><dt>FPS</dt><dd>{artifact.fps ? `${artifact.fps} FPS` : "Not applicable"}</dd></div>
+        <div><dt>Background</dt><dd>{formatBackgroundMode(backgroundMode)}</dd></div>
+        <div><dt>Media</dt><dd>{mediaCount} loaded</dd></div>
         <div><dt>File size</dt><dd>{formatFileSize(artifact.blob.size)}</dd></div>
       </dl>
       <div className="export-complete-actions">

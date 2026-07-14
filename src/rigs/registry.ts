@@ -12,11 +12,11 @@ export const DEFAULT_RIG_ID = orbitCarouselRig.id;
 
 export const rigRegistry: readonly RegisteredRigDefinition[] = validateRigRegistry([
   orbitCarouselRig,
-  filmStripRig,
   gridWallRig,
   focusDeckRig,
-  stackFlowRig,
+  filmStripRig,
   wavePathRig,
+  stackFlowRig,
 ]);
 
 const rigById = new Map(rigRegistry.map((rig) => [rig.id, rig]));
@@ -35,6 +35,11 @@ export function hasRig(rigId: string | null | undefined) {
 
 function validateRigRegistry(rigs: RegisteredRigDefinition[]) {
   const ids = new Set<string>();
+  const featuredCount = rigs.filter((rig) => rig.gallery.featured).length;
+
+  if (featuredCount > 2) {
+    throw new Error("The rig gallery may feature no more than two production rigs.");
+  }
 
   rigs.forEach((rig) => {
     if (!rig.id || ids.has(rig.id)) {

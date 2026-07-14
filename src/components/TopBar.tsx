@@ -117,7 +117,7 @@ export function TopBar({
           type="button"
           onClick={onExport}
         >
-          {isExporting ? "Exporting..." : "Export"}
+          {isExporting ? "Exporting…" : "Export"}
         </button>
       </div>
     </header>

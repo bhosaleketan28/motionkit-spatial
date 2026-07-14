@@ -10,7 +10,7 @@ This alpha tests six complete motion families and the visual rig library. The go
 
 ## What To Do
 
-Use MotionKit Spatial to compare Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path, then export representative WebM and PNG output.
+Use MotionKit Spatial to compare Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow, then export representative WebM and PNG output.
 
 ## Recommended Setup
 
@@ -23,7 +23,7 @@ Use MotionKit Spatial to compare Orbit Carousel, Film Strip, Grid Wall, Focus De
 ## Test Flow
 
 1. Open the app locally.
-2. Open Browse rigs from first run or the workspace. Confirm six animated production previews, six populated family filters, no duplicate roadmap cards, and reliable Escape focus return.
+2. Open Browse rigs from first run or the workspace. Confirm the Orbit, Grid, Focus, Film, Wave, Stack order; exactly two Featured cards; six animated production previews; six populated family filters; no duplicate roadmap cards; and reliable Escape focus return.
 3. Add 1–4 images or screenshots to Orbit Carousel.
 4. Open Browse rigs and switch to Film Strip. Confirm the existing media remains and two empty frames are added.
 5. Load the six-frame Northline Editorial demo and try all four Film Strip presets.
@@ -34,6 +34,16 @@ Use MotionKit Spatial to compare Orbit Carousel, Film Strip, Grid Wall, Focus De
 10. Test Wave Path at zero and high amplitude, both directions, tangent rotation, all ratios, and four presets.
 11. Try Transparent, Solid, and Gradient backgrounds on each new rig. Verify Grid Wall WebM requires three items; Focus Deck, Stack Flow, and Wave Path require two; PNG permits one.
 12. Export WebM and PNG, inspect the files, reload, and confirm the active rig/preset/settings restore while media returns empty.
+
+## Presentation Checks
+
+- First run communicates the four-step job—add images, choose a motion system, customise movement, export—and identifies six production rigs without overwhelming the primary Add images action.
+- Every gallery card remains useful without hover and exposes a visible Production label plus an explicit Use rig or Active action.
+- At 200% browser zoom, card copy, filters, focus rings, and internal scrolling remain operable without page-level horizontal overflow.
+- The workspace rail always identifies the active rig, family, and one-line purpose before users edit media, presets, or controls.
+- All 24 presets produce a meaningful visual change, retain their rig ownership, show Applied/Modified state in text, and preserve media plus unowned settings.
+- Export completion reports filename, rig, format, dimensions, duration relevance, FPS relevance, background, loaded media, and file size.
+- Cancellation leaves no partial download and provides a clear path back to review or retry.
 
 ## Keyboard Shortcuts
 

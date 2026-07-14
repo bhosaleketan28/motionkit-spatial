@@ -25,13 +25,17 @@ A motion rig is a versioned product definition, not only a renderer. Each rig ow
 - a versioned collection of rig-aware presets with explicit property ownership.
 - motion family, discovery tags, maturity, gallery description, and an isolated renderer-preview recipe.
 
-Available production rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 13 includes six complete production rigs: Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path. The gallery has no roadmap cards; Cluster and Depth remain empty hidden families.
+Available production rigs are registered centrally and resolved by id. Missing or invalid ids fall back safely to Orbit Carousel. Phase 13 includes six complete production rigs. Their presentation order is Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow. The gallery has no roadmap cards; Cluster and Depth remain empty hidden families.
 
 ## Motion Families And Discovery
 
 The stable family vocabulary is Orbit, Stream, Grid, Focus, Stack, Cluster, Path, and Depth. A family describes the dominant motion structure, while tags describe secondary qualities such as editorial, looping, perspective, hero, or multi-card. The rig library filters by families that currently contain a production or roadmap entry and always presents production rigs before roadmap concepts.
 
 Production cards use a rig-owned preview contract that runs the real Canvas renderer with isolated default-derived settings and cached generated media. Preview scheduling is shared, visibility-aware, capped near 22 FPS, suspended while the page or library is hidden, and static when reduced motion is requested.
+
+Orbit Carousel and Grid Wall are the current Featured entry points. Featured is a presentation recommendation, not a separate maturity level, and the production library must never feature more than two rigs at once. Every rig remains directly selectable and visibly marked as Production.
+
+Gallery previews use presentation-only framing overrides. Those recipes may adjust scale, spacing, perspective, focus strength, or preview ratio to make the defining structure legible, but they must never alter workspace defaults, export settings, or the renderer's geometry contract.
 
 ## Preset Workflow
 
@@ -198,3 +202,5 @@ Do not build:
 ## Success Criteria
 
 The MVP is successful if a user can upload 4 images, see them orbit in a polished 3D-like carousel, adjust simple controls, and export a usable WebM from their browser.
+
+For six-rig alpha presentation readiness, a first-time viewer must also be able to identify the structural difference between all six systems from the library, understand which two are recommended starting points, retain context after entering the editor, and complete a representative export without encountering placeholder navigation, hidden state, page overflow, or ambiguous completion metadata.

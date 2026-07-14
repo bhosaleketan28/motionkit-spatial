@@ -101,8 +101,9 @@ export function LeftPanel({
       </div>
       <div className="rail-rig-summary" aria-label={`Current rig: ${activeRig.name}`}>
         <span>
-          <small>{formatFamily(activeRig.family)}</small>
+          <small className="rail-rig-family">{formatFamily(activeRig.family)}</small>
           <strong>{activeRig.name}</strong>
+          <small className="rail-rig-description">{activeRig.shortDescription}</small>
         </span>
         <button data-rig-gallery-trigger type="button" onClick={(event) => onBrowseRigs(event.currentTarget)}>Browse rigs</button>
       </div>

@@ -4,23 +4,27 @@ import { CenterStage } from "./CenterStage";
 
 interface StartScreenProps {
   errorMessage: string | null;
+  isInert: boolean;
   onBrowseRigs: (trigger: HTMLElement) => void;
   onLoadDemo: () => void;
   onUploadFiles: (files: FileList) => void;
   noticeMessage?: string | null;
   prefersReducedMotion: boolean;
   rig: RegisteredRigDefinition;
+  rigs: readonly RegisteredRigDefinition[];
   settings: AnyRigSettings;
 }
 
 export function StartScreen({
   errorMessage,
+  isInert,
   onBrowseRigs,
   onLoadDemo,
   onUploadFiles,
   noticeMessage,
   prefersReducedMotion,
   rig,
+  rigs,
   settings,
 }: StartScreenProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -34,7 +38,7 @@ export function StartScreen({
   }, [prefersReducedMotion]);
 
   return (
-    <main className="start-screen">
+    <main aria-hidden={isInert} className="start-screen" inert={isInert}>
       <div className="start-preview" aria-hidden="true">
         <CenterStage
           isPlaying={isPreviewPlaying}
@@ -67,8 +71,7 @@ export function StartScreen({
         <p className="eyebrow">{rig.name}</p>
         <h1 id="start-heading">Turn screenshots into spatial motion.</h1>
         <p>
-          Add {rig.mediaRequirements.minItems}–{rig.mediaRequirements.maxItems} images,
-          tune the motion, then export a clean looping WebM.
+          Add images, choose a motion system, customise the movement, then export.
         </p>
 
         <div className="start-actions">
@@ -99,6 +102,15 @@ export function StartScreen({
         {errorMessage ? <p className="start-error" role="alert">{errorMessage}</p> : null}
         {noticeMessage ? <p className="start-notice" role="status">{noticeMessage}</p> : null}
 
+        <div className="start-rig-breadth" aria-label={`${rigs.length} production motion rigs`}>
+          <strong>{rigs.length} production motion rigs</strong>
+          <ul>
+            {rigs.map((availableRig) => (
+              <li key={availableRig.id}>{formatFamily(availableRig.family)}</li>
+            ))}
+          </ul>
+        </div>
+
         <ul className="start-metadata" aria-label={`${rig.name} details`}>
           <li>{rig.name}</li>
           <li>{rig.mediaRequirements.minItems}–{rig.mediaRequirements.maxItems} local images</li>
@@ -108,4 +120,8 @@ export function StartScreen({
       </section>
     </main>
   );
+}
+
+function formatFamily(family: RegisteredRigDefinition["family"]) {
+  return family.charAt(0).toUpperCase() + family.slice(1);
 }

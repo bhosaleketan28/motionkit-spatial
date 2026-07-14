@@ -8,6 +8,7 @@ import type { FrameSize, RegisteredRigDefinition, RigFamily } from "../rigs/type
 
 interface RigGalleryProps {
   activeRig: RegisteredRigDefinition;
+  isInert?: boolean;
   onClose: () => void;
   onSelectRig: (rigId: string) => void;
   prefersReducedMotion: boolean;
@@ -24,6 +25,7 @@ interface PreviewRegistration {
 
 export function RigGallery({
   activeRig,
+  isInert = false,
   onClose,
   onSelectRig,
   prefersReducedMotion,
@@ -78,7 +80,7 @@ export function RigGallery({
   }, [onClose]);
 
   return (
-    <div className="rig-gallery-layer">
+    <div aria-hidden={isInert} className="rig-gallery-layer" inert={isInert}>
       <button aria-label="Close rig library" className="rig-gallery-scrim" type="button" onClick={onClose} />
       <section
         aria-labelledby="rig-gallery-title"
@@ -180,15 +182,24 @@ function ProductionRigCard({
   scheduler: PreviewScheduler;
 }) {
   return (
-    <article aria-label={`${rig.name}, ${formatFamily(rig.family)} family, production`} className={active ? "rig-library-card active" : "rig-library-card"}>
+    <article
+      aria-current={active ? "true" : undefined}
+      aria-label={`${rig.name}, ${formatFamily(rig.family)} family, production${rig.gallery.featured ? ", featured" : ""}${active ? ", active" : ""}`}
+      className={[
+        "rig-library-card",
+        active ? "active" : "",
+        rig.gallery.featured ? "featured" : "",
+      ].filter(Boolean).join(" ")}
+    >
       <RigPreviewCanvas prefersReducedMotion={prefersReducedMotion} rig={rig} scheduler={scheduler} />
       <div className="rig-library-card-body">
         <div className="rig-card-title-row">
           <div><span>{formatFamily(rig.family)}</span><h4>{rig.name}</h4></div>
-          <small>Production</small>
+          {rig.gallery.featured ? <small className="rig-featured-badge"><span aria-hidden="true">◆</span> Featured</small> : null}
         </div>
         <p>{rig.gallery.description}</p>
         <div className="rig-card-meta">
+          <span className="rig-production-status"><span aria-hidden="true">✓</span> Production rig</span>
           <span>{formatMediaRequirement(rig)}</span>
           <span>{rig.supportedRatios.join(" · ")}</span>
         </div>
@@ -196,8 +207,14 @@ function ProductionRigCard({
           <div className="rig-tag-list" aria-label={`${rig.name} tags`}>
             {rig.tags.slice(0, 3).map((tag) => <span key={tag}>{formatTag(tag)}</span>)}
           </div>
-          <button className={active ? "rig-card-action active" : "rig-card-action"} disabled={active} type="button" onClick={onSelect}>
-            {active ? "Active" : "Select"}
+          <button
+            aria-label={active ? `${rig.name} is active` : `Use ${rig.name}`}
+            className={active ? "rig-card-action active" : "rig-card-action"}
+            disabled={active}
+            type="button"
+            onClick={onSelect}
+          >
+            {active ? "✓ Active" : "Use rig"}
           </button>
         </div>
       </div>
@@ -352,9 +369,13 @@ function RigPreviewCanvas({
 
   const frame = getPreviewFrame(rig.preview.ratio);
   return (
-    <div className="rig-preview-viewport" ref={viewportRef} style={{ "--rig-preview-accent": rig.preview.accent ?? "#70e0bf" } as React.CSSProperties}>
+    <div
+      className={`rig-preview-viewport${prefersReducedMotion ? " preview-reduced" : ""}`}
+      ref={viewportRef}
+      style={{ "--rig-preview-accent": rig.preview.accent ?? "#70e0bf" } as React.CSSProperties}
+    >
       <canvas
-        aria-label={`${rig.name} animated renderer preview`}
+        aria-label={`${rig.name} ${prefersReducedMotion ? "static" : "animated"} renderer preview. ${rig.accessibilityDescription}`}
         className="rig-preview-canvas"
         height={frame.height}
         ref={canvasRef}

@@ -38,8 +38,7 @@ export function RigControls({ rig, settings, onChange }: RigControlsProps) {
         if (section.id === "background" && !rig.capabilities.supportsBackground) return null;
 
         return (
-          <details className="inspector-section" key={section.id} open={section.defaultOpen}>
-            <summary>{section.label}</summary>
+          <InspectorSection defaultOpen={section.defaultOpen} key={`${rig.id}-${section.id}`} label={section.label}>
             <div className="inspector-content">
               {controls.map((control) =>
                 control.kind === "number" ? (
@@ -84,10 +83,32 @@ export function RigControls({ rig, settings, onChange }: RigControlsProps) {
                 </>
               ) : null}
             </div>
-          </details>
+          </InspectorSection>
         );
       })}
     </div>
+  );
+}
+
+function InspectorSection({
+  children,
+  defaultOpen,
+  label,
+}: {
+  children: React.ReactNode;
+  defaultOpen: boolean;
+  label: string;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  return (
+    <details
+      className="inspector-section"
+      open={isOpen}
+      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+    >
+      <summary>{label}</summary>
+      {children}
+    </details>
   );
 }
 
@@ -196,6 +217,7 @@ function BackgroundControls({
           <span><strong>Include background</strong><small>Off exports transparent pixels</small></span>
           <input
             aria-label="Include background"
+            name="include-background"
             checked={includesBackground}
             type="checkbox"
             onChange={(event) => onChange({ ...settings, mode: event.currentTarget.checked ? lastIncludedModeRef.current : "transparent" })}
@@ -210,7 +232,9 @@ function BackgroundControls({
         />
         <select
           aria-label="Background mode"
+          autoComplete="off"
           disabled={!includesBackground}
+          name="background-mode"
           value={settings.mode}
           onChange={(event) => onChange({ ...settings, mode: event.currentTarget.value as BackgroundMode })}
         >
@@ -259,8 +283,8 @@ function ColorControl({ defaultValue, label, onChange, value }: { defaultValue: 
     <div className={`color-control ${invalid ? "control-invalid" : ""}`}>
       <ControlHeading changed={value.toLowerCase() !== normalizeHex(defaultValue)} label={label} onReset={() => { const next = normalizeHex(defaultValue) ?? defaultValue; setDraft(next); onChange(next); }} />
       <div className="color-input-row">
-        <input aria-label={`${label} color picker`} type="color" value={normalizeHex(value) ?? "#000000"} onChange={(event) => { setDraft(event.currentTarget.value); onChange(event.currentTarget.value); }} />
-        <input aria-describedby={invalid ? errorId : undefined} aria-invalid={invalid} aria-label={`${label} hex value`} autoCapitalize="off" maxLength={7} spellCheck={false} type="text" value={draft} onBlur={() => { setFocused(false); commitDraft(); }} onChange={(event) => { const nextDraft = event.currentTarget.value; setDraft(nextDraft); const next = normalizeHex(nextDraft); if (next) onChange(next); }} onFocus={() => setFocused(true)} />
+        <input aria-label={`${label} color picker`} name={`${toControlName(label)}-picker`} type="color" value={normalizeHex(value) ?? "#000000"} onChange={(event) => { setDraft(event.currentTarget.value); onChange(event.currentTarget.value); }} />
+        <input aria-describedby={invalid ? errorId : undefined} aria-invalid={invalid} aria-label={`${label} hex value`} autoCapitalize="off" autoComplete="off" maxLength={7} name={`${toControlName(label)}-hex`} spellCheck={false} type="text" value={draft} onBlur={() => { setFocused(false); commitDraft(); }} onChange={(event) => { const nextDraft = event.currentTarget.value; setDraft(nextDraft); const next = normalizeHex(nextDraft); if (next) onChange(next); }} onFocus={() => setFocused(true)} />
       </div>
       <span className="color-validation" id={errorId} aria-live="polite">{invalid ? "Enter a 3- or 6-digit hex value." : ""}</span>
     </div>
@@ -274,6 +298,7 @@ interface PrecisionControlProps extends Omit<RigNumericInspectorControl, "key" |
 }
 
 function PrecisionControl({ defaultValue, fineStep, label, largeStep, max, min, onChange, precision, sliderStep, step, unit, unitLabel, value }: PrecisionControlProps) {
+  const errorId = useId();
   const [draft, setDraft] = useState(formatNumber(value, precision));
   const [focused, setFocused] = useState(false);
   const parsed = Number(draft);
@@ -290,10 +315,10 @@ function PrecisionControl({ defaultValue, fineStep, label, largeStep, max, min, 
     <div className={`precision-control ${changed ? "control-changed" : ""} ${invalid ? "control-invalid" : ""}`}>
       <ControlHeading changed={changed} label={label} onReset={() => commit(defaultValue)} />
       <div className="precision-control-row">
-        <input aria-label={`${label} slider`} max={max} min={min} step={sliderStep} type="range" value={value} onChange={(event) => commit(Number(event.currentTarget.value))} />
-        <label className="numeric-input"><span className="sr-only">{label}</span><input aria-invalid={invalid} aria-label={`${label} in ${unitLabel}`} inputMode="decimal" max={max} min={min} step={step} type="number" value={draft} onBlur={() => { setFocused(false); if (invalid) setDraft(formatNumber(value, precision)); else commit(parsed); }} onChange={(event) => { const nextDraft = event.currentTarget.value; setDraft(nextDraft); const nextValue = Number(nextDraft); if (nextDraft.trim() !== "" && Number.isFinite(nextValue)) onChange(roundTo(clamp(nextValue, min, max), precision)); }} onFocus={() => setFocused(true)} onKeyDown={(event) => { if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return; event.preventDefault(); const increment = event.shiftKey ? largeStep : event.altKey ? fineStep : step; commit(value + increment * (event.key === "ArrowUp" ? 1 : -1)); }} /><span aria-hidden="true">{unit}</span></label>
+        <input aria-label={`${label} slider`} max={max} min={min} name={`${toControlName(label)}-slider`} step={sliderStep} type="range" value={value} onChange={(event) => commit(Number(event.currentTarget.value))} />
+        <label className="numeric-input"><span className="sr-only">{label}</span><input aria-describedby={invalid ? errorId : undefined} aria-invalid={invalid} aria-label={`${label} precise value in ${unitLabel}`} autoComplete="off" inputMode="decimal" max={max} min={min} name={`${toControlName(label)}-value`} step={step} type="number" value={draft} onBlur={() => { setFocused(false); if (invalid) setDraft(formatNumber(value, precision)); else commit(parsed); }} onChange={(event) => { const nextDraft = event.currentTarget.value; setDraft(nextDraft); const nextValue = Number(nextDraft); if (nextDraft.trim() !== "" && Number.isFinite(nextValue)) onChange(roundTo(clamp(nextValue, min, max), precision)); }} onFocus={() => setFocused(true)} onKeyDown={(event) => { if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return; event.preventDefault(); const increment = event.shiftKey ? largeStep : event.altKey ? fineStep : step; commit(value + increment * (event.key === "ArrowUp" ? 1 : -1)); }} /><span aria-hidden="true">{unit}</span></label>
       </div>
-      <span className="sr-only" aria-live="polite">{invalid ? `${label} needs a valid number.` : ""}</span>
+      <span className="sr-only" id={errorId} aria-live="polite">{invalid ? `${label} needs a valid number.` : ""}</span>
     </div>
   );
 }
@@ -303,6 +328,7 @@ function clamp(value: number, min: number, max: number) { return Math.min(max, M
 function roundTo(value: number, precision: number) { const factor = 10 ** precision; return Math.round(value * factor) / factor; }
 function formatNumber(value: number, precision: number) { return value.toFixed(precision).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1"); }
 function formatBackgroundMode(mode: BackgroundMode) { return mode === "transparent" ? "Transparent" : mode === "gradient" ? "Gradient" : "Solid"; }
+function toControlName(label: string) { return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 
 function handleRadioNavigation(
   event: React.KeyboardEvent<HTMLButtonElement>,

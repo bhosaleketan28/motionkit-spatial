@@ -5,13 +5,18 @@ The rig gallery is the discovery and switching surface for motion systems. It op
 ## Content Order
 
 - Production rigs appear first and are sourced only from the validated registry.
+- The stable presentation order is Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow.
+- Orbit Carousel and Grid Wall are the two Featured starting points. Registry validation rejects more than two Featured rigs.
 - Roadmap concepts appear second when present. Phase 13 has no roadmap cards because all four prior concepts are now production rigs.
 - Family tabs are derived from populated production and roadmap entries; empty families are hidden.
-- Each production card shows family, name, production status, concise description, media requirement, ratios, discovery tags, and Select or Active state.
+- Each production card shows family, name, production status, concise description, media requirement, ratios, discovery tags, Featured status when applicable, and Use rig or Active state.
+- Featured, Active, Production, animated/static state, and keyboard focus are expressed with text or shape as well as color.
 
 ## Preview Contract
 
 Production cards render the actual rig renderer with a rig-owned preview recipe. Preview settings are isolated from the active workspace. Generated demo media is decoded and cached once per rig/version/media-count key.
+
+The production preview frame is consistently 16:9. Preview-only settings keep the complete structure inside the card: Orbit exposes front and rear depth, Grid keeps all six authored cells readable, Focus preserves a dominant hero plus visible supports, Film shows a continuous ordered stream, Wave exposes an open curve, and Stack preserves the layered queue. Workspace and export output remain unchanged.
 
 One gallery-owned scheduler targets approximately 22 FPS. It draws only cards reported visible by Intersection Observer, stops when the gallery unmounts, suspends while the document is hidden, and does not set React state per frame. Reduced-motion mode renders the declared static progress frame without starting the scheduler.
 
@@ -23,9 +28,9 @@ One gallery-owned scheduler targets approximately 22 FPS. It draws only cards re
 - Cancelling overflow removal keeps the gallery open. Confirming completes the switch and closes it.
 - Empty Cluster and Depth families remain hidden.
 
-## Phase 13 Production Set
+## Phase 13.1 Production Set
 
-The gallery contains six selectable real-renderer cards in stable registry order: Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path. Their populated family filters are Orbit, Stream, Grid, Focus, Stack, and Path. All six previews share the same visibility-aware scheduler and isolated decoded-media cache.
+The gallery contains six selectable real-renderer cards in stable registry order: Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow. Their populated family filters are Orbit, Grid, Focus, Stream, Path, and Stack. All six previews share the same visibility-aware scheduler and isolated decoded-media cache.
 
 ## Responsive Rules
 

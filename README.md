@@ -1,6 +1,6 @@
 # MotionKit Spatial
 
-MotionKit Spatial is a private local browser app for creating animated spatial motion from screenshots. It includes six production-ready motion rigs: Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path.
+MotionKit Spatial is a private local browser app for creating animated spatial motion from screenshots. It includes six production-ready motion rigs: Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow.
 
 Users can add local images or load a rig-specific demo, preview deterministic Canvas 2D motion, adjust precision controls, and export a local WebM or PNG.
 
@@ -41,6 +41,8 @@ The app is static and browser-only. Uploaded images are processed locally in the
 - Generic UI-facing rig contract with a validated central registry and safe fallback lookup
 - Eight-family motion taxonomy covering orbit, stream, grid, focus, stack, cluster, path, and depth
 - Responsive visual rig library with six actual production-renderer previews
+- Presentation-reviewed gallery order—Orbit, Grid, Focus, Film, Wave, Stack—with at most two explicit Featured recommendations
+- Preview-only framing recipes that keep every motion structure legible without changing workspace or export geometry
 - One visibility-aware 22 FPS preview scheduler with cached demo media, page-visibility pausing, and static reduced-motion frames
 - Generic versioned preset contract with explicit rig ownership, compatibility, and property ownership
 - Four Orbit Carousel starting points: Cinematic, Clean Studio, Launch Glow, and Minimal Light
@@ -113,3 +115,7 @@ The app is static and browser-only. Uploaded images are processed locally in the
 Orbit Carousel, Film Strip, Grid Wall, Focus Deck, Stack Flow, and Wave Path are registered production rigs. Each definition owns its metadata, motion family, searchable tags, gallery description, preview recipe, slot contract, ratios, default settings, declarative inspector controls, renderer, original demo generator, format-specific media requirements, export metadata, capabilities, exactly four compatible presets, validation, accessibility description, and version. Cluster and Depth remain empty taxonomy families and are hidden from the gallery.
 
 The registry lives in `src/rigs/registry.ts`. Future rigs should be added as self-contained definitions and registered only after their renderer, settings validator, media contract, demo media, inspector behavior, gallery preview, export metadata, and session compatibility are complete. See `docs/RIG_ARCHITECTURE.md`, `docs/MOTION_FAMILIES.md`, `docs/ADDING_A_RIG.md`, and `docs/RIG_GALLERY.md`.
+
+## Presentation QA
+
+Phase 13.1 establishes a repeatable six-rig presentation baseline for alpha and investor walkthroughs: concise family-led naming, two Featured rigs, real-renderer previews with consistent 16:9 framing, task-oriented first run, persistent current-rig context, structured inspector sections, detailed completion metadata, and responsive keyboard-accessible gallery behavior. See `docs/PRESENTATION_QA.md` for the review matrix and demo script.

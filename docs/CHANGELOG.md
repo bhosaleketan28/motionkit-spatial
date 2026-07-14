@@ -26,6 +26,7 @@
 - Phase 11: Second rig — Film Strip
 - Phase 12: Visual rig library and motion family framework
 - Phase 13: Essential motion families
+- Phase 13.1: Six-rig presentation polish
 
 ## Phase 8 Highlights
 
@@ -164,3 +165,16 @@
 - Upgraded workspace persistence to version 5 with version 1–4 migration and independent defaults/recovery for all six rig states.
 - Reset transport progress on successful rig switches while preserving duration synchronization, compatible media identity, overflow confirmation, and per-rig preset state.
 - Verified Wave Path PNG and WebM output through the production export flow and rechecked the gallery/workspace across desktop, tablet, and mobile layouts.
+
+## Phase 13.1 Highlights
+
+- Reordered the production library for clearer discovery: Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow.
+- Added an explicit two-rig Featured tier for Orbit Carousel and Grid Wall without changing production maturity or hiding the other systems.
+- Reframed all six real-renderer previews with isolated 16:9 presentation recipes so orbit depth, grid focus, hero/support hierarchy, continuous stream, open path, and layered queue read immediately.
+- Tightened gallery descriptions, visible Production/Active states, use-rig labels, card focus treatment, and reduced-motion status so recommendations and state do not rely on color alone.
+- Added registry-driven six-rig breadth to first run and a persistent family-plus-description current-rig summary in the workspace rail.
+- Standardized inspector grouping around Motion, Layout, Depth & focus, Card appearance, Background, and Output summary while preserving every existing control and renderer setting.
+- Kept disclosure state stable during edits so collapsed inspector sections no longer reopen after a setting change.
+- Expanded export review and completion metadata with media readiness, rig, dimensions, background, duration, FPS relevance, and file size.
+- Made first-run, gallery, workspace, and top-bar layers inert while blocking dialogs are open; verified Escape close and trigger focus recovery for rig switching and mobile drawers.
+- Reverified first run, media compaction, presets, rig switching, keyboard stepping, Focus/Wave export, cancellation/retry, responsive layouts, and console health in the local Chromium browser.

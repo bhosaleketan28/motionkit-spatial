@@ -16,3 +16,16 @@ Motion families describe the dominant spatial structure of a rig. They are stabl
 Tags are complementary discovery language. A rig may be tagged `editorial`, `looping`, `perspective`, `hero`, or `multi-card`, but tags never replace its single family.
 
 The six implemented families remain structurally distinct: Orbit uses circular depth, Stream uses a repeating band, Grid uses fixed cells and changing focus, Focus uses hero/support roles, Stack uses a layered cyclic queue, and Path uses open-curve sampling. The gallery hides the empty Cluster and Depth filters.
+
+## Presentation Differentiation
+
+| Rig | Immediate visual read | Preview emphasis |
+| --- | --- | --- |
+| Orbit Carousel | Cards circulate around a center with front/back depth | Balanced spread, readable rear cards, clear front focus |
+| Grid Wall | Six fixed cells form an architectural field | Complete grid, visible focus weighting, restrained drift |
+| Focus Deck | One hero frame leads four supports | Dominant center hero with enough support context |
+| Film Strip | Ordered frames move through a continuous horizontal band | Smaller cards, clear gaps, multiple frames in view |
+| Wave Path | Frames travel along an open authored curve | Wider path, visible amplitude, readable tangent rotation |
+| Stack Flow | Cards advance through an overlapping queue | Compact layered pile with readable depth steps |
+
+Presentation recipes are preview metadata only. They do not create motion-family aliases, change registered defaults, or replace rig-owned renderer geometry.

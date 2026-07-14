@@ -137,7 +137,13 @@ export type AnyRigSettings =
   | StackFlowRigSettings
   | WavePathRigSettings;
 
-export type RigInspectorSectionId = "motion" | "appearance" | "background" | "export";
+export type RigInspectorSectionId =
+  | "motion"
+  | "layout"
+  | "depth"
+  | "appearance"
+  | "background"
+  | "export";
 
 export interface RigInspectorSection {
   defaultOpen: boolean;
@@ -230,6 +236,7 @@ export interface RigDemoMedia {
 
 export interface RigGalleryMetadata {
   description: string;
+  featured?: boolean;
 }
 
 export interface RigPreviewDefinition<Settings extends BaseRigSettings> {

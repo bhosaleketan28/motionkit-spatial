@@ -121,6 +121,8 @@ export default function App() {
   const activePresetState = activePreset
     ? getPresetApplicationState(activePreset, normalizedSettings)
     : null;
+  const isBlockingOverlayOpen =
+    isRigGalleryOpen || isExportSheetOpen || Boolean(pendingRigId);
   const {
     addFiles,
     clearAllSlots,
@@ -517,17 +519,20 @@ export default function App() {
       <>
         <StartScreen
           errorMessage={startUploadError}
+          isInert={isRigGalleryOpen}
           noticeMessage={appNotice?.message}
           onBrowseRigs={openRigGallery}
           onLoadDemo={handleLoadDemo}
           onUploadFiles={handleStartUpload}
           prefersReducedMotion={prefersReducedMotion}
           rig={activeRig}
+          rigs={rigRegistry}
           settings={normalizedSettings}
         />
         {isRigGalleryOpen ? (
           <RigGallery
             activeRig={activeRig}
+            isInert={false}
             onClose={closeRigGallery}
             onSelectRig={handleSelectRig}
             prefersReducedMotion={prefersReducedMotion}
@@ -540,15 +545,17 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <TopBar
-        exportStatus={exportStatus}
-        onExport={() => {
-          setExportStatus("ready");
-          setIsExportSheetOpen(true);
-        }}
-        onReset={handleResetSettings}
-        rigName={activeRig.name}
-      />
+      <div aria-hidden={isBlockingOverlayOpen} className="top-bar-layer" inert={isBlockingOverlayOpen}>
+        <TopBar
+          exportStatus={exportStatus}
+          onExport={() => {
+            setExportStatus("ready");
+            setIsExportSheetOpen(true);
+          }}
+          onReset={handleResetSettings}
+          rigName={activeRig.name}
+        />
+      </div>
       <div
         className={[
           "workspace-shell",
@@ -556,6 +563,8 @@ export default function App() {
           isRightRailCollapsed ? "right-rail-collapsed" : "",
           isStageOnly ? "stage-only" : "",
         ].filter(Boolean).join(" ")}
+        aria-hidden={isBlockingOverlayOpen}
+        inert={isBlockingOverlayOpen}
       >
         <LeftPanel
           activeRig={activeRig}
@@ -657,6 +666,7 @@ export default function App() {
       {isRigGalleryOpen ? (
         <RigGallery
           activeRig={activeRig}
+          isInert={Boolean(pendingRigId)}
           onClose={closeRigGallery}
           onSelectRig={handleSelectRig}
           prefersReducedMotion={prefersReducedMotion}
