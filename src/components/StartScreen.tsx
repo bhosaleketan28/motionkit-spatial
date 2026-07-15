@@ -5,8 +5,10 @@ import { CenterStage } from "./CenterStage";
 
 interface StartScreenProps {
   errorMessage: string | null;
+  hasExistingWorkspace: boolean;
   isInert: boolean;
   onBrowseRigs: (trigger: HTMLElement) => void;
+  onContinueEditing: () => void;
   onOpenDemo: () => void;
   onUploadFiles: (files: FileList) => void;
   noticeMessage?: string | null;
@@ -18,8 +20,10 @@ interface StartScreenProps {
 
 export function StartScreen({
   errorMessage,
+  hasExistingWorkspace,
   isInert,
   onBrowseRigs,
+  onContinueEditing,
   onOpenDemo,
   onUploadFiles,
   noticeMessage,
@@ -105,7 +109,12 @@ export function StartScreen({
             ref={inputRef}
             type="file"
           />
-          <button className="primary-button" type="button" onClick={() => inputRef.current?.click()}>
+          {hasExistingWorkspace ? (
+            <button autoFocus className="primary-button start-continue-button" type="button" onClick={onContinueEditing}>
+              Continue editing
+            </button>
+          ) : null}
+          <button className={hasExistingWorkspace ? "secondary-button" : "primary-button"} type="button" onClick={() => inputRef.current?.click()}>
             Add your images
           </button>
           <button className="secondary-button" type="button" onClick={onOpenDemo}>

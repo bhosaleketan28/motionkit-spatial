@@ -419,6 +419,32 @@ h2 {
   overflow: hidden;
 }
 
+.top-bar-home {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 24px;
+  min-height: 28px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  color: var(--text);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.top-bar-home:hover {
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+
+.top-bar-home:active {
+  color: var(--text-muted);
+  background: var(--surface-3);
+  transform: translateY(1px);
+}
+
 .top-bar-brand strong {
   flex: 0 0 auto;
   font-size: 0.84rem;

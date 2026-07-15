@@ -16,6 +16,7 @@ import type { StageTransportHandle } from "./StageTransport";
 
 interface CenterStageProps {
   isFitMode?: boolean;
+  initialProgress?: number;
   isInspectorOpen?: boolean;
   isMediaOpen?: boolean;
   isPlaying: boolean;
@@ -39,12 +40,14 @@ interface CenterStageProps {
 }
 
 export interface CenterStageHandle {
+  getProgress: () => number;
   resetProgress: () => void;
   stepBySeconds: (seconds: number) => void;
 }
 
 export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(function CenterStage({
   isFitMode = true,
+  initialProgress = 0,
   isInspectorOpen = false,
   isMediaOpen = false,
   isPlaying,
@@ -79,7 +82,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
     displayWidth: 0,
     pixelRatio: 0,
   });
-  const progressRef = useRef(0);
+  const progressRef = useRef(Math.min(1, Math.max(0, initialProgress)));
   const resizeFrameRef = useRef<number | null>(null);
   const resumeAfterScrubRef = useRef(false);
   const isScrubbingRef = useRef(false);
@@ -155,7 +158,11 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
     updateProgress(progressRef.current + seconds / settings.durationSeconds);
   }, [onPlaybackChange, settings.durationSeconds, updateProgress]);
 
-  useImperativeHandle(ref, () => ({ resetProgress: () => updateProgress(0), stepBySeconds }), [stepBySeconds, updateProgress]);
+  useImperativeHandle(ref, () => ({
+    getProgress: () => progressRef.current,
+    resetProgress: () => updateProgress(0),
+    stepBySeconds,
+  }), [stepBySeconds, updateProgress]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

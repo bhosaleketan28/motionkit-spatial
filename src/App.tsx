@@ -72,6 +72,8 @@ export default function App() {
   const noticeIdRef = useRef(1);
   const sessionNoticeShownRef = useRef(false);
   const storageWarningShownRef = useRef(false);
+  const preservedEditorProgressRef = useRef(0);
+  const restoreEditorFocusRef = useRef(false);
   const stageRef = useRef<CenterStageHandle | null>(null);
   const isNarrowWorkspace = useMediaQuery(NARROW_WORKSPACE_QUERY);
   const prefersReducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
@@ -91,6 +93,7 @@ export default function App() {
   const [hasEnteredEditor, setHasEnteredEditor] = useState(
     () => initialSession.session?.hasEditorSession ?? false,
   );
+  const [isHomeVisible, setIsHomeVisible] = useState(false);
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
   const [pendingRigId, setPendingRigId] = useState<string | null>(null);
   const [pendingDemoScenario, setPendingDemoScenario] = useState<DemoScenario | null>(null);
@@ -198,6 +201,7 @@ export default function App() {
     const result = addFiles(selectedFiles);
     if (result.added > 0) {
       setHasEnteredEditor(true);
+      setIsHomeVisible(false);
     }
     setStartUploadError(result.errors.length ? result.errors.join(" ") : null);
   };
@@ -206,6 +210,7 @@ export default function App() {
     setStartUploadError(null);
     loadDemoSlots();
     setHasEnteredEditor(true);
+    setIsHomeVisible(false);
   };
 
   const handleSelectDemoScenario = (scenario: DemoScenario) => {
@@ -219,6 +224,7 @@ export default function App() {
       : createDefaultSettings(nextRig);
 
     stageRef.current?.resetProgress();
+    preservedEditorProgressRef.current = 0;
     switchRigMedia(nextRig);
     setRigStates((current) => ({
       ...current,
@@ -268,6 +274,7 @@ export default function App() {
   const completeRigSwitch = (nextRigId: string) => {
     const nextRig = getRigById(nextRigId);
     stageRef.current?.resetProgress();
+    preservedEditorProgressRef.current = 0;
     const result = switchRigMedia(nextRig);
     setRigStates((current) => current[nextRig.id]
       ? current
@@ -305,6 +312,23 @@ export default function App() {
   };
 
   const togglePlayback = () => setIsPlaying((current) => !current);
+
+  const handleGoHome = () => {
+    preservedEditorProgressRef.current = stageRef.current?.getProgress() ?? preservedEditorProgressRef.current;
+    previousDrawerRef.current = null;
+    setActiveDrawer(null);
+    setIsRigGalleryOpen(false);
+    setIsExportSheetOpen(false);
+    setIsAlphaGuideOpen(false);
+    setIsDemoPickerOpen(false);
+    setPendingRigId(null);
+    setIsHomeVisible(true);
+  };
+
+  const handleContinueEditing = () => {
+    restoreEditorFocusRef.current = true;
+    setIsHomeVisible(false);
+  };
 
   const handleFit = () => {
     setZoomPercent(100);
@@ -352,6 +376,7 @@ export default function App() {
     loadDemoSlots();
     setStartUploadError(null);
     setHasEnteredEditor(true);
+    setIsHomeVisible(false);
     setIsPlaying(!prefersReducedMotion);
     showNotice(
       `${pendingDemoScenario.name} opened with ${pendingDemoScenario.rigName} and ${pendingDemoScenario.presetName}.`,
@@ -454,6 +479,17 @@ export default function App() {
   }, [isNarrowWorkspace]);
 
   useEffect(() => {
+    if (isHomeVisible || !restoreEditorFocusRef.current) {
+      return;
+    }
+    restoreEditorFocusRef.current = false;
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelector<HTMLButtonElement>("[data-hoppy-home-trigger]")?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isHomeVisible]);
+
+  useEffect(() => {
     if (activeDrawer) {
       previousDrawerRef.current = activeDrawer;
       const focusFrame = window.requestAnimationFrame(() => {
@@ -480,6 +516,9 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (isHomeVisible || !hasEnteredEditor) {
+        return;
+      }
       if (document.querySelector('[role="dialog"][aria-modal="true"]')) {
         return;
       }
@@ -491,6 +530,10 @@ export default function App() {
         tagName === "INPUT" ||
         tagName === "TEXTAREA" ||
         tagName === "SELECT";
+      const isNativeInteractiveTarget =
+        tagName === "BUTTON" ||
+        tagName === "A" ||
+        tagName === "SUMMARY";
 
       if (event.key === "Escape" && activeDrawer) {
         event.preventDefault();
@@ -521,7 +564,7 @@ export default function App() {
         return;
       }
 
-      if (isEditableTarget) {
+      if (isEditableTarget || isNativeInteractiveTarget) {
         return;
       }
 
@@ -564,16 +607,28 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeDrawer]);
+  }, [activeDrawer, hasEnteredEditor, isHomeVisible]);
 
-  if (!hasEnteredEditor) {
+  const rigSwitchDialog = pendingRigId ? (
+    <RigSwitchDialog
+      discardedCount={slots.slice(getRigById(pendingRigId).slotCount).filter((slot) => slot.status !== "empty").length}
+      fromRig={activeRig}
+      onCancel={cancelRigSwitch}
+      onConfirm={() => completeRigSwitch(pendingRigId)}
+      toRig={getRigById(pendingRigId)}
+    />
+  ) : null;
+
+  if (!hasEnteredEditor || isHomeVisible) {
     return (
       <>
         <StartScreen
           errorMessage={startUploadError}
-          isInert={isRigGalleryOpen || isDemoPickerOpen}
+          hasExistingWorkspace={hasEnteredEditor}
+          isInert={isRigGalleryOpen || isDemoPickerOpen || Boolean(pendingRigId)}
           noticeMessage={appNotice?.message}
           onBrowseRigs={openRigGallery}
+          onContinueEditing={handleContinueEditing}
           onOpenDemo={() => setIsDemoPickerOpen(true)}
           onUploadFiles={handleStartUpload}
           prefersReducedMotion={prefersReducedMotion}
@@ -584,7 +639,7 @@ export default function App() {
         {isRigGalleryOpen ? (
           <RigGallery
             activeRig={activeRig}
-            isInert={false}
+            isInert={Boolean(pendingRigId)}
             onClose={closeRigGallery}
             onSelectRig={handleSelectRig}
             prefersReducedMotion={prefersReducedMotion}
@@ -598,6 +653,7 @@ export default function App() {
             scenarios={demoScenarios}
           />
         ) : null}
+        {rigSwitchDialog}
       </>
     );
   }
@@ -612,6 +668,7 @@ export default function App() {
             setExportStatus("ready");
             setIsExportSheetOpen(true);
           }}
+          onGoHome={handleGoHome}
           onOpenHelp={() => setIsAlphaGuideOpen(true)}
           onReset={handleResetSettings}
           rigName={activeRig.name}
@@ -658,6 +715,7 @@ export default function App() {
         />
         <CenterStage
           isFitMode={isFitMode}
+          initialProgress={preservedEditorProgressRef.current}
           isInspectorOpen={
             isNarrowWorkspace
               ? activeDrawer === "inspector"
@@ -744,15 +802,7 @@ export default function App() {
           rigs={rigRegistry}
         />
       ) : null}
-      {pendingRigId ? (
-        <RigSwitchDialog
-          discardedCount={slots.slice(getRigById(pendingRigId).slotCount).filter((slot) => slot.status !== "empty").length}
-          fromRig={activeRig}
-          onCancel={cancelRigSwitch}
-          onConfirm={() => completeRigSwitch(pendingRigId)}
-          toRig={getRigById(pendingRigId)}
-        />
-      ) : null}
+      {rigSwitchDialog}
       {isAlphaGuideOpen ? <AlphaGuideDialog onClose={() => setIsAlphaGuideOpen(false)} /> : null}
       <NoticeCenter
         notice={

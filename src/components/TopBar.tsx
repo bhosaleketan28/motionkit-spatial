@@ -4,6 +4,7 @@ import type { ExportStatus } from "../export/exportSettings";
 interface TopBarProps {
   exportStatus: ExportStatus;
   onExport: () => void;
+  onGoHome: () => void;
   onOpenHelp: () => void;
   onReset: () => void;
   rigName: string;
@@ -12,6 +13,7 @@ interface TopBarProps {
 export function TopBar({
   exportStatus,
   onExport,
+  onGoHome,
   onOpenHelp,
   onReset,
   rigName,
@@ -34,7 +36,21 @@ export function TopBar({
   return (
     <header className="top-bar">
       <div className="top-bar-brand">
-        <strong>Hoppy</strong>
+        <button
+          aria-label="Go to Hoppy home"
+          className="top-bar-home"
+          data-hoppy-home-trigger
+          type="button"
+          onClick={onGoHome}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " " || event.code === "Space") {
+              event.preventDefault();
+              if (!event.repeat) onGoHome();
+            }
+          }}
+        >
+          <strong>Hoppy</strong>
+        </button>
         <span aria-hidden="true" />
         <small>{rigName}</small>
       </div>
