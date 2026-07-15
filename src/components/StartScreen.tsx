@@ -60,6 +60,7 @@ export function StartScreen({
       <div className="start-preview" aria-hidden="true">
         <CenterStage
           isPlaying={isPreviewPlaying}
+          isRenderingPaused={isInert}
           onChangeFrameRatio={() => undefined}
           onTogglePlay={() => undefined}
           rig={rig}

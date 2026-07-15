@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 export function useAnimationFrame(
   callback: (deltaMs: number) => void,
   isRunning: boolean,
+  targetFps?: number,
 ) {
   const callbackRef = useRef(callback);
   const frameRef = useRef<number | null>(null);
@@ -16,23 +17,55 @@ export function useAnimationFrame(
       return;
     }
 
-    const tick = (time: number) => {
-      const previous = previousTimeRef.current ?? time;
-      const deltaMs = time - previous;
-      previousTimeRef.current = time;
+    const minimumFrameInterval = targetFps ? 1000 / targetFps : 0;
 
-      callbackRef.current(deltaMs);
-      frameRef.current = requestAnimationFrame(tick);
+    const schedule = () => {
+      if (frameRef.current === null && !document.hidden) {
+        frameRef.current = requestAnimationFrame(tick);
+      }
     };
 
-    frameRef.current = requestAnimationFrame(tick);
+    const tick = (time: number) => {
+      frameRef.current = null;
+      const previous = previousTimeRef.current;
+      if (previous === null) {
+        previousTimeRef.current = time;
+        schedule();
+        return;
+      }
+      const deltaMs = time - previous;
+
+      if (!minimumFrameInterval || deltaMs >= minimumFrameInterval - 1) {
+        previousTimeRef.current = time;
+        callbackRef.current(deltaMs);
+      }
+
+      schedule();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (frameRef.current !== null) {
+          cancelAnimationFrame(frameRef.current);
+          frameRef.current = null;
+        }
+        previousTimeRef.current = null;
+        return;
+      }
+
+      schedule();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    schedule();
 
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
       }
       frameRef.current = null;
       previousTimeRef.current = null;
     };
-  }, [isRunning]);
+  }, [isRunning, targetFps]);
 }

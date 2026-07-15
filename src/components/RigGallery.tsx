@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { positiveModulo } from "../renderer/motionGeometry";
 import { getRigPreviewMedia, getRigPreviewSettings } from "../preview/rigPreviewRuntime";
+import { getPreviewQuality } from "../preview/previewQuality";
 import { roadmapRigEntries } from "../rigs/roadmap";
 import type { RoadmapRigEntry } from "../rigs/roadmap";
 import { RIG_FAMILIES } from "../rigs/types";
@@ -34,7 +36,16 @@ export function RigGallery({
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const dialogRef = useRef<HTMLElement | null>(null);
   const [family, setFamily] = useState<FamilyFilter>("all");
-  const scheduler = useSharedPreviewScheduler(prefersReducedMotion);
+  const isMobileGallery = useMediaQuery("(max-width: 680px)");
+  const isTabletGallery = useMediaQuery("(max-width: 1024px)");
+  const previewQuality = getPreviewQuality(
+    isMobileGallery ? 680 : isTabletGallery ? 1024 : 1440,
+    typeof window === "undefined" ? 1 : window.devicePixelRatio,
+  );
+  const scheduler = useSharedPreviewScheduler(
+    prefersReducedMotion,
+    previewQuality.galleryFps,
+  );
   const availableFamilies = useMemo(() => {
     const populated = new Set<RigFamily>([
       ...rigs.map((rig) => rig.family),
@@ -142,6 +153,7 @@ export function RigGallery({
                     active={rig.id === activeRig.id}
                     key={rig.id}
                     prefersReducedMotion={prefersReducedMotion}
+                    previewPixelRatio={previewQuality.galleryPixelRatio}
                     rig={rig}
                     scheduler={scheduler}
                     onSelect={() => onSelectRig(rig.id)}
@@ -172,12 +184,14 @@ function ProductionRigCard({
   active,
   onSelect,
   prefersReducedMotion,
+  previewPixelRatio,
   rig,
   scheduler,
 }: {
   active: boolean;
   onSelect: () => void;
   prefersReducedMotion: boolean;
+  previewPixelRatio: number;
   rig: RegisteredRigDefinition;
   scheduler: PreviewScheduler;
 }) {
@@ -191,7 +205,12 @@ function ProductionRigCard({
         rig.gallery.featured ? "featured" : "",
       ].filter(Boolean).join(" ")}
     >
-      <RigPreviewCanvas prefersReducedMotion={prefersReducedMotion} rig={rig} scheduler={scheduler} />
+      <RigPreviewCanvas
+        prefersReducedMotion={prefersReducedMotion}
+        previewPixelRatio={previewPixelRatio}
+        rig={rig}
+        scheduler={scheduler}
+      />
       <div className="rig-library-card-body">
         <div className="rig-card-title-row">
           <div><span>{formatFamily(rig.family)}</span><h4>{rig.name}</h4></div>
@@ -250,26 +269,43 @@ interface PreviewScheduler {
   setVisible: (id: string, visible: boolean) => void;
 }
 
-function useSharedPreviewScheduler(reducedMotion: boolean): PreviewScheduler {
+function useSharedPreviewScheduler(
+  reducedMotion: boolean,
+  frameRate: number,
+): PreviewScheduler {
   const registrationsRef = useRef(new Map<string, PreviewRegistration>());
   const animationFrameRef = useRef<number | null>(null);
   const lastPaintRef = useRef(0);
+  const wakeSchedulerRef = useRef<() => void>(() => undefined);
 
   const register = useCallback((id: string, draw: PreviewDraw) => {
-    registrationsRef.current.set(id, { draw, visible: true });
+    registrationsRef.current.set(id, { draw, visible: false });
+    wakeSchedulerRef.current();
     return () => registrationsRef.current.delete(id);
   }, []);
 
   const setVisible = useCallback((id: string, visible: boolean) => {
     const registration = registrationsRef.current.get(id);
-    if (registration) registration.visible = visible;
+    if (registration) {
+      registration.visible = visible;
+      if (visible) wakeSchedulerRef.current();
+    }
   }, []);
 
   useEffect(() => {
-    if (reducedMotion) return;
-    const frameInterval = 1000 / 22;
+    if (reducedMotion) {
+      wakeSchedulerRef.current = () => undefined;
+      return;
+    }
+    const frameInterval = 1000 / frameRate;
+    const hasVisiblePreview = () =>
+      Array.from(registrationsRef.current.values()).some((registration) => registration.visible);
     const schedule = () => {
-      if (animationFrameRef.current === null && !document.hidden) {
+      if (
+        animationFrameRef.current === null &&
+        !document.hidden &&
+        hasVisiblePreview()
+      ) {
         animationFrameRef.current = window.requestAnimationFrame(tick);
       }
     };
@@ -281,7 +317,7 @@ function useSharedPreviewScheduler(reducedMotion: boolean): PreviewScheduler {
           if (registration.visible) registration.draw(timestamp);
         });
       }
-      schedule();
+      if (hasVisiblePreview()) schedule();
     };
     const handleVisibility = () => {
       if (document.hidden && animationFrameRef.current !== null) {
@@ -291,25 +327,29 @@ function useSharedPreviewScheduler(reducedMotion: boolean): PreviewScheduler {
         schedule();
       }
     };
+    wakeSchedulerRef.current = schedule;
     document.addEventListener("visibilitychange", handleVisibility);
     schedule();
     return () => {
+      wakeSchedulerRef.current = () => undefined;
       document.removeEventListener("visibilitychange", handleVisibility);
       if (animationFrameRef.current !== null) window.cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
       registrationsRef.current.clear();
     };
-  }, [reducedMotion]);
+  }, [frameRate, reducedMotion]);
 
   return useMemo(() => ({ register, setVisible }), [register, setVisible]);
 }
 
 function RigPreviewCanvas({
   prefersReducedMotion,
+  previewPixelRatio,
   rig,
   scheduler,
 }: {
   prefersReducedMotion: boolean;
+  previewPixelRatio: number;
   rig: RegisteredRigDefinition;
   scheduler: PreviewScheduler;
 }) {
@@ -319,6 +359,7 @@ function RigPreviewCanvas({
 
   useEffect(() => {
     let cancelled = false;
+    let hasStartedLoading = false;
     let unregister: () => void = () => undefined;
     const frame = getPreviewFrame(rig.preview.ratio);
     const settings = getRigPreviewSettings(rig);
@@ -326,6 +367,7 @@ function RigPreviewCanvas({
       const canvas = canvasRef.current;
       const context = canvas?.getContext("2d");
       if (!canvas || !context) return;
+      context.setTransform(previewPixelRatio, 0, 0, previewPixelRatio, 0, 0);
       rig.preview.render({
         context,
         frame,
@@ -336,24 +378,29 @@ function RigPreviewCanvas({
       });
     };
 
-    getRigPreviewMedia(rig).then((images) => {
-      if (cancelled) return;
-      draw(images, rig.preview.staticProgress);
-      if (!prefersReducedMotion) {
-        unregister = scheduler.register(rig.id, (timestamp) => {
-          const progress = positiveModulo(timestamp / 1000 / rig.preview.durationSeconds, 1);
-          draw(images, progress);
-        });
-        scheduler.setVisible(rig.id, visibleRef.current);
-      }
-    });
+    const startLoading = () => {
+      if (hasStartedLoading) return;
+      hasStartedLoading = true;
+      void getRigPreviewMedia(rig).then((images) => {
+        if (cancelled) return;
+        draw(images, rig.preview.staticProgress);
+        if (!prefersReducedMotion) {
+          unregister = scheduler.register(rig.id, (timestamp) => {
+            const progress = positiveModulo(timestamp / 1000 / rig.preview.durationSeconds, 1);
+            draw(images, progress);
+          });
+          scheduler.setVisible(rig.id, visibleRef.current);
+        }
+      });
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         visibleRef.current = Boolean(entry?.isIntersecting);
+        if (visibleRef.current) startLoading();
         scheduler.setVisible(rig.id, visibleRef.current);
       },
-      { threshold: 0.08 },
+      { rootMargin: "120px 0px", threshold: 0.01 },
     );
     if (viewportRef.current) observer.observe(viewportRef.current);
     return () => {
@@ -361,7 +408,7 @@ function RigPreviewCanvas({
       observer.disconnect();
       unregister();
     };
-  }, [prefersReducedMotion, rig, scheduler]);
+  }, [prefersReducedMotion, previewPixelRatio, rig, scheduler]);
 
   const frame = getPreviewFrame(rig.preview.ratio);
   return (
@@ -373,10 +420,10 @@ function RigPreviewCanvas({
       <canvas
         aria-label={`${rig.name} ${prefersReducedMotion ? "static" : "animated"} renderer preview. ${rig.accessibilityDescription}`}
         className="rig-preview-canvas"
-        height={frame.height}
+        height={Math.round(frame.height * previewPixelRatio)}
         ref={canvasRef}
         role="img"
-        width={frame.width}
+        width={Math.round(frame.width * previewPixelRatio)}
       />
       {prefersReducedMotion ? <span className="rig-preview-static-label">Static preview</span> : null}
     </div>

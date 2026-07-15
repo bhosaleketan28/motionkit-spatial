@@ -4589,6 +4589,25 @@ summary:focus-visible,
 }
 
 @media (max-width: 680px) {
+  .panel-chrome,
+  .inspector-heading {
+    background: #0f1114;
+    backdrop-filter: none;
+  }
+
+  .drawer-scrim,
+  .rig-gallery-scrim,
+  .alpha-modal-scrim,
+  .export-modal-scrim {
+    backdrop-filter: none;
+  }
+
+  .rig-gallery,
+  .alpha-dialog,
+  .export-sheet {
+    box-shadow: none;
+  }
+
   .rig-gallery-layer {
     padding: 12px 0 0;
     place-items: end center;

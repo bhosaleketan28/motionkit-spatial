@@ -138,6 +138,7 @@ export default function App() {
     mediaAnnouncement,
     mediaNotice,
     moveSlot,
+    previewSlotImages,
     removeSlot,
     replaceSlot,
     selectSlot,
@@ -148,6 +149,8 @@ export default function App() {
     undo,
     undoAction,
   } = useImageSlots(activeRig);
+  const isStageRenderingPaused =
+    isBlockingOverlayOpen || (isNarrowWorkspace && activeDrawer !== null);
   const exportMediaIssues = {
     png: getExportMediaIssue(activeRig, slots, "png"),
     webm: getExportMediaIssue(activeRig, slots, "webm"),
@@ -666,6 +669,7 @@ export default function App() {
               : !isLeftRailCollapsed && !isStageOnly
           }
           isPlaying={isPlaying}
+          isRenderingPaused={isStageRenderingPaused}
           isStageOnly={isStageOnly}
           onChangeFrameRatio={(frameRatio) =>
             setSettings({ ...normalizedSettings, frameRatio })
@@ -682,7 +686,7 @@ export default function App() {
           ref={stageRef}
           settings={normalizedSettings}
           selectedSlotIndex={selectedIndex}
-          slotImages={slotImages}
+          slotImages={previewSlotImages}
           zoomPercent={zoomPercent}
         />
         <RightPanel

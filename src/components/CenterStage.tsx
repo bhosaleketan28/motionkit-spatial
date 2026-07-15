@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { getPreviewQuality } from "../preview/previewQuality";
 import { getFrameSize } from "../renderer/geometry";
 import type { AnyRigSettings, FrameRatio, RegisteredRigDefinition } from "../rigs/types";
 import { StageTransport } from "./StageTransport";
@@ -17,6 +19,7 @@ interface CenterStageProps {
   isInspectorOpen?: boolean;
   isMediaOpen?: boolean;
   isPlaying: boolean;
+  isRenderingPaused?: boolean;
   isStageOnly?: boolean;
   onChangeFrameRatio: (ratio: FrameRatio) => void;
   onFit?: () => void;
@@ -45,6 +48,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   isInspectorOpen = false,
   isMediaOpen = false,
   isPlaying,
+  isRenderingPaused = false,
   isStageOnly = false,
   onChangeFrameRatio,
   onFit = () => undefined,
@@ -65,6 +69,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
   const canvasSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const drawRef = useRef<() => void>(() => undefined);
   const stageDescriptionRef = useRef<HTMLParagraphElement | null>(null);
   const lastDescriptionSecondRef = useRef(-1);
   const lastMeasurementRef = useRef({
@@ -80,6 +85,11 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   const isScrubbingRef = useRef(false);
   const transportRef = useRef<StageTransportHandle | null>(null);
   const [fitFeedback, setFitFeedback] = useState(false);
+  const isMobilePreview = useMediaQuery("(max-width: 680px)");
+  const previewFrameRate = getPreviewQuality(
+    isMobilePreview ? 680 : 1440,
+    1,
+  ).stageFps;
   const frame = getFrameSize(settings.frameRatio);
   const loadedMediaCount = slotImages.filter(Boolean).length;
 
@@ -107,6 +117,10 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   );
 
   const draw = useCallback(() => {
+    if (isRenderingPaused) {
+      return;
+    }
+
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
 
@@ -125,7 +139,9 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       slotImages,
     });
     updateStageDescription(progressRef.current);
-  }, [frame, rig, selectedSlotIndex, settings, slotImages, updateStageDescription]);
+  }, [frame, isRenderingPaused, rig, selectedSlotIndex, settings, slotImages, updateStageDescription]);
+
+  drawRef.current = draw;
 
   const updateProgress = useCallback((progress: number) => {
     const clampedProgress = Math.min(1, Math.max(0, progress));
@@ -163,7 +179,10 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       const scale = variant === "onboarding" || isFitMode ? 1 : zoomPercent / 100;
       const displayWidth = Math.max(1, fitWidth * scale);
       const displayHeight = Math.max(1, displayWidth / frameAspect);
-      const pixelRatio = window.devicePixelRatio || 1;
+      const pixelRatio = getPreviewQuality(
+        window.innerWidth,
+        window.devicePixelRatio || 1,
+      ).stagePixelRatio;
       const previous = lastMeasurementRef.current;
       const measurementIsStable =
         Math.abs(previous.containerWidth - bounds.width) < 0.5 &&
@@ -173,6 +192,10 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
         previous.pixelRatio === pixelRatio;
 
       if (measurementIsStable) {
+        return;
+      }
+
+      if (bounds.width < 1 || bounds.height < 1) {
         return;
       }
 
@@ -199,7 +222,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       const context = canvas.getContext("2d");
       if (context) {
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-        draw();
+        drawRef.current();
       }
     };
 
@@ -223,7 +246,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
         resizeFrameRef.current = null;
       }
     };
-  }, [draw, frame.height, frame.width, isFitMode, variant, zoomPercent]);
+  }, [frame.height, frame.width, isFitMode, variant, zoomPercent]);
 
   useEffect(() => {
     if (!isFitMode || variant !== "editor") {
@@ -247,7 +270,8 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
       transportRef.current?.updateProgress(progressRef.current, settings.durationSeconds);
       draw();
     },
-    isPlaying,
+    isPlaying && !isRenderingPaused,
+    previewFrameRate,
   );
 
   useEffect(() => {

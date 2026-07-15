@@ -9,6 +9,8 @@ export interface ImageSlot {
   id: number;
   image: HTMLImageElement | null;
   objectUrl: string | null;
+  previewImage: HTMLImageElement | null;
+  previewObjectUrl: string | null;
   source: "demo" | "upload" | null;
   src: string | null;
   status: "empty" | "loading" | "ready" | "error";
@@ -40,6 +42,8 @@ function createEmptySlot(id: number): ImageSlot {
     id,
     image: null,
     objectUrl: null,
+    previewImage: null,
+    previewObjectUrl: null,
     source: null,
     src: null,
     status: "empty",
@@ -52,6 +56,53 @@ export function createEmptyMediaSlots(count: number): ImageSlot[] {
 
 function getFileFingerprint(file: File) {
   return `${file.name.toLowerCase()}:${file.size}:${file.lastModified}`;
+}
+
+const PREVIEW_MAX_DIMENSION = 1600;
+
+async function createStagePreviewImage(image: HTMLImageElement) {
+  const longestEdge = Math.max(image.naturalWidth, image.naturalHeight);
+  if (longestEdge <= PREVIEW_MAX_DIMENSION) {
+    return null;
+  }
+
+  const scale = PREVIEW_MAX_DIMENSION / longestEdge;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return null;
+  }
+
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/webp", 0.88),
+  );
+  canvas.width = 1;
+  canvas.height = 1;
+  if (!blob) {
+    return null;
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+  const previewImage = await new Promise<HTMLImageElement | null>((resolve) => {
+    const nextImage = new Image();
+    nextImage.decoding = "async";
+    nextImage.onload = () => resolve(nextImage);
+    nextImage.onerror = () => resolve(null);
+    nextImage.src = objectUrl;
+  });
+
+  if (!previewImage) {
+    URL.revokeObjectURL(objectUrl);
+    return null;
+  }
+
+  return { image: previewImage, objectUrl };
 }
 
 function validateFile(file: File, requirements: RigMediaRequirements) {
@@ -71,7 +122,7 @@ function validateFile(file: File, requirements: RigMediaRequirements) {
 }
 
 function getUrlSet(slots: ImageSlot[]) {
-  return new Set(slots.flatMap((slot) => (slot.objectUrl ? [slot.objectUrl] : [])));
+  return new Set(slots.flatMap((slot) => [slot.objectUrl, slot.previewObjectUrl].filter(Boolean) as string[]));
 }
 
 function revokeDiscardedUrls(discarded: ImageSlot[], retained: ImageSlot[]) {
@@ -87,6 +138,7 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
   const [slots, setSlots] = useState<ImageSlot[]>(() => createEmptyMediaSlots(rig.slotCount));
   const slotsRef = useRef(slots);
   const activeRigIdRef = useRef(rig.id);
+  const isMountedRef = useRef(true);
   const loadIdsRef = useRef(new Map<number, number>());
   const [selectedSlotId, setSelectedSlotId] = useState(0);
   const selectedSlotIdRef = useRef(selectedSlotId);
@@ -147,6 +199,9 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
       image.decoding = "async";
 
       image.onload = () => {
+        if (!isMountedRef.current) {
+          return;
+        }
         const currentSlot = slotsRef.current.find((slot) => slot.id === slotId);
         if (
           loadIdsRef.current.get(slotId) !== loadId ||
@@ -159,13 +214,51 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
 
         const nextSlots = slotsRef.current.map((slot) =>
           slot.id === slotId
-            ? { ...slot, errorMessage: null, image, status: "ready" as const }
+            ? {
+                ...slot,
+                errorMessage: null,
+                image,
+                previewImage: null,
+                previewObjectUrl: null,
+                status: "ready" as const,
+              }
             : slot,
         );
         applySlots(nextSlots);
+
+        void createStagePreviewImage(image).then((preview) => {
+          if (!preview) {
+            return;
+          }
+          if (!isMountedRef.current) {
+            URL.revokeObjectURL(preview.objectUrl);
+            return;
+          }
+          const latestSlot = slotsRef.current.find((slot) => slot.id === slotId);
+          if (
+            loadIdsRef.current.get(slotId) !== loadId ||
+            latestSlot?.src !== src ||
+            latestSlot.image !== image
+          ) {
+            URL.revokeObjectURL(preview.objectUrl);
+            return;
+          }
+          applySlots(slotsRef.current.map((slot) =>
+            slot.id === slotId
+              ? {
+                  ...slot,
+                  previewImage: preview.image,
+                  previewObjectUrl: preview.objectUrl,
+                }
+              : slot,
+          ));
+        });
       };
 
       image.onerror = () => {
+        if (!isMountedRef.current) {
+          return;
+        }
         const currentSlot = slotsRef.current.find((slot) => slot.id === slotId);
         if (loadIdsRef.current.get(slotId) !== loadId || currentSlot?.src !== src) {
           return;
@@ -174,6 +267,9 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
         if (currentSlot.objectUrl) {
           URL.revokeObjectURL(currentSlot.objectUrl);
         }
+        if (currentSlot.previewObjectUrl) {
+          URL.revokeObjectURL(currentSlot.previewObjectUrl);
+        }
         const nextSlots = slotsRef.current.map((slot) =>
           slot.id === slotId
             ? {
@@ -181,6 +277,8 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
                 errorMessage,
                 image: null,
                 objectUrl: null,
+                previewImage: null,
+                previewObjectUrl: null,
                 source: null,
                 src: null,
                 status: "error" as const,
@@ -207,6 +305,9 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
       if (currentSlot.objectUrl) {
         URL.revokeObjectURL(currentSlot.objectUrl);
       }
+      if (currentSlot.previewObjectUrl) {
+        URL.revokeObjectURL(currentSlot.previewObjectUrl);
+      }
 
       const objectUrl = URL.createObjectURL(file);
       const nextSlot: ImageSlot = {
@@ -217,6 +318,8 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
         fingerprint: getFileFingerprint(file),
         image: null,
         objectUrl,
+        previewImage: null,
+        previewObjectUrl: null,
         source: "upload",
         src: objectUrl,
         status: "loading",
@@ -488,7 +591,9 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
   }, [rig, switchRigMedia]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (undoTimerRef.current !== null) {
         window.clearTimeout(undoTimerRef.current);
       }
@@ -516,6 +621,9 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
     selectSlot,
     selectedIndex,
     slotImages: slots.map((slot) => (slot.status === "ready" ? slot.image : null)),
+    previewSlotImages: slots.map((slot) =>
+      slot.status === "ready" ? slot.previewImage ?? slot.image : null,
+    ),
     slots,
     switchRigMedia,
     undo,
