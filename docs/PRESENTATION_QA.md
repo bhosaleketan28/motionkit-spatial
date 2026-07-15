@@ -1,6 +1,6 @@
-# Six-Rig Presentation QA
+# Hoppy Six-System Presentation QA
 
-Phase 13.1 defines the presentation baseline for wider alpha testing and short investor walkthroughs. It evaluates the actual production renderers and existing workflows; it does not introduce new motion geometry, settings, presets, export formats, or product identity.
+This document defines Hoppy's presentation baseline for wider alpha testing and short investor walkthroughs. It evaluates the actual production renderers and existing workflows; it does not introduce new motion geometry, settings, presets, export formats, or product identity.
 
 ## Library Baseline
 

@@ -34,7 +34,7 @@ export function TopBar({
   return (
     <header className="top-bar">
       <div className="top-bar-brand">
-        <strong>MotionKit Spatial</strong>
+        <strong>Hoppy</strong>
         <span aria-hidden="true" />
         <small>{rigName}</small>
       </div>
@@ -101,14 +101,16 @@ export function TopBar({
               </dl>
             </details>
             <button
+              aria-label="Open Hoppy Alpha guide and feedback"
               className="utility-help-action"
               type="button"
               onClick={() => {
                 if (utilitiesRef.current) utilitiesRef.current.open = false;
+                utilitiesSummaryRef.current?.focus();
                 onOpenHelp();
               }}
             >
-              Alpha guide & feedback
+              Hoppy Alpha guide & feedback
             </button>
           </div>
         </details>

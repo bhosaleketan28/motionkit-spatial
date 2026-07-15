@@ -1,8 +1,8 @@
-# MotionKit Spatial Rig Architecture
+# Hoppy Rig Architecture
 
 ## Purpose
 
-The Motion Rig is the product-level extension boundary. Phase 13 validates it across six production rigs with distinct settings, slot counts, renderers, media requirements, presets, export thresholds, families, and isolated gallery previews.
+The Motion Rig is Hoppy's internal product-level extension boundary. Phase 13 validates it across six production rigs with distinct settings, slot counts, renderers, media requirements, presets, export thresholds, families, and isolated gallery previews.
 
 ## Definition Contract
 

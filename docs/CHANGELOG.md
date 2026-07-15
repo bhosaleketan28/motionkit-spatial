@@ -1,4 +1,4 @@
-# MotionKit Spatial Changelog
+# Hoppy Changelog
 
 ## Completed Milestones
 
@@ -28,8 +28,9 @@
 - Phase 13: Essential motion families
 - Phase 13.1: Six-rig presentation polish
 - Phase 14: Alpha launch preparation
-- Phase 14.1: MotionKit visual identity refinement
+- Phase 14.1: Visual identity refinement
 - Phase 14.2: Motion Spectrum identity refinement
+- Phase 14.4: Rename MotionKit Spatial to Hoppy
 
 ## Phase 8 Highlights
 
@@ -197,7 +198,7 @@
 
 ## Phase 14.1 Highlights
 
-- Replaced the mint application-chrome identity with a restrained monochrome foundation and MotionKit Violet interaction system.
+- Replaced the mint application-chrome identity with a restrained monochrome foundation and violet interaction system.
 - Added shared violet hover, pressed, soft, focus, and accessible text derivatives while preserving white-on-violet AA contrast for primary actions.
 - Migrated primary buttons, active tabs, selected media, presets, sliders, toggles, radio states, transport, progress, gallery selection, and export states to the shared identity.
 - Replaced glowing Canvas selection feedback with a clean violet outline while preserving renderer-owned card shadows and exported artwork.
@@ -218,3 +219,10 @@
 - Updated the shared Canvas selection helper so every production renderer receives the same no-glow spectrum outline while exports and renderer-owned card shadows stay unchanged.
 - Reframed export progress and completion with spectrum indicators and kept warning, error, PNG, codec, and capability messaging semantically distinct.
 - Reverified all six motion systems, presets, transport keyboard flow, export and PNG review, mobile drawer focus, first run, the five target viewports, and a clean Chromium console.
+
+## Phase 14.4 Highlights
+
+- Renamed MotionKit Spatial to Hoppy across the product UI, metadata, accessibility copy, locally generated demo labeling, and alpha documentation.
+- Reframed first run around “Turn static visuals into motion.” with the supporting line “Create cinematic motion from your visuals.” while preserving the existing CTA hierarchy.
+- Changed all six rig-aware PNG and WebM filename prefixes from `motionkit-` to `hoppy-` without changing ratios, timestamps, encoding, or session data.
+- Preserved the internal npm package identifier, repository folder, workspace storage key, rig ids, preset ids, and session version for compatibility.

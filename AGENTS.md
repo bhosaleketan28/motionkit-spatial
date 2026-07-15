@@ -2,7 +2,7 @@
 
 ## Project
 
-We are building MotionKit Spatial, a private local browser app inspired by spatial motion tools like Animos.
+We are building Hoppy, a private local browser app inspired by spatial motion tools like Animos.
 
 This is not a clone of Animos. Do not copy Animos code, branding, logo, assets, UI text, or proprietary implementation. Build an original local app from scratch.
 
@@ -10,7 +10,7 @@ The app should run entirely on the user's machine.
 
 ## Product Goal
 
-MotionKit Spatial lets users create animated spatial design showcases by uploading images into reusable motion rigs.
+Hoppy lets users create animated spatial design showcases by uploading images into reusable motion rigs.
 
 The current supported rig set is:
 

@@ -1,8 +1,8 @@
-# MotionKit Spatial PRD
+# Hoppy PRD
 
 ## Product Summary
 
-MotionKit Spatial is a private local web app for creating cinematic spatial motion from a user's own visuals.
+Hoppy is a private local web app that turns static visuals into motion. It helps users create cinematic motion from their own visuals.
 
 It is inspired by the category of spatial motion tools, but it must be built from scratch and must not copy Animos code, logo, assets, branding, UI, or proprietary implementation.
 
@@ -12,7 +12,7 @@ Users add images into media slots, choose a motion system, apply a curated start
 
 ## Visual Identity
 
-MotionKit Spatial should feel like a premium motion design instrument rather than a developer dashboard or productivity application. The application chrome uses a 95% neutral, 5% accent balance built from near-black surfaces and an original Motion Spectrum that communicates image-to-motion transformation.
+Hoppy should feel like a premium motion design instrument rather than a developer dashboard or productivity application. The application chrome uses a 95% neutral, 5% accent balance built from near-black surfaces and an original Motion Spectrum that communicates image-to-motion transformation.
 
 - Background, panels, elevated surfaces, and borders form a quiet monochrome hierarchy.
 - The violet-to-cyan spectrum is limited to the one primary creation action, motion progress, and selected creation states in a local context.

@@ -1,6 +1,6 @@
-# Motion Families
+# Hoppy Motion Families
 
-Motion families describe the dominant spatial structure of a rig. They are stable product taxonomy, not renderer dispatch keys. Production behavior always comes from the registered rig definition.
+Motion families describe the dominant spatial structure of a Hoppy rig. They are stable product taxonomy, not renderer dispatch keys. Production behavior always comes from the registered rig definition.
 
 | Family | Meaning | Current state |
 | --- | --- | --- |

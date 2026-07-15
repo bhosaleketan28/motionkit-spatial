@@ -1,8 +1,8 @@
-# MotionKit Spatial Alpha Launch
+# Hoppy Alpha Launch
 
 ## Product Overview
 
-MotionKit Spatial turns local images into cinematic spatial motion in the browser. Testers can choose one of six motion systems, begin from one of 24 curated presets, adjust the result in a stage-first workspace, and export a WebM loop or PNG still without uploading media to a server.
+Hoppy turns local images into cinematic motion in the browser. Testers can choose one of six motion systems, begin from one of 24 curated presets, adjust the result in a stage-first workspace, and export a WebM loop or PNG still without uploading media to a server.
 
 ## Who Should Test
 
@@ -46,11 +46,11 @@ Create one useful motion output in under five minutes.
 
 ## Feedback Questions
 
-- Did you understand what MotionKit Spatial does quickly?
-- Which motion system did you try first, and why?
-- Was the exported output useful for a real project?
-- What felt difficult or uncertain?
-- What would make you use this regularly?
+- What were you trying to create with Hoppy?
+- Which motion system did you choose?
+- What felt confusing?
+- Would you use Hoppy for real work?
+- What output did you create?
 
 ## Investor Or Stakeholder Walkthrough
 

@@ -71,7 +71,7 @@ export function StartScreen({
       </div>
 
       <header className="start-brand">
-        <strong>MotionKit Spatial</strong>
+        <strong>Hoppy</strong>
         <span>Private alpha</span>
       </header>
 
@@ -88,10 +88,8 @@ export function StartScreen({
 
       <section className="start-content" aria-labelledby="start-heading">
         <p className="eyebrow">For product, editorial & brand designers</p>
-        <h1 id="start-heading">Create cinematic spatial motion from your visuals.</h1>
-        <p>
-          Build a polished looping showcase, shape the movement, and export it locally.
-        </p>
+        <h1 id="start-heading">Turn static visuals into motion.</h1>
+        <p>Create cinematic motion from your visuals.</p>
 
         <div className="start-actions">
           <input

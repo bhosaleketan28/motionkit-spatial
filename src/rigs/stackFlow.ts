@@ -16,7 +16,7 @@ export const stackFlowRig: StackFlowRigDefinition = {
     frameRatio: "1:1", frontExitDistance: 0.18, rotationStep: 3, stackAxis: "diagonal",
     stackDepth: 0.75, stackOffset: 0.045, transitionSoftness: 0.76,
   },
-  exportMetadata: { defaultDuration: 8, fileNamePrefix: "motionkit-stack-flow", supportsTransparentBackground: true },
+  exportMetadata: { defaultDuration: 8, fileNamePrefix: "hoppy-stack-flow", supportsTransparentBackground: true },
   family: "stack",
   gallery: { description: "Layered cards advance through one front position—ideal for sequences." },
   generateDemoMedia: generateStackFlowDemoMedia,

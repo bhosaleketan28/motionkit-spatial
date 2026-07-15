@@ -1,6 +1,6 @@
-# Rig Gallery
+# Hoppy Motion System Gallery
 
-The rig gallery is the discovery and switching surface for motion systems. It opens from first run, the persistent workspace rig summary, the Create panel, and empty Media guidance.
+The rig gallery is Hoppy's discovery and switching surface for motion systems. It opens from first run, the persistent workspace rig summary, the Create panel, and empty Media guidance.
 
 ## Content Order
 

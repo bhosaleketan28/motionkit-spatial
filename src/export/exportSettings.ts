@@ -191,9 +191,9 @@ export function createDefaultExportFileName(
   ].join("");
   const ratio = input.settings.frameRatio.replace(":", "x");
 
-  const prefix = input.rig.exportMetadata.fileNamePrefix.startsWith("motionkit-")
+  const prefix = input.rig.exportMetadata.fileNamePrefix.startsWith("hoppy-")
     ? input.rig.exportMetadata.fileNamePrefix
-    : `motionkit-${input.rig.exportMetadata.fileNamePrefix}`;
+    : `hoppy-${input.rig.exportMetadata.fileNamePrefix}`;
   return `${prefix}-${ratio}-${dateStamp}-${timeStamp}.${extension}`;
 }
 
@@ -206,7 +206,7 @@ export function normalizeExportFileName(fileName: string, extension: ExportForma
     .slice(0, 120)
     .trim();
 
-  return `${baseName || "motionkit-export"}.${extension}`;
+  return `${baseName || "hoppy-export"}.${extension}`;
 }
 
 export function validateExportMedia(input: ExportRenderInput, format: ExportFormat) {

@@ -1,6 +1,6 @@
-# MotionKit Spatial
+# Hoppy
 
-MotionKit Spatial is a private local browser app for creating cinematic spatial motion from your visuals. It includes six production-ready motion systems: Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow.
+Hoppy turns static visuals into motion. It is a private local browser app with six production-ready motion systems: Orbit Carousel, Grid Wall, Focus Deck, Film Strip, Wave Path, and Stack Flow.
 
 Users can add local images or load a rig-specific demo, preview deterministic Canvas 2D motion, adjust precision controls, and export a local WebM or PNG.
 
@@ -33,7 +33,7 @@ Deploy this project as a Vite app on Vercel.
 - Build command: `npm run build`
 - Output directory: `dist`
 
-The app is static and browser-only. Uploaded images are processed locally in the user's browser and are not saved or uploaded by MotionKit Spatial.
+The app is static and browser-only. Uploaded images are processed locally in the user's browser and are not saved or uploaded by Hoppy.
 
 ## Current Features
 
@@ -133,4 +133,4 @@ Phase 14 prepares the product for a controlled external alpha. The primary teste
 
 ## Visual Identity
 
-Phase 14.1 establishes the production UI identity: 95% neutral surfaces, 5% MotionKit Violet, Avenir-led typography where available, reduced border noise, and elevation reserved for blocking dialogs. Authored media, preset output palettes, and renderer card shadows remain independent from the application chrome. See `docs/VISUAL_IDENTITY.md` for the complete token and component rules.
+Phase 14.1 establishes the production UI identity: 95% neutral surfaces, 5% accent color, Avenir-led typography where available, reduced border noise, and elevation reserved for blocking dialogs. Phase 14.2 evolves the accent into the Motion Spectrum. Authored media, preset output palettes, and renderer card shadows remain independent from the application chrome. See `docs/VISUAL_IDENTITY.md` for the complete token and component rules.

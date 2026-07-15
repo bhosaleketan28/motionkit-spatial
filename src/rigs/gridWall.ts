@@ -25,7 +25,7 @@ export const gridWallRig: GridWallRigDefinition = {
     tileWidth: 0.27,
     verticalGap: 0.035,
   },
-  exportMetadata: { defaultDuration: 9, fileNamePrefix: "motionkit-grid-wall", supportsTransparentBackground: true },
+  exportMetadata: { defaultDuration: 9, fileNamePrefix: "hoppy-grid-wall", supportsTransparentBackground: true },
   family: "grid",
   gallery: {
     description: "Tiles hold a clear grid while focus drifts—ideal for systems and portfolios.",

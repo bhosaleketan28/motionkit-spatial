@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const FEEDBACK_TEMPLATE = `What were you trying to create?
+const FEEDBACK_TEMPLATE = `What were you trying to create with Hoppy?
 
 Which motion system did you choose?
 
 What felt confusing?
 
-Would you use MotionKit Spatial for real work?
+Would you use Hoppy for real work?
 
 What output did you create?`;
 
@@ -19,7 +19,7 @@ export function AlphaGuideDialog({ onClose }: AlphaGuideDialogProps) {
   const dialogRef = useRef<HTMLElement | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
   const mailtoHref = useMemo(
-    () => `mailto:?subject=${encodeURIComponent("MotionKit Spatial alpha feedback")}&body=${encodeURIComponent(FEEDBACK_TEMPLATE)}`,
+    () => `mailto:?subject=${encodeURIComponent("Hoppy Alpha feedback")}&body=${encodeURIComponent(FEEDBACK_TEMPLATE)}`,
     [],
   );
 
@@ -75,7 +75,7 @@ export function AlphaGuideDialog({ onClose }: AlphaGuideDialogProps) {
 
   return (
     <div className="alpha-modal-layer">
-      <button aria-label="Close alpha guide" className="alpha-modal-scrim" type="button" onClick={onClose} />
+      <button aria-label="Close Hoppy Alpha guide" className="alpha-modal-scrim" type="button" onClick={onClose} />
       <section
         aria-labelledby="alpha-guide-title"
         aria-modal="true"
@@ -85,11 +85,11 @@ export function AlphaGuideDialog({ onClose }: AlphaGuideDialogProps) {
       >
         <header className="alpha-dialog-header">
           <div>
-            <p className="eyebrow">Alpha guide</p>
-            <h2 id="alpha-guide-title">What is MotionKit Spatial?</h2>
-            <p>MotionKit Spatial turns your visuals into editable, looping Canvas motion that exports locally.</p>
+            <p className="eyebrow">Hoppy Alpha guide</p>
+            <h2 id="alpha-guide-title">What is Hoppy?</h2>
+            <p>Hoppy turns your visuals into editable, looping Canvas motion that exports locally.</p>
           </div>
-          <button aria-label="Close alpha guide" className="alpha-dialog-close" ref={closeRef} type="button" onClick={onClose}>×</button>
+          <button aria-label="Close Hoppy Alpha guide" className="alpha-dialog-close" ref={closeRef} type="button" onClick={onClose}>×</button>
         </header>
 
         <div className="alpha-guide-grid">

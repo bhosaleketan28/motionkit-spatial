@@ -15,7 +15,7 @@ export const focusDeckRig: FocusDeckRigDefinition = {
     frameRatio: "16:9", heroEmphasis: 0.1, heroHeight: 0.66, heroWidth: 0.44, sideRotation: 7,
     supportScale: 0.48, supportSpread: 0.38, transitionSoftness: 0.78,
   },
-  exportMetadata: { defaultDuration: 9, fileNamePrefix: "motionkit-focus-deck", supportsTransparentBackground: true },
+  exportMetadata: { defaultDuration: 9, fileNamePrefix: "hoppy-focus-deck", supportsTransparentBackground: true },
   family: "focus",
   gallery: { description: "One hero transitions through a support deck—ideal for product stories." },
   generateDemoMedia: generateFocusDeckDemoMedia,

@@ -15,7 +15,7 @@ export const wavePathRig: WavePathRigDefinition = {
     edgeOpacity: 0.26, frameRatio: "16:9", gap: 0.04, pathTilt: -3, perspective: 0.62,
     tangentRotation: 0.72, waveAmplitude: 0.22, waveFrequency: 1,
   },
-  exportMetadata: { defaultDuration: 10, fileNamePrefix: "motionkit-wave-path", supportsTransparentBackground: true },
+  exportMetadata: { defaultDuration: 10, fileNamePrefix: "hoppy-wave-path", supportsTransparentBackground: true },
   family: "path",
   gallery: { description: "Cards travel an open curve with tangent motion—ideal for expressive campaigns." },
   generateDemoMedia: generateWavePathDemoMedia,

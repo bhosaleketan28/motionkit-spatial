@@ -506,7 +506,7 @@ export function useImageSlots(rig: RegisteredRigDefinition) {
       }
     });
     updateSelectedId(nextSlots[0].id);
-    setMediaNotice("MotionKit showcase loaded. Replace any slot with your own media.");
+    setMediaNotice("Hoppy showcase loaded. Replace any slot with your own media.");
     setMediaAnnouncement(`${demoMedia.length} showcase images loaded for ${rig.name}.`);
   }, [applySlots, decodeSlotSource, finishUndo, invalidateSlotLoad, rig, updateSelectedId]);
 

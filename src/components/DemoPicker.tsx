@@ -58,7 +58,7 @@ export function DemoPicker({ onClose, onSelect, scenarios }: DemoPickerProps) {
           <div>
             <p className="eyebrow">Showcase demos</p>
             <h2 id="demo-picker-title">Start with a complete example</h2>
-            <p>Choose a creative goal. MotionKit loads the visuals, motion system, and a suitable preset.</p>
+            <p>Choose a creative goal. Hoppy loads the visuals, motion system, and a suitable preset.</p>
           </div>
           <button aria-label="Close showcase demos" className="alpha-dialog-close" ref={closeRef} type="button" onClick={onClose}>×</button>
         </header>

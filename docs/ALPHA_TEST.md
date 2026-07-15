@@ -1,10 +1,10 @@
-# MotionKit Spatial Alpha Test
+# Hoppy Alpha Test
 
 ## Tester Goal
 
 Create one useful motion output in under five minutes.
 
-MotionKit Spatial turns local images into cinematic spatial motion. It provides six motion systems, 24 curated presets, live motion inspection, and local WebM or PNG export.
+Hoppy turns static visuals into motion. It provides six motion systems, 24 curated presets, live motion inspection, and local WebM or PNG export.
 
 ## Recommended Setup
 
@@ -65,13 +65,13 @@ Workspace tabs and mutually exclusive controls support arrow-key navigation. Med
 
 ## Feedback Questions
 
-- Did you understand what MotionKit Spatial does quickly?
-- Which motion system did you try first, and why?
-- Was the exported output useful for a real project?
-- What felt difficult or uncertain?
-- What would make you use this regularly?
+- What were you trying to create with Hoppy?
+- Which motion system did you choose?
+- What felt confusing?
+- Would you use Hoppy for real work?
+- What output did you create?
 
-The same questions are available from **Alpha guide & feedback** in the workspace utility menu. They can be copied or opened in a local email draft; no account or analytics is required.
+The same questions are available from **Hoppy Alpha guide & feedback** in the workspace utility menu. They can be copied or opened in a local email draft; no account or analytics is required.
 
 ## Known Limitations
 

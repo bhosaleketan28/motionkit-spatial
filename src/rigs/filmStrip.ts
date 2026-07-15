@@ -35,7 +35,7 @@ export const filmStripRig: FilmStripRigDefinition = {
   },
   exportMetadata: {
     defaultDuration: 8,
-    fileNamePrefix: "motionkit-film-strip",
+    fileNamePrefix: "hoppy-film-strip",
     supportsTransparentBackground: true,
   },
   family: "stream",

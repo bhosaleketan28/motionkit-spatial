@@ -32,7 +32,7 @@ export const orbitCarouselRig: OrbitCarouselRigDefinition = {
   },
   exportMetadata: {
     defaultDuration: 8,
-    fileNamePrefix: "orbit-carousel",
+    fileNamePrefix: "hoppy-orbit-carousel",
     supportsTransparentBackground: true,
   },
   family: "orbit",

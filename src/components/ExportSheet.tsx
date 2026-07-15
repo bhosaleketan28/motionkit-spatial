@@ -262,7 +262,7 @@ export function ExportSheet({
     setFileName((current) => {
       const normalized = normalizeExportFileName(current, format);
       const isGeneratedName =
-        normalized.startsWith("motionkit-") &&
+        normalized.startsWith("hoppy-") &&
         /-(1x1|16x9|9x16)-\d{8}-\d{6}\.(webm|png)$/.test(normalized);
       return isGeneratedName
         ? createDefaultExportFileName(
@@ -757,7 +757,11 @@ function ExportComplete({
     <div className="export-complete">
       <span className="export-success-mark" aria-hidden="true">✓</span>
       <p className="eyebrow">Saved locally</p>
-      <h3 data-export-view-focus tabIndex={-1}>
+      <h3
+        aria-label={`Hoppy export complete. ${artifact.format === "webm" ? "Your WebM is ready" : "Your PNG still is ready"}`}
+        data-export-view-focus
+        tabIndex={-1}
+      >
         {artifact.format === "webm" ? "Your WebM is ready" : "Your PNG still is ready"}
       </h3>
       <dl className="export-result-details">

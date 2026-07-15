@@ -94,7 +94,7 @@ export function RigGallery({
     <div aria-hidden={isInert} className="rig-gallery-layer" inert={isInert}>
       <button aria-label="Close motion library" className="rig-gallery-scrim" type="button" onClick={onClose} />
       <section
-        aria-labelledby="rig-gallery-title"
+        aria-label="Hoppy motion system gallery"
         aria-modal="true"
         className="rig-gallery"
         ref={dialogRef}

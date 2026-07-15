@@ -127,7 +127,7 @@ function createFrame(theme: DemoTheme, frame: DemoFrame, index: number) {
   wrapText(context, frame.title, 78, 728, 840, 66);
   context.fillStyle = "rgba(240,243,237,0.48)";
   context.font = "520 19px Inter, system-ui, sans-serif";
-  context.fillText("An original MotionKit Spatial study in image, rhythm, and form.", 80, 826);
+  context.fillText("An original Hoppy study in image, rhythm, and form.", 80, 826);
   return canvas.toDataURL("image/png");
 }
 
@@ -197,7 +197,7 @@ function drawArtwork(
     wrapText(context, `“${variant === "quote" ? "Clarity travels further." : "Move with intent."}”`, x + 92, y + 166, width - 184, 76);
     context.fillStyle = "rgba(18,24,23,0.5)";
     context.font = "700 18px Inter, system-ui, sans-serif";
-    context.fillText("MOTIONKIT RESEARCH OFFICE", x + 96, y + height - 72);
+    context.fillText("HOPPY RESEARCH OFFICE", x + 96, y + height - 72);
   }
 }
 

@@ -1,4 +1,4 @@
-# Adding A Production Rig
+# Adding A Production Rig To Hoppy
 
 Registration is the final step, not the first. A new rig is production-ready only when it supplies a complete contract.
 

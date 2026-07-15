@@ -1,10 +1,12 @@
-# MotionKit Spatial Visual Identity
+# Hoppy Visual Identity
 
 ## Direction
 
-MotionKit Spatial is a premium creative motion instrument. The moving composition remains the hero; application chrome stays precise, quiet, and predominantly monochrome.
+Hoppy is a premium creative motion instrument. Its promise is “Turn static visuals into motion.” The moving composition remains the hero; application chrome stays precise, quiet, and predominantly monochrome.
 
-The working balance is 95% neutral and 5% Motion Spectrum. The spectrum represents image → motion → transformation. It is a functional signal, not ambient decoration, and is original to MotionKit Spatial rather than a reproduction of another product or logo.
+The working balance is 95% neutral and 5% Motion Spectrum. The spectrum represents image → motion → transformation. It is a functional signal, not ambient decoration, and is original to Hoppy rather than a reproduction of another product or logo.
+
+Hoppy is approachable but visually professional. Do not use mascot imagery, playful rounded typography, bouncing logo animation, childish language, or rabbit symbolism unless a future brand phase explicitly approves it.
 
 ## Color Tokens
 

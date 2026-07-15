@@ -34,7 +34,7 @@ export function readWorkspaceSession(): WorkspaceSessionReadResult {
     return result;
   } catch {
     try { window.localStorage.removeItem(WORKSPACE_SESSION_KEY); } catch { /* Storage may be blocked. */ }
-    return { issue: "Workspace settings could not be read. MotionKit is using safe defaults.", session: null };
+    return { issue: "Workspace settings could not be read. Hoppy is using safe defaults.", session: null };
   }
 }
 
