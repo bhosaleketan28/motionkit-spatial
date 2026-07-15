@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { AddFilesResult, ImageSlot } from "../hooks/useImageSlots";
 import type { PresetApplicationState } from "../rigs/presetSystem";
 import type { RegisteredRigDefinition, RigPreset } from "../rigs/types";
@@ -55,6 +55,7 @@ export function LeftPanel({
   slots,
 }: LeftPanelProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const dragDepthRef = useRef(0);
   const [activeSection, setActiveSection] = useState<WorkspaceSection>("media");
   const [dropState, setDropState] = useState<"idle" | "valid" | "invalid">("idle");
@@ -70,6 +71,13 @@ export function LeftPanel({
     0,
     activeRig.mediaRequirements.requiredForExport - readyMediaCount,
   );
+
+  useLayoutEffect(() => {
+    const content = contentScrollRef.current;
+    if (!content) return;
+    content.scrollTop = 0;
+    content.scrollLeft = 0;
+  }, [activeRig.id, activeSection]);
 
   const receiveFiles = (files: File[]) => {
     if (!files.length) {
@@ -143,7 +151,7 @@ export function LeftPanel({
         ))}
       </nav>
 
-      <div className="left-panel-content">
+      <div className="left-panel-content" ref={contentScrollRef}>
         {activeSection === "create" ? (
           <section
             aria-labelledby="create-workspace-tab"

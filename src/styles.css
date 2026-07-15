@@ -753,8 +753,16 @@ h2 {
 }
 
 .left-panel {
+  display: grid;
   grid-column: 1;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  overflow: hidden;
   border-right: 1px solid var(--border);
+}
+
+.left-panel > .panel-chrome {
+  position: relative;
+  top: auto;
 }
 
 .right-panel {
@@ -802,8 +810,8 @@ h2 {
 /* Left workspace navigation */
 
 .workspace-nav {
-  position: sticky;
-  top: 102px;
+  position: relative;
+  top: auto;
   z-index: 2;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -813,8 +821,8 @@ h2 {
 }
 
 .rail-rig-summary {
-  position: sticky;
-  top: 36px;
+  position: relative;
+  top: auto;
   z-index: 3;
   display: flex;
   align-items: center;
@@ -893,7 +901,13 @@ h2 {
 }
 
 .left-panel-content {
+  min-width: 0;
+  min-height: 0;
   padding: 20px 14px 28px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
 }
 
 .rig-list,
@@ -4542,6 +4556,7 @@ summary:focus-visible,
 
   .left-panel {
     left: 12px;
+    overflow: hidden;
   }
 
   .right-panel {
@@ -4551,10 +4566,6 @@ summary:focus-visible,
   .panel-chrome,
   .inspector-heading {
     backdrop-filter: blur(18px);
-  }
-
-  .workspace-nav {
-    top: 94px;
   }
 
   .drawer-scrim {
