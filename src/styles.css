@@ -3337,13 +3337,14 @@ h2 {
   text-transform: none;
 }
 
-.export-phase-badge.phase-running,
-.export-phase-badge.phase-complete {
+.export-phase-badge.phase-validating,
+.export-phase-badge.phase-exporting,
+.export-phase-badge.phase-completed {
   color: var(--accent-text);
   border-color: rgba(91, 140, 255, 0.28);
 }
 
-.export-phase-badge.phase-error {
+.export-phase-badge.phase-failed {
   color: var(--danger);
   border-color: rgba(239, 119, 110, 0.3);
 }
@@ -3456,6 +3457,55 @@ h2 {
   color: #f0a59f;
   background: rgba(239, 119, 110, 0.06);
   border-color: rgba(239, 119, 110, 0.28);
+}
+
+.export-callout strong {
+  color: var(--text);
+}
+
+.export-warning-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.export-warning-list li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 9px;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  background: rgba(239, 183, 110, 0.055);
+  border: 1px solid rgba(239, 183, 110, 0.24);
+  border-radius: 6px;
+}
+
+.export-warning-list li > span,
+.export-failure-mark {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  color: #17120b;
+  background: #efb76e;
+  border-radius: 50%;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.export-warning-list strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.7rem;
+}
+
+.export-warning-list p {
+  margin: 3px 0 0;
+  color: var(--text-subtle);
+  font-size: 0.67rem;
+  line-height: 1.45;
 }
 
 .export-filename-field {
@@ -3901,7 +3951,9 @@ h2 {
 }
 
 h3[data-export-view-focus]:focus {
-  outline: 2px solid transparent;
+  outline: 2px solid var(--accent);
+  outline-offset: 5px;
+  border-radius: 3px;
 }
 
 .export-complete .eyebrow,
@@ -3928,6 +3980,16 @@ h3[data-export-view-focus]:focus {
 .export-message {
   align-content: center;
   min-height: 250px;
+}
+
+.export-failure-mark {
+  margin-bottom: 12px;
+  color: #1b0b09;
+  background: #ef776e;
+}
+
+.export-failure-summary .eyebrow {
+  color: #f0a59f;
 }
 
 .export-message > p:last-child {

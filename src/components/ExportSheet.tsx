@@ -4,8 +4,18 @@ import type { AnalyticsFailureReason, AnalyticsProperties } from "../analytics/a
 import { exportRigPng } from "../export/exportPng";
 import { exportRigWebm } from "../export/exportWebm";
 import {
-  createDefaultExportFileName,
   detectExportCapability,
+  getExportErrorPresentation,
+  normalizeExportError,
+  runExportPreflight,
+} from "../export/exportCapability";
+import type {
+  ExportErrorPresentation,
+  ExportPreflightResult,
+  ExportRecoveryAction,
+} from "../export/exportCapability";
+import {
+  createDefaultExportFileName,
   downloadBlob,
   ExportProcessError,
   formatCodecName,
@@ -27,7 +37,6 @@ import type {
 import type { AnyRigSettings, BackgroundMode, FrameRatio, RegisteredRigDefinition } from "../rigs/types";
 
 interface ExportSheetProps {
-  mediaIssues: Record<ExportFormat, string | null>;
   onAddMedia: () => void;
   onClose: () => void;
   onFrameRatioChange: (ratio: FrameRatio) => void;
@@ -37,7 +46,7 @@ interface ExportSheetProps {
   slotImages: Array<HTMLImageElement | null>;
 }
 
-type ExportView = "review" | "running" | "complete" | "cancelled" | "error";
+type ExportState = "idle" | "validating" | "exporting" | "completed" | "failed" | "cancelled";
 
 const EXPORT_PHASES: ExportPhase[] = [
   "preparing",
@@ -56,7 +65,6 @@ const INITIAL_PROGRESS: ExportProgress = {
 };
 
 export function ExportSheet({
-  mediaIssues,
   onAddMedia,
   onClose,
   onFrameRatioChange,
@@ -69,12 +77,14 @@ export function ExportSheet({
   const initialFormat: ExportFormat = capability.webmSupported ? "webm" : "png";
   const dialogRef = useRef<HTMLElement | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const downloadCleanupRef = useRef<(() => void) | null>(null);
+  const isMountedRef = useRef(true);
   const attemptInProgressRef = useRef(false);
   const previousFocusRef = useRef<HTMLElement | null>(document.activeElement as HTMLElement | null);
   const lastProgressPaintRef = useRef(0);
   const lastProgressPhaseRef = useRef<ExportPhase>("preparing");
   const latestProgressRef = useRef<ExportProgress>(INITIAL_PROGRESS);
-  const [view, setView] = useState<ExportView>("review");
+  const [exportState, setExportState] = useState<ExportState>("idle");
   const [format, setFormat] = useState<ExportFormat>(initialFormat);
   const [fps, setFps] = useState<ExportFps>(60);
   const [quality, setQuality] = useState<ExportQuality>("standard");
@@ -88,8 +98,20 @@ export function ExportSheet({
   const [isCancelling, setIsCancelling] = useState(false);
   const frame = getExportFrameSize(settings.frameRatio, quality);
   const mediaCount = slotImages.filter(Boolean).length;
-  const isRunning = view === "running";
-  const mediaIssue = mediaIssues[format];
+  const isBusy = exportState === "validating" || exportState === "exporting";
+  const reviewPreflight = useMemo(
+    () =>
+      runExportPreflight({
+        capability,
+        exportInProgress: false,
+        format,
+        fps,
+        input: { rig, settings, slotImages },
+        quality,
+        requestedMimeType: capability.mimeType,
+      }),
+    [capability, format, fps, quality, rig, settings, slotImages],
+  );
 
   useEffect(() => {
     const focusFrame = window.requestAnimationFrame(() => {
@@ -98,13 +120,13 @@ export function ExportSheet({
         ?.focus();
     });
     return () => window.cancelAnimationFrame(focusFrame);
-  }, [view]);
+  }, [exportState]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        if (!isRunning) {
+        if (!isBusy) {
           onClose();
         }
         return;
@@ -137,22 +159,28 @@ export function ExportSheet({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isRunning, onClose]);
+  }, [isBusy, onClose]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       abortControllerRef.current?.abort();
+      downloadCleanupRef.current?.();
       previousFocusRef.current?.focus();
     };
   }, []);
 
   const closeSheet = () => {
-    if (!isRunning) {
+    if (!isBusy) {
       onClose();
     }
   };
 
   const updateProgress = (nextProgress: ExportProgress) => {
+    if (!isMountedRef.current || abortControllerRef.current?.signal.aborted) {
+      return;
+    }
     latestProgressRef.current = nextProgress;
     const now = performance.now();
     const phaseChanged = nextProgress.phase !== lastProgressPhaseRef.current;
@@ -164,7 +192,11 @@ export function ExportSheet({
   };
 
   const startExport = async () => {
-    if (attemptInProgressRef.current || mediaIssue || (format === "png" && !pngConsent)) {
+    if (
+      attemptInProgressRef.current ||
+      reviewPreflight.blockingError ||
+      (format === "png" && !pngConsent)
+    ) {
       return;
     }
 
@@ -188,10 +220,27 @@ export function ExportSheet({
     setError(null);
     setIsCancelling(false);
     setProgress(INITIAL_PROGRESS);
-    setView("running");
+    setExportState("validating");
     onStatusChange("exporting");
 
     try {
+      await waitForAnimationFrame(controller.signal);
+      throwIfExportCancelled(controller.signal);
+      const preflight = runExportPreflight({
+        capability,
+        exportInProgress: false,
+        format,
+        fps,
+        input,
+        quality,
+        requestedMimeType: capability.mimeType,
+      });
+      if (preflight.blockingError) {
+        throw preflight.blockingError;
+      }
+      if (isMountedRef.current) {
+        setExportState("exporting");
+      }
       const options = {
         fileName: normalizedFileName,
         fps,
@@ -211,48 +260,45 @@ export function ExportSheet({
         progress: 0.98,
         remainingMs: null,
       };
-      setProgress(downloadingProgress);
-      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+      updateProgress(downloadingProgress);
+      await waitForAnimationFrame(controller.signal);
       throwIfExportCancelled(controller.signal);
-      downloadBlob(result.blob, result.fileName);
+      downloadCleanupRef.current?.();
+      downloadCleanupRef.current = downloadBlob(result.blob, result.fileName);
       trackEvent("export_completed", analyticsProperties);
-      setProgress({
+      updateProgress({
         elapsedMs: downloadingProgress.elapsedMs,
         phase: "complete",
         progress: 1,
         remainingMs: 0,
       });
       setArtifact(result);
-      setView("complete");
+      setExportState("completed");
       onStatusChange(result.format === "webm" ? "done" : "fallback");
     } catch (caughtError) {
-      const processError =
-        caughtError instanceof ExportProcessError
-          ? caughtError
-          : new ExportProcessError(
-              "encoding",
-              "The export ended unexpectedly before a file could be created.",
-            );
+      const processError = normalizeExportError(caughtError);
 
-      if (processError.code === "cancelled") {
-        setView("cancelled");
+      if (!isMountedRef.current) {
+        return;
+      }
+      if (processError.code === "EXPORT_CANCELLED") {
+        setExportState("cancelled");
         onStatusChange("cancelled");
       } else {
         trackEvent("export_failed", {
           ...analyticsProperties,
-          failure_reason:
-            caughtError instanceof ExportProcessError
-              ? getAnalyticsFailureReason(processError.code)
-              : "unknown",
+          failure_reason: getAnalyticsFailureReason(processError.code, format),
         });
         setError(processError);
-        setView("error");
+        setExportState("failed");
         onStatusChange("error");
       }
     } finally {
       attemptInProgressRef.current = false;
       abortControllerRef.current = null;
-      setIsCancelling(false);
+      if (isMountedRef.current) {
+        setIsCancelling(false);
+      }
     }
   };
 
@@ -269,7 +315,7 @@ export function ExportSheet({
     setFileName((current) => normalizeExportFileName(current, nextFormat));
     setPngConsent(false);
     setError(null);
-    setView("review");
+    setExportState("idle");
     onStatusChange("ready");
   };
 
@@ -277,8 +323,38 @@ export function ExportSheet({
     setArtifact(null);
     setError(null);
     setProgress(INITIAL_PROGRESS);
-    setView("review");
+    setExportState("idle");
     onStatusChange("ready");
+  };
+
+  const handleRecoveryAction = (action: ExportRecoveryAction) => {
+    if (action === "RETRY") {
+      void startExport();
+      return;
+    }
+    if (action === "LOWER_RESOLUTION") {
+      setQuality("standard");
+      returnToReview();
+      return;
+    }
+    if (action === "USE_30_FPS") {
+      setFps(30);
+      returnToReview();
+      return;
+    }
+    if (action === "SWITCH_TO_PNG") {
+      selectFormat("png");
+      return;
+    }
+    if (action === "REVIEW_MEDIA") {
+      onAddMedia();
+      return;
+    }
+    if (action === "RETURN_TO_SETTINGS") {
+      returnToReview();
+      return;
+    }
+    closeSheet();
   };
 
   const changeFrameRatio = (frameRatio: FrameRatio) => {
@@ -296,21 +372,23 @@ export function ExportSheet({
     });
     onFrameRatioChange(frameRatio);
   };
+  const failurePresentation = error ? getExportErrorPresentation(error.code) : null;
+  const mediaNeedsAttention = reviewPreflight.blockingError?.code === "MEDIA_NOT_READY";
 
   return (
     <div className="export-modal-layer">
       <button
         aria-label="Close export"
         className="export-modal-scrim"
-        disabled={isRunning}
+        disabled={isBusy}
         type="button"
         onClick={closeSheet}
       />
       <section
         aria-labelledby="export-dialog-title"
-        aria-busy={isRunning}
+        aria-busy={isBusy}
         aria-modal="true"
-        className={`export-sheet export-view-${view}`}
+        className={`export-sheet export-state-${exportState}`}
         ref={dialogRef}
         role="dialog"
       >
@@ -320,11 +398,13 @@ export function ExportSheet({
             <h2 id="export-dialog-title">Create {rig.name} output</h2>
           </div>
           <div className="export-header-actions">
-            <span className={`export-phase-badge phase-${view}`}>{formatViewLabel(view)}</span>
+            <span className={`export-phase-badge phase-${exportState}`}>
+              {formatViewLabel(exportState)}
+            </span>
             <button
               aria-label="Close export"
               className="export-close-button"
-              disabled={isRunning}
+              disabled={isBusy}
               type="button"
               onClick={closeSheet}
             >
@@ -334,7 +414,7 @@ export function ExportSheet({
         </header>
 
         <div className="export-sheet-body">
-          {view === "review" ? (
+          {exportState === "idle" ? (
             <ExportReview
               capability={capability}
               fileName={fileName}
@@ -342,8 +422,8 @@ export function ExportSheet({
               fps={fps}
               frame={frame}
               mediaCount={mediaCount}
-              mediaIssue={mediaIssue}
               onFrameRatioChange={changeFrameRatio}
+              preflight={reviewPreflight}
               pngConsent={pngConsent}
               quality={quality}
               rig={rig}
@@ -356,15 +436,17 @@ export function ExportSheet({
             />
           ) : null}
 
-          {view === "running" ? (
+          {isBusy ? (
             <ExportRunning
+              exportState={exportState}
+              format={format}
               isCancelling={isCancelling}
               progress={progress}
               onCancel={cancelExport}
             />
           ) : null}
 
-          {view === "complete" && artifact ? (
+          {exportState === "completed" && artifact ? (
             <ExportComplete
               artifact={artifact}
               backgroundMode={settings.background.mode}
@@ -375,27 +457,24 @@ export function ExportSheet({
             />
           ) : null}
 
-          {view === "cancelled" ? (
+          {exportState === "cancelled" ? (
             <ExportMessage
+              announcement="polite"
               eyebrow="Cancelled"
               message="The render stopped safely. No partial file was downloaded."
               title="Export cancelled"
             />
           ) : null}
 
-          {view === "error" && error ? (
-            <ExportMessage
-              eyebrow={formatErrorCode(error.code)}
-              message={error.message}
-              title="Export could not complete"
-            />
+          {exportState === "failed" && failurePresentation ? (
+            <ExportFailure presentation={failurePresentation} />
           ) : null}
         </div>
 
-        {view === "review" ? (
+        {exportState === "idle" ? (
           <footer className="export-sheet-footer">
             <button className="secondary-button" type="button" onClick={closeSheet}>Cancel</button>
-            {mediaIssue ? (
+            {mediaNeedsAttention ? (
               <button className="primary-button export-primary-action" data-export-view-focus type="button" onClick={onAddMedia}>
                 Add images
               </button>
@@ -403,7 +482,8 @@ export function ExportSheet({
               <button
                 className="primary-button export-primary-action"
                 data-export-view-focus
-                disabled={format === "png" && !pngConsent}
+                aria-describedby={reviewPreflight.blockingError ? "export-blocking-message" : undefined}
+                disabled={Boolean(reviewPreflight.blockingError) || (format === "png" && !pngConsent)}
                 type="button"
                 onClick={startExport}
               >
@@ -413,7 +493,7 @@ export function ExportSheet({
           </footer>
         ) : null}
 
-        {view === "cancelled" ? (
+        {exportState === "cancelled" ? (
           <footer className="export-sheet-footer">
             <button className="secondary-button" type="button" onClick={closeSheet}>Close</button>
             <button className="primary-button" data-export-view-focus type="button" onClick={returnToReview}>
@@ -422,17 +502,24 @@ export function ExportSheet({
           </footer>
         ) : null}
 
-        {view === "error" && error ? (
+        {exportState === "failed" && failurePresentation ? (
           <footer className="export-sheet-footer export-error-actions">
-            <button className="secondary-button" type="button" onClick={closeSheet}>Close</button>
-            {format === "webm" ? (
-              <button className="secondary-button" type="button" onClick={() => selectFormat("png")}>
-                Use PNG snapshot instead
-              </button>
-            ) : null}
-            <button className="primary-button" data-export-view-focus type="button" onClick={returnToReview}>
-              Review and retry
-            </button>
+            {getAvailableRecoveryActions(failurePresentation.actions, format, quality).map(
+              (action) => (
+                <button
+                  className={
+                    action === "RETRY" || action === "RETURN_TO_SETTINGS"
+                      ? "primary-button"
+                      : "secondary-button"
+                  }
+                  key={action}
+                  type="button"
+                  onClick={() => handleRecoveryAction(action)}
+                >
+                  {formatRecoveryAction(action)}
+                </button>
+              ),
+            )}
           </footer>
         ) : null}
       </section>
@@ -442,17 +529,24 @@ export function ExportSheet({
 
 function getAnalyticsFailureReason(
   code: ExportProcessError["code"],
+  format: ExportFormat,
 ): AnalyticsFailureReason {
-  const reasons: Record<ExportProcessError["code"], AnalyticsFailureReason | null> = {
-    cancelled: null,
-    "unsupported-browser": "unsupported_browser",
-    "recorder-startup": "recorder_startup",
-    "invalid-media": "invalid_media",
-    encoding: "encoding",
-    "png-encoding": "png_encoding",
-    download: "download",
-  };
-  return reasons[code] ?? "unknown";
+  if (code === "UNSUPPORTED_BROWSER" || code === "UNSUPPORTED_FORMAT") {
+    return "unsupported_browser";
+  }
+  if (code === "MEDIA_NOT_READY" || code === "INVALID_EXPORT_SETTINGS") {
+    return "invalid_media";
+  }
+  if (code === "RECORDER_START_FAILED") {
+    return "recorder_startup";
+  }
+  if (code === "RECORDING_INTERRUPTED" || code === "EMPTY_OUTPUT") {
+    return format === "png" ? "png_encoding" : "encoding";
+  }
+  if (code === "CANVAS_TOO_LARGE" || code === "MEMORY_PRESSURE") {
+    return "encoding";
+  }
+  return "unknown";
 }
 
 interface ExportReviewProps {
@@ -462,13 +556,13 @@ interface ExportReviewProps {
   fps: ExportFps;
   frame: { width: number; height: number };
   mediaCount: number;
-  mediaIssue: string | null;
   onFileNameChange: (fileName: string) => void;
   onFrameRatioChange: (ratio: FrameRatio) => void;
   onFpsChange: (fps: ExportFps) => void;
   onPngConsentChange: (consent: boolean) => void;
   onQualityChange: (quality: ExportQuality) => void;
   onSelectFormat: (format: ExportFormat) => void;
+  preflight: ExportPreflightResult;
   pngConsent: boolean;
   quality: ExportQuality;
   rig: RegisteredRigDefinition;
@@ -482,13 +576,13 @@ function ExportReview({
   fps,
   frame,
   mediaCount,
-  mediaIssue,
   onFileNameChange,
   onFrameRatioChange,
   onFpsChange,
   onPngConsentChange,
   onQualityChange,
   onSelectFormat,
+  preflight,
   pngConsent,
   quality,
   rig,
@@ -503,6 +597,9 @@ function ExportReview({
         ? "Creates one image from the opening frame. Switch to WebM for a looping video."
         : "Creates one image from the opening frame. WebM recording is unavailable in this browser."
       : capability.message;
+  const blockingPresentation = preflight.blockingError
+    ? getExportErrorPresentation(preflight.blockingError.code)
+    : null;
 
   return (
     <div className="export-review">
@@ -519,7 +616,25 @@ function ExportReview({
         <small>{format === "png" ? "STILL" : formatCodecName(capability.mimeType)}</small>
       </div>
 
-      {mediaIssue ? <p className="export-callout error" role="alert">{mediaIssue}</p> : null}
+      {blockingPresentation ? (
+        <p className="export-callout error" id="export-blocking-message" role="alert">
+          <strong>{blockingPresentation.title}.</strong> {blockingPresentation.explanation}
+        </p>
+      ) : null}
+
+      {preflight.warnings.length ? (
+        <ul aria-label="Export warnings" className="export-warning-list">
+          {preflight.warnings.map((warning) => (
+            <li key={warning.code}>
+              <span aria-hidden="true">!</span>
+              <div>
+                <strong>{warning.title}</strong>
+                <p>{warning.message}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <div className="export-control-list">
         <div aria-labelledby="export-format-label" className="export-output-row" role="radiogroup">
@@ -715,10 +830,14 @@ function ExportReview({
 }
 
 function ExportRunning({
+  exportState,
+  format,
   isCancelling,
   onCancel,
   progress,
 }: {
+  exportState: "validating" | "exporting";
+  format: ExportFormat;
   isCancelling: boolean;
   onCancel: () => void;
   progress: ExportProgress;
@@ -730,13 +849,19 @@ function ExportRunning({
     <div className="export-running">
       <div className="export-progress-heading">
         <div aria-live="polite">
-          <p className="eyebrow">{formatPhase(progress.phase)}</p>
-          <h3>{formatRunningTitle(progress.phase)}</h3>
+          <p className="eyebrow">
+            {exportState === "validating" ? "Validating" : formatPhase(progress.phase)}
+          </p>
+          <h3>{formatRunningTitle(progress.phase, exportState, format)}</h3>
         </div>
         <strong>{percentage}%</strong>
       </div>
       <div
-        aria-label={`Export progress ${percentage} percent`}
+        aria-label={
+          exportState === "validating"
+            ? "Export preflight validation in progress"
+            : `Export progress ${percentage} percent`
+        }
         aria-valuemax={100}
         aria-valuemin={0}
         aria-valuenow={percentage}
@@ -761,7 +886,11 @@ function ExportRunning({
         ))}
       </ol>
       <div className="export-running-footer">
-        <p>The preview and scrubber remain independent while this loop renders from frame zero.</p>
+        <p>
+          {exportState === "validating"
+            ? "Checking media, output settings, and browser recording support before export begins."
+            : "The preview and scrubber remain independent while this loop renders from frame zero."}
+        </p>
         <button
           className="secondary-button export-cancel-button"
           data-export-view-focus
@@ -821,9 +950,19 @@ function ExportComplete({
   );
 }
 
-function ExportMessage({ eyebrow, message, title }: { eyebrow: string; message: string; title: string }) {
+function ExportMessage({
+  announcement,
+  eyebrow,
+  message,
+  title,
+}: {
+  announcement: "polite" | "assertive";
+  eyebrow: string;
+  message: string;
+  title: string;
+}) {
   return (
-    <div className="export-message">
+    <div aria-atomic="true" aria-live={announcement} className="export-message" role="status">
       <p className="eyebrow">{eyebrow}</p>
       <h3 data-export-view-focus tabIndex={-1}>{title}</h3>
       <p>{message}</p>
@@ -831,11 +970,28 @@ function ExportMessage({ eyebrow, message, title }: { eyebrow: string; message: 
   );
 }
 
-function formatViewLabel(view: ExportView) {
-  if (view === "review") return "Review";
-  if (view === "running") return "Exporting";
-  if (view === "complete") return "Complete";
-  if (view === "cancelled") return "Cancelled";
+function ExportFailure({ presentation }: { presentation: ExportErrorPresentation }) {
+  return (
+    <div
+      aria-atomic="true"
+      aria-live="assertive"
+      className="export-message export-failure-summary"
+      role="alert"
+    >
+      <span aria-hidden="true" className="export-failure-mark">!</span>
+      <p className="eyebrow">{presentation.label}</p>
+      <h3 data-export-view-focus tabIndex={-1}>{presentation.title}</h3>
+      <p>{presentation.explanation}</p>
+    </div>
+  );
+}
+
+function formatViewLabel(exportState: ExportState) {
+  if (exportState === "idle") return "Review";
+  if (exportState === "validating") return "Validating";
+  if (exportState === "exporting") return "Exporting";
+  if (exportState === "completed") return "Complete";
+  if (exportState === "cancelled") return "Cancelled";
   return "Needs attention";
 }
 
@@ -843,10 +999,17 @@ function formatPhase(phase: ExportPhase) {
   return phase.charAt(0).toUpperCase() + phase.slice(1);
 }
 
-function formatRunningTitle(phase: ExportPhase) {
+function formatRunningTitle(
+  phase: ExportPhase,
+  exportState: "validating" | "exporting",
+  format: ExportFormat,
+) {
+  if (exportState === "validating") return "Checking export readiness";
   if (phase === "preparing") return "Preparing your output";
-  if (phase === "rendering") return "Creating one complete loop";
-  if (phase === "encoding") return "Building the WebM file";
+  if (phase === "rendering") {
+    return format === "webm" ? "Creating one complete loop" : "Drawing the still frame";
+  }
+  if (phase === "encoding") return format === "webm" ? "Building the WebM file" : "Encoding the PNG image";
   if (phase === "finalizing") return "Finishing output details";
   if (phase === "downloading") return "Saving to your device";
   return "Output ready";
@@ -860,17 +1023,54 @@ function formatBackgroundMode(mode: BackgroundMode) {
   return mode.charAt(0).toUpperCase() + mode.slice(1);
 }
 
-function formatErrorCode(code: ExportProcessError["code"]) {
-  const labels: Record<ExportProcessError["code"], string> = {
-    cancelled: "Cancelled",
-    "unsupported-browser": "Unsupported browser",
-    "recorder-startup": "Recorder startup failure",
-    "invalid-media": "Invalid media",
-    encoding: "Encoding failure",
-    "png-encoding": "PNG encoding failure",
-    download: "Download failure",
+function getAvailableRecoveryActions(
+  actions: ExportRecoveryAction[],
+  format: ExportFormat,
+  quality: ExportQuality,
+) {
+  return actions.filter(
+    (action) =>
+      !(action === "SWITCH_TO_PNG" && format === "png") &&
+      !(action === "USE_30_FPS" && format === "png") &&
+      !(action === "LOWER_RESOLUTION" && quality === "standard"),
+  );
+}
+
+function formatRecoveryAction(action: ExportRecoveryAction) {
+  const labels: Record<ExportRecoveryAction, string> = {
+    RETRY: "Retry export",
+    LOWER_RESOLUTION: "Lower resolution",
+    USE_30_FPS: "Use 30 FPS",
+    SWITCH_TO_PNG: "Switch to PNG",
+    REVIEW_MEDIA: "Review media",
+    RETURN_TO_SETTINGS: "Return to export settings",
+    DISMISS: "Dismiss",
   };
-  return labels[code];
+  return labels[action];
+}
+
+function waitForAnimationFrame(signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    let frame = 0;
+    const cleanup = () => {
+      window.cancelAnimationFrame(frame);
+      signal.removeEventListener("abort", handleAbort);
+    };
+    const handleAbort = () => {
+      cleanup();
+      reject(new ExportProcessError("EXPORT_CANCELLED"));
+    };
+
+    signal.addEventListener("abort", handleAbort, { once: true });
+    if (signal.aborted) {
+      handleAbort();
+      return;
+    }
+    frame = window.requestAnimationFrame(() => {
+      cleanup();
+      resolve();
+    });
+  });
 }
 
 function handleOutputRadioNavigation<Value extends string | number>(

@@ -14,9 +14,8 @@ import { StartScreen } from "./components/StartScreen";
 import { TopBar } from "./components/TopBar";
 import { demoScenarios } from "./demo/demoScenarios";
 import type { DemoScenario } from "./demo/demoScenarios";
-import type { ExportFormat, ExportStatus } from "./export/exportSettings";
+import type { ExportStatus } from "./export/exportSettings";
 import { useImageSlots } from "./hooks/useImageSlots";
-import type { ImageSlot } from "./hooks/useImageSlots";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { getRigById, rigRegistry } from "./rigs/registry";
 import { getPresetById, getPresetsForRig } from "./rigs/presetRegistry";
@@ -157,10 +156,6 @@ export default function App() {
   } = useImageSlots(activeRig);
   const isStageRenderingPaused =
     isBlockingOverlayOpen || (isNarrowWorkspace && activeDrawer !== null);
-  const exportMediaIssues = {
-    png: getExportMediaIssue(activeRig, slots, "png"),
-    webm: getExportMediaIssue(activeRig, slots, "webm"),
-  };
   const showNotice = useCallback(
     (message: string, tone: NoticeTone, action?: Pick<AppNotice, "actionLabel" | "onAction">) => {
       setAppNotice({
@@ -868,7 +863,6 @@ export default function App() {
       </div>
       {isExportSheetOpen ? (
         <ExportSheet
-          mediaIssues={exportMediaIssues}
           onAddMedia={() => {
             setIsExportSheetOpen(false);
             setIsStageOnly(false);
@@ -911,25 +905,4 @@ export default function App() {
       />
     </main>
   );
-}
-
-function getExportMediaIssue(rig: RegisteredRigDefinition, slots: ImageSlot[], format: ExportFormat) {
-  if (slots.some((slot) => slot.status === "loading")) {
-    return "Your images are still loading. Wait a moment, then try export again.";
-  }
-
-  if (slots.some((slot) => slot.status === "error")) {
-    return "One image could not be opened. Replace it in Media, then try export again.";
-  }
-
-  const validItemCount = slots.filter((slot) => slot.status === "ready" && slot.image).length;
-  const required = format === "png"
-    ? rig.mediaRequirements.requiredForPng
-    : rig.mediaRequirements.requiredForExport;
-  if (validItemCount < required) {
-    const formatLabel = format === "webm" ? "WebM" : "PNG";
-    return `${rig.name} needs at least ${required} image${required === 1 ? "" : "s"} for ${formatLabel} export. Add images in Media, then try again.`;
-  }
-
-  return null;
 }

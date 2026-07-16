@@ -1,11 +1,5 @@
 import type { AnyRigSettings, FrameRatio, FrameSize, RegisteredRigDefinition } from "../rigs/types";
 
-export const WEBM_MIME_TYPES = [
-  "video/webm;codecs=vp9",
-  "video/webm;codecs=vp8",
-  "video/webm",
-] as const;
-
 export type ExportStatus =
   | "ready"
   | "exporting"
@@ -56,87 +50,27 @@ export interface ExportArtifact {
   mimeType: string;
 }
 
-export interface ExportCapability {
-  captureStreamAvailable: boolean;
-  label:
-    | "Ready for WebM export"
-    | "WebM supported with limited codec options"
-    | "WebM unavailable; PNG snapshot only";
-  mediaRecorderAvailable: boolean;
-  message: string;
-  mimeType: string | null;
-  status: "ready" | "limited" | "png-only";
-  webmSupported: boolean;
-}
-
 export type ExportErrorCode =
-  | "cancelled"
-  | "unsupported-browser"
-  | "recorder-startup"
-  | "invalid-media"
-  | "encoding"
-  | "png-encoding"
-  | "download";
+  | "UNSUPPORTED_BROWSER"
+  | "UNSUPPORTED_FORMAT"
+  | "MEDIA_NOT_READY"
+  | "CANVAS_TOO_LARGE"
+  | "INVALID_EXPORT_SETTINGS"
+  | "RECORDER_START_FAILED"
+  | "RECORDING_INTERRUPTED"
+  | "EMPTY_OUTPUT"
+  | "MEMORY_PRESSURE"
+  | "EXPORT_CANCELLED"
+  | "UNKNOWN_EXPORT_ERROR";
 
 export class ExportProcessError extends Error {
   code: ExportErrorCode;
 
-  constructor(code: ExportErrorCode, message: string) {
-    super(message);
+  constructor(code: ExportErrorCode, options?: { cause?: unknown }) {
+    super(code, options);
     this.code = code;
     this.name = "ExportProcessError";
   }
-}
-
-export function detectExportCapability(): ExportCapability {
-  const mediaRecorderAvailable = typeof MediaRecorder !== "undefined";
-  const canvas = document.createElement("canvas");
-  const captureStreamAvailable = typeof canvas.captureStream === "function";
-  const mimeType = getSupportedWebmMimeType();
-  const webmSupported = mediaRecorderAvailable && captureStreamAvailable && Boolean(mimeType);
-
-  if (!webmSupported) {
-    return {
-      captureStreamAvailable,
-      label: "WebM unavailable; PNG snapshot only",
-      mediaRecorderAvailable,
-      message:
-        "This browser cannot record a canvas WebM. You can explicitly export one PNG snapshot instead.",
-      mimeType: null,
-      status: "png-only",
-      webmSupported: false,
-    };
-  }
-
-  if (mimeType !== WEBM_MIME_TYPES[0]) {
-    return {
-      captureStreamAvailable,
-      label: "WebM supported with limited codec options",
-      mediaRecorderAvailable,
-      message: `WebM export is available using ${formatCodecName(mimeType)}.`,
-      mimeType,
-      status: "limited",
-      webmSupported: true,
-    };
-  }
-
-  return {
-    captureStreamAvailable,
-    label: "Ready for WebM export",
-    mediaRecorderAvailable,
-    message: "Canvas recording and the preferred VP9 WebM codec are available.",
-    mimeType,
-    status: "ready",
-    webmSupported: true,
-  };
-}
-
-export function getSupportedWebmMimeType() {
-  if (typeof MediaRecorder === "undefined") {
-    return null;
-  }
-
-  return WEBM_MIME_TYPES.find((mimeType) => MediaRecorder.isTypeSupported(mimeType)) ?? null;
 }
 
 export function getExportFrameSize(ratio: FrameRatio, quality: ExportQuality): FrameSize {
@@ -159,17 +93,16 @@ export function getExportFrameSize(ratio: FrameRatio, quality: ExportQuality): F
 export function createExportCanvas(settings: AnyRigSettings, quality: ExportQuality) {
   const frame = getExportFrameSize(settings.frameRatio, quality);
   const canvas = document.createElement("canvas");
+  canvas.width = frame.width;
+  canvas.height = frame.height;
+  if (canvas.width !== frame.width || canvas.height !== frame.height || !canvas.width || !canvas.height) {
+    throw new ExportProcessError("CANVAS_TOO_LARGE");
+  }
   const context = canvas.getContext("2d");
 
   if (!context) {
-    throw new ExportProcessError(
-      "unsupported-browser",
-      "Canvas 2D is unavailable in this browser, so export cannot start.",
-    );
+    throw new ExportProcessError("UNSUPPORTED_BROWSER");
   }
-
-  canvas.width = frame.width;
-  canvas.height = frame.height;
 
   return { canvas, context, frame };
 }
@@ -209,38 +142,30 @@ export function normalizeExportFileName(fileName: string, extension: ExportForma
   return `${baseName || "hoppy-export"}.${extension}`;
 }
 
-export function validateExportMedia(input: ExportRenderInput, format: ExportFormat) {
-  const required = format === "png"
-    ? input.rig.mediaRequirements.requiredForPng
-    : input.rig.mediaRequirements.requiredForExport;
-  if (input.slotImages.length !== input.rig.slotCount) {
-    throw new ExportProcessError(
-      "invalid-media",
-      `${input.rig.name} requires ${required} valid image${required === 1 ? "" : "s"} before ${format.toUpperCase()} export.`,
-    );
-  }
-
-  const validImageCount = input.slotImages.filter(
-    (image) => image && image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
-  ).length;
-
-  if (validImageCount < required) {
-    throw new ExportProcessError(
-      "invalid-media",
-      "One or more media slots are empty, still loading, or contain an image that could not be decoded.",
-    );
-  }
-}
-
 export function throwIfExportCancelled(signal: AbortSignal) {
   if (signal.aborted) {
-    throw new ExportProcessError("cancelled", "Export cancelled. No file was downloaded.");
+    throw new ExportProcessError("EXPORT_CANCELLED");
   }
 }
 
 export function downloadBlob(blob: Blob, fileName: string) {
+  if (!blob.size) {
+    throw new ExportProcessError("EMPTY_OUTPUT");
+  }
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
+  let revoked = false;
+  let revokeTimer: number | null = null;
+  const cleanup = () => {
+    if (revokeTimer !== null) {
+      window.clearTimeout(revokeTimer);
+      revokeTimer = null;
+    }
+    if (!revoked) {
+      revoked = true;
+      URL.revokeObjectURL(url);
+    }
+  };
 
   try {
     link.href = url;
@@ -248,14 +173,15 @@ export function downloadBlob(blob: Blob, fileName: string) {
     document.body.append(link);
     link.click();
     link.remove();
-  } catch {
-    throw new ExportProcessError(
-      "download",
-      "The export was created, but the browser could not start the download.",
-    );
+    revokeTimer = window.setTimeout(cleanup, 1000);
+  } catch (cause) {
+    cleanup();
+    throw new ExportProcessError("UNKNOWN_EXPORT_ERROR", { cause });
   } finally {
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    link.remove();
   }
+
+  return cleanup;
 }
 
 export function formatCodecName(mimeType: string | null) {
