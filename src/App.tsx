@@ -1,3 +1,4 @@
+import { getDurationBucket, trackEvent } from "./analytics/analytics";
 import { AlphaGuideDialog } from "./components/AlphaGuideDialog";
 import { CenterStage } from "./components/CenterStage";
 import type { CenterStageHandle } from "./components/CenterStage";
@@ -74,12 +75,14 @@ export default function App() {
   const storageWarningShownRef = useRef(false);
   const preservedEditorProgressRef = useRef(0);
   const restoreEditorFocusRef = useRef(false);
+  const homeViewActiveRef = useRef(false);
   const stageRef = useRef<CenterStageHandle | null>(null);
   const isNarrowWorkspace = useMediaQuery(NARROW_WORKSPACE_QUERY);
   const prefersReducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("ready");
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(() => !prefersReducedMotion);
+  const isPlayingRef = useRef(isPlaying);
   const [isLeftRailCollapsed, setIsLeftRailCollapsed] = useState(
     () => initialSession.session?.isLeftRailCollapsed ?? false,
   );
@@ -171,6 +174,35 @@ export default function App() {
     [],
   );
   const dismissNotice = useCallback(() => setAppNotice(null), []);
+  const getWorkspaceAnalyticsProperties = useCallback(
+    () => ({
+      aspect_ratio: normalizedSettings.frameRatio,
+      duration_bucket: getDurationBucket(normalizedSettings.durationSeconds),
+      media_count: slots.filter((slot) => slot.status === "ready").length,
+      motion_system_id: activeRig.id,
+      ...(activePresetId ? { preset_id: activePresetId } : {}),
+    }),
+    [
+      activePresetId,
+      activeRig.id,
+      normalizedSettings.durationSeconds,
+      normalizedSettings.frameRatio,
+      slots,
+    ],
+  );
+  const handleAddFiles = useCallback((files: File[]) => {
+    const existingMediaCount = slots.filter(
+      (slot) => slot.status === "ready" || slot.status === "loading",
+    ).length;
+    const result = addFiles(files);
+    if (result.added > 0) {
+      trackEvent("media_added", {
+        media_count: existingMediaCount + result.added,
+        motion_system_id: activeRig.id,
+      });
+    }
+    return result;
+  }, [activeRig.id, addFiles, slots]);
   const openRigGallery = useCallback((trigger: HTMLElement) => {
     rigGalleryTriggerRef.current = trigger;
     setIsRigGalleryOpen(true);
@@ -198,8 +230,14 @@ export default function App() {
       setStartUploadError(`Choose between ${minItems} and ${maxItems} images to begin.`);
       return;
     }
-    const result = addFiles(selectedFiles);
+    const result = handleAddFiles(selectedFiles);
     if (result.added > 0) {
+      if (!hasEnteredEditor) {
+        trackEvent("creation_started", {
+          media_count: result.added,
+          motion_system_id: activeRig.id,
+        });
+      }
       setHasEnteredEditor(true);
       setIsHomeVisible(false);
     }
@@ -207,6 +245,17 @@ export default function App() {
   };
 
   const handleLoadDemo = () => {
+    trackEvent("showcase_started", {
+      media_count: activeRig.slotCount,
+      motion_system_id: activeRig.id,
+      ...(activePresetId ? { preset_id: activePresetId } : {}),
+    });
+    if (!hasEnteredEditor) {
+      trackEvent("creation_started", {
+        media_count: activeRig.slotCount,
+        motion_system_id: activeRig.id,
+      });
+    }
     setStartUploadError(null);
     loadDemoSlots();
     setHasEnteredEditor(true);
@@ -222,6 +271,21 @@ export default function App() {
     const nextSettings = presetResult?.ok
       ? presetResult.settings
       : createDefaultSettings(nextRig);
+
+    trackEvent("showcase_started", {
+      media_count: nextRig.slotCount,
+      motion_system_id: nextRig.id,
+      preset_id: scenario.presetId,
+    });
+    if (!hasEnteredEditor) {
+      trackEvent("creation_started", {
+        media_count: nextRig.slotCount,
+        motion_system_id: nextRig.id,
+      });
+    }
+    if (nextRig.id !== activeRig.id) {
+      trackEvent("motion_system_selected", { motion_system_id: nextRig.id });
+    }
 
     stageRef.current?.resetProgress();
     preservedEditorProgressRef.current = 0;
@@ -268,6 +332,10 @@ export default function App() {
     }
     setSettings(result.settings);
     setActivePresetId(preset.id);
+    trackEvent("preset_selected", {
+      motion_system_id: activeRig.id,
+      preset_id: preset.id,
+    });
     showNotice(`${preset.name} applied to ${activeRig.name}.`, "success");
   };
 
@@ -280,6 +348,7 @@ export default function App() {
       ? current
       : { ...current, [nextRig.id]: createDefaultRigState(nextRig) });
     setActiveRigId(nextRig.id);
+    trackEvent("motion_system_selected", { motion_system_id: nextRig.id });
     setPendingRigId(null);
     setIsExportSheetOpen(false);
     setExportStatus("ready");
@@ -311,7 +380,18 @@ export default function App() {
     });
   };
 
-  const togglePlayback = () => setIsPlaying((current) => !current);
+  const trackPreviewPlayed = () => {
+    trackEvent("preview_played", getWorkspaceAnalyticsProperties());
+  };
+
+  const togglePlayback = () => {
+    const nextIsPlaying = !isPlayingRef.current;
+    isPlayingRef.current = nextIsPlaying;
+    if (nextIsPlaying) {
+      trackPreviewPlayed();
+    }
+    setIsPlaying(nextIsPlaying);
+  };
 
   const handleGoHome = () => {
     preservedEditorProgressRef.current = stageRef.current?.getProgress() ?? preservedEditorProgressRef.current;
@@ -362,6 +442,20 @@ export default function App() {
 
     setIsRightRailCollapsed((current) => !current);
   };
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  useEffect(() => {
+    const isHomeActive = !hasEnteredEditor || isHomeVisible;
+    if (isHomeActive && !homeViewActiveRef.current) {
+      homeViewActiveRef.current = true;
+      trackEvent("home_viewed", { motion_system_id: activeRig.id });
+    } else if (!isHomeActive) {
+      homeViewActiveRef.current = false;
+    }
+  }, [activeRig.id, hasEnteredEditor, isHomeVisible]);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -665,6 +759,7 @@ export default function App() {
         <TopBar
           exportStatus={exportStatus}
           onExport={() => {
+            trackEvent("export_sheet_opened", getWorkspaceAnalyticsProperties());
             setExportStatus("ready");
             setIsExportSheetOpen(true);
           }}
@@ -688,7 +783,7 @@ export default function App() {
           activeRig={activeRig}
           activePresetId={activePreset?.id ?? null}
           activePresetState={activePresetState}
-          addFiles={addFiles}
+          addFiles={handleAddFiles}
           clearAllSlots={clearAllSlots}
           isDrawer={isNarrowWorkspace}
           isVisible={
@@ -734,6 +829,7 @@ export default function App() {
           }
           onFit={handleFit}
           onPlaybackChange={setIsPlaying}
+          onPlaybackStarted={trackPreviewPlayed}
           onToggleInspector={() => toggleWorkspacePanel("inspector")}
           onToggleMedia={() => toggleWorkspacePanel("media")}
           onTogglePlay={togglePlayback}

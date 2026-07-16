@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getDurationBucket, trackEvent } from "../analytics/analytics";
+import type { AnalyticsFailureReason, AnalyticsProperties } from "../analytics/analytics";
 import { exportRigPng } from "../export/exportPng";
 import { exportRigWebm } from "../export/exportWebm";
 import {
@@ -67,6 +69,7 @@ export function ExportSheet({
   const initialFormat: ExportFormat = capability.webmSupported ? "webm" : "png";
   const dialogRef = useRef<HTMLElement | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const attemptInProgressRef = useRef(false);
   const previousFocusRef = useRef<HTMLElement | null>(document.activeElement as HTMLElement | null);
   const lastProgressPaintRef = useRef(0);
   const lastProgressPhaseRef = useRef<ExportPhase>("preparing");
@@ -161,13 +164,24 @@ export function ExportSheet({
   };
 
   const startExport = async () => {
-    if (mediaIssue || (format === "png" && !pngConsent)) {
+    if (attemptInProgressRef.current || mediaIssue || (format === "png" && !pngConsent)) {
       return;
     }
 
+    attemptInProgressRef.current = true;
     const controller = new AbortController();
     const input: ExportRenderInput = { rig, settings, slotImages };
     const normalizedFileName = normalizeExportFileName(fileName, format);
+    const analyticsProperties: AnalyticsProperties = {
+      aspect_ratio: settings.frameRatio,
+      duration_bucket: getDurationBucket(settings.durationSeconds),
+      export_format: format,
+      export_resolution: `${frame.width}x${frame.height}` as AnalyticsProperties["export_resolution"],
+      media_count: mediaCount,
+      motion_system_id: rig.id,
+      ...(format === "webm" ? { export_fps: fps } : {}),
+    };
+    trackEvent("export_started", analyticsProperties);
     abortControllerRef.current = controller;
     setFileName(normalizedFileName);
     setArtifact(null);
@@ -201,6 +215,7 @@ export function ExportSheet({
       await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
       throwIfExportCancelled(controller.signal);
       downloadBlob(result.blob, result.fileName);
+      trackEvent("export_completed", analyticsProperties);
       setProgress({
         elapsedMs: downloadingProgress.elapsedMs,
         phase: "complete",
@@ -223,11 +238,19 @@ export function ExportSheet({
         setView("cancelled");
         onStatusChange("cancelled");
       } else {
+        trackEvent("export_failed", {
+          ...analyticsProperties,
+          failure_reason:
+            caughtError instanceof ExportProcessError
+              ? getAnalyticsFailureReason(processError.code)
+              : "unknown",
+        });
         setError(processError);
         setView("error");
         onStatusChange("error");
       }
     } finally {
+      attemptInProgressRef.current = false;
       abortControllerRef.current = null;
       setIsCancelling(false);
     }
@@ -415,6 +438,21 @@ export function ExportSheet({
       </section>
     </div>
   );
+}
+
+function getAnalyticsFailureReason(
+  code: ExportProcessError["code"],
+): AnalyticsFailureReason {
+  const reasons: Record<ExportProcessError["code"], AnalyticsFailureReason | null> = {
+    cancelled: null,
+    "unsupported-browser": "unsupported_browser",
+    "recorder-startup": "recorder_startup",
+    "invalid-media": "invalid_media",
+    encoding: "encoding",
+    "png-encoding": "png_encoding",
+    download: "download",
+  };
+  return reasons[code] ?? "unknown";
 }
 
 interface ExportReviewProps {

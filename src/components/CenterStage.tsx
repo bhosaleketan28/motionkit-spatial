@@ -25,6 +25,7 @@ interface CenterStageProps {
   onChangeFrameRatio: (ratio: FrameRatio) => void;
   onFit?: () => void;
   onPlaybackChange?: (isPlaying: boolean) => void;
+  onPlaybackStarted?: () => void;
   onToggleInspector?: () => void;
   onToggleMedia?: () => void;
   onTogglePlay: () => void;
@@ -56,6 +57,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
   onChangeFrameRatio,
   onFit = () => undefined,
   onPlaybackChange = () => undefined,
+  onPlaybackStarted = () => undefined,
   onToggleInspector = () => undefined,
   onToggleMedia = () => undefined,
   onTogglePlay,
@@ -289,6 +291,7 @@ export const CenterStage = forwardRef<CenterStageHandle, CenterStageProps>(funct
 
   const handleReplay = () => {
     updateProgress(0);
+    onPlaybackStarted();
     onPlaybackChange(true);
   };
 
