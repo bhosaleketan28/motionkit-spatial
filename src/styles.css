@@ -232,27 +232,6 @@ h2 {
   filter: saturate(0.88);
 }
 
-.start-brand {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 64px;
-  padding: 0 40px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.start-brand strong {
-  font-size: 0.9rem;
-}
-
-.start-brand span {
-  color: var(--text-subtle);
-  font-size: 0.7rem;
-  text-transform: none;
-}
-
 .start-content {
   position: absolute;
   top: 50%;
@@ -262,8 +241,14 @@ h2 {
   transform: translateY(-44%);
 }
 
-.start-content .eyebrow {
-  color: var(--accent-text);
+.start-logo {
+  display: block;
+  width: clamp(240px, 22vw, 320px);
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 clamp(26px, 3.2vh, 38px);
+  object-fit: contain;
+  object-position: left center;
 }
 
 .start-content h1 {
@@ -4912,13 +4897,8 @@ summary:focus-visible,
     opacity: 0.72;
   }
 
-  .start-brand {
-    height: 58px;
-    padding: 0 20px;
-  }
-
   .start-preview-control {
-    top: 66px;
+    top: max(12px, env(safe-area-inset-top));
     right: 12px;
     bottom: auto;
   }
@@ -4946,10 +4926,15 @@ summary:focus-visible,
 
   .start-content {
     top: auto;
-    bottom: 28px;
+    bottom: max(24px, env(safe-area-inset-bottom));
     left: 20px;
     width: calc(100vw - 40px);
     transform: none;
+  }
+
+  .start-logo {
+    width: clamp(190px, 58vw, 232px);
+    margin-bottom: 20px;
   }
 
   .start-content h1 {

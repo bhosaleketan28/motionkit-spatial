@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import hoppyLogo from "../assets/hoppy-logo.png";
 import { getRigPreviewMedia } from "../preview/rigPreviewRuntime";
 import type { AnyRigSettings, RegisteredRigDefinition } from "../rigs/types";
 import { CenterStage } from "./CenterStage";
 
 interface StartScreenProps {
   errorMessage: string | null;
+  focusPrimaryAction: boolean;
   hasExistingWorkspace: boolean;
   isInert: boolean;
   onBrowseRigs: (trigger: HTMLElement) => void;
@@ -20,6 +22,7 @@ interface StartScreenProps {
 
 export function StartScreen({
   errorMessage,
+  focusPrimaryAction,
   hasExistingWorkspace,
   isInert,
   onBrowseRigs,
@@ -33,6 +36,7 @@ export function StartScreen({
   settings,
 }: StartScreenProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const primaryActionRef = useRef<HTMLButtonElement | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(!prefersReducedMotion);
   const [previewImages, setPreviewImages] = useState<Array<HTMLImageElement | null>>(
     () => Array.from({ length: rig.slotCount }, () => null),
@@ -45,6 +49,14 @@ export function StartScreen({
       setIsPreviewPlaying(false);
     }
   }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!focusPrimaryAction) {
+      return;
+    }
+    const frame = window.requestAnimationFrame(() => primaryActionRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusPrimaryAction]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,11 +86,6 @@ export function StartScreen({
         />
       </div>
 
-      <header className="start-brand">
-        <strong>Hoppy</strong>
-        <span>Private alpha</span>
-      </header>
-
       <div className="start-preview-control">
         <span aria-hidden="true" className={isPreviewPlaying ? "playing" : ""} />
         <button
@@ -91,9 +98,14 @@ export function StartScreen({
       </div>
 
       <section className="start-content" aria-labelledby="start-heading">
-        <p className="eyebrow">For product, editorial & brand designers</p>
-        <h1 id="start-heading">Turn static visuals into motion.</h1>
-        <p>Create cinematic motion from your visuals.</p>
+        <img
+          alt=""
+          className="start-logo"
+          decoding="async"
+          src={hoppyLogo}
+        />
+        <h1 id="start-heading">Make every frame move with Hoppy.</h1>
+        <p>Turn static visuals into expressive motion.</p>
 
         <div className="start-actions">
           <input
@@ -110,11 +122,21 @@ export function StartScreen({
             type="file"
           />
           {hasExistingWorkspace ? (
-            <button autoFocus className="primary-button start-continue-button" type="button" onClick={onContinueEditing}>
+            <button
+              className="primary-button start-continue-button"
+              ref={primaryActionRef}
+              type="button"
+              onClick={onContinueEditing}
+            >
               Continue editing
             </button>
           ) : null}
-          <button className={hasExistingWorkspace ? "secondary-button" : "primary-button"} type="button" onClick={() => inputRef.current?.click()}>
+          <button
+            className={hasExistingWorkspace ? "secondary-button" : "primary-button"}
+            ref={hasExistingWorkspace ? undefined : primaryActionRef}
+            type="button"
+            onClick={() => inputRef.current?.click()}
+          >
             Add your images
           </button>
           <button className="secondary-button" type="button" onClick={onOpenDemo}>

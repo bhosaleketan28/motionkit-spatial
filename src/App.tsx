@@ -74,6 +74,7 @@ export default function App() {
   const storageWarningShownRef = useRef(false);
   const preservedEditorProgressRef = useRef(0);
   const restoreEditorFocusRef = useRef(false);
+  const focusHomePrimaryActionRef = useRef(false);
   const homeViewActiveRef = useRef(false);
   const stageRef = useRef<CenterStageHandle | null>(null);
   const isNarrowWorkspace = useMediaQuery(NARROW_WORKSPACE_QUERY);
@@ -95,7 +96,7 @@ export default function App() {
   const [hasEnteredEditor, setHasEnteredEditor] = useState(
     () => initialSession.session?.hasEditorSession ?? false,
   );
-  const [isHomeVisible, setIsHomeVisible] = useState(false);
+  const [isHomeVisible, setIsHomeVisible] = useState(true);
   const [startUploadError, setStartUploadError] = useState<string | null>(null);
   const [pendingRigId, setPendingRigId] = useState<string | null>(null);
   const [pendingDemoScenario, setPendingDemoScenario] = useState<DemoScenario | null>(null);
@@ -390,6 +391,7 @@ export default function App() {
 
   const handleGoHome = () => {
     preservedEditorProgressRef.current = stageRef.current?.getProgress() ?? preservedEditorProgressRef.current;
+    focusHomePrimaryActionRef.current = true;
     previousDrawerRef.current = null;
     setActiveDrawer(null);
     setIsRigGalleryOpen(false);
@@ -401,6 +403,7 @@ export default function App() {
   };
 
   const handleContinueEditing = () => {
+    focusHomePrimaryActionRef.current = false;
     restoreEditorFocusRef.current = true;
     setIsHomeVisible(false);
   };
@@ -713,6 +716,7 @@ export default function App() {
       <>
         <StartScreen
           errorMessage={startUploadError}
+          focusPrimaryAction={focusHomePrimaryActionRef.current}
           hasExistingWorkspace={hasEnteredEditor}
           isInert={isRigGalleryOpen || isDemoPickerOpen || Boolean(pendingRigId)}
           noticeMessage={appNotice?.message}

@@ -42,12 +42,6 @@ export function TopBar({
           data-hoppy-home-trigger
           type="button"
           onClick={onGoHome}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " " || event.code === "Space") {
-              event.preventDefault();
-              if (!event.repeat) onGoHome();
-            }
-          }}
         >
           <strong>Hoppy</strong>
         </button>
